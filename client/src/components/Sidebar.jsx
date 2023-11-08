@@ -10,17 +10,30 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import MailIcon from "@mui/icons-material/Mail";
-import MenuIcon from "@mui/icons-material/Menu";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
+import logo from "../assets/images/logo.png";
+
+let options = ["Thesis", "Applications", "Notifications"];
 
 function Sidebar(props) {
   const drawer = (
-    <div>
-      <Toolbar />
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+      }}
+    >
+      <Box
+        marginY={3}
+        sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+      >
+        <img src={logo} alt="PoliLogo" height={props.logoHeight} />
+      </Box>
       <Divider />
       <List>
-        {["Inbox", "Starred", "Send email", "Drafts"].map((text, index) => (
+        {options.map((text, index) => (
           <ListItem key={text} disablePadding>
             <ListItemButton>
               <ListItemIcon>
@@ -31,9 +44,8 @@ function Sidebar(props) {
           </ListItem>
         ))}
       </List>
-      <Divider />
-      <List>
-        {["All mail", "Trash", "Spam"].map((text, index) => (
+      <List sx={{ marginTop: "auto" }}>
+        {["Settings", "Logout"].map((text, index) => (
           <ListItem key={text} disablePadding>
             <ListItemButton>
               <ListItemIcon>
@@ -44,7 +56,7 @@ function Sidebar(props) {
           </ListItem>
         ))}
       </List>
-    </div>
+    </Box>
   );
 
   return (
@@ -60,7 +72,7 @@ function Sidebar(props) {
           open={props.mobileOpen}
           onClose={props.handleDrawerToggle}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
+            keepMounted: true,
           }}
           sx={{
             display: { xs: "block", sm: "none" },

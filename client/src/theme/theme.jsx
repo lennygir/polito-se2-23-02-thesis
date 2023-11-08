@@ -1,25 +1,20 @@
 import { amber, deepOrange, grey } from "@mui/material/colors";
 
-const theme = {
-  palette: {
-    primary: amber,
-  },
-};
-
 export const getDesignTokens = (mode) => ({
   palette: {
     mode,
     ...(mode === "light"
       ? {
+          // Light mode palette
           primary: {
             main: "#1e4aa2",
           },
           secondary: {
-            main: "ef6c00",
+            main: "#ef6c00",
           },
         }
-      : {}),
+      : {
+          // Dark mode palette
+        }),
   },
 });
-
-export default theme;

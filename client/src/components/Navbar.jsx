@@ -24,7 +24,7 @@ function Navbar(props) {
           <MenuIcon />
         </IconButton>
         <Typography variant="h6" noWrap component="div">
-          Responsive drawer
+          Logged in as student
         </Typography>
       </Toolbar>
     </AppBar>
