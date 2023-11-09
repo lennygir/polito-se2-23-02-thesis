@@ -1,6 +1,8 @@
-import CssBaseline from "@mui/material/CssBaseline";
+import dayjs from "dayjs";
+import { useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "@mui/material";
+import CssBaseline from "@mui/material/CssBaseline";
 import { useThemeContext } from "./theme/ThemeContextProvider";
 import RootPage from "./routes/RootPage";
 import ProposalsPage from "./routes/ProposalsPage";
@@ -23,13 +25,16 @@ function App() {
 }
 
 function Main() {
+  const [currentDate, setCurrentDate] = useState(dayjs().format("YYYY-MM-DD"));
+
   return (
     <Routes>
-      <Route path="/" element={<RootPage />}>
+      {/* prettier-ignore */}
+      <Route path="/" element={<RootPage currentDate={currentDate} />}>
         <Route path="proposals" element={<ProposalsPage />} />
         <Route path="applications" element={<ApplicationsPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
-        <Route path="settings" element={<SettingsPage />} />
+        <Route path="settings" element={<SettingsPage currentDate={currentDate} setCurrentDate={setCurrentDate}/>} />
         <Route path="*" element={<ErrorPage />} />
       </Route>
     </Routes>

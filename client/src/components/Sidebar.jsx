@@ -13,6 +13,7 @@ import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import logo from "../assets/images/logo.png";
 import { Link } from "react-router-dom";
+import { useThemeContext } from "../theme/ThemeContextProvider";
 
 const sidebarMainTabs = [
   {
@@ -51,6 +52,8 @@ const sidebarSecondaryTabs = [
 ];
 
 function Sidebar(props) {
+  const { mode } = useThemeContext();
+
   const drawer = (
     <Box
       sx={{
@@ -63,7 +66,14 @@ function Sidebar(props) {
         marginY={3}
         sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
       >
-        <img src={logo} alt="PoliLogo" height={props.logoHeight} />
+        <img
+          src={logo}
+          alt="PoliLogo"
+          style={{
+            filter: mode === "dark" ? "brightness(0) invert(1)" : "invert(0)",
+          }}
+          height={props.logoHeight}
+        />
       </Box>
       <Divider />
       <List>
