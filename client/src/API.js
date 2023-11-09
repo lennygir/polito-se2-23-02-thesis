@@ -1,7 +1,5 @@
 const SERVER_URL = 'http://localhost:3000/api';
 
-
-
 /**
  * A utility function for parsing the HTTP response.
  */
@@ -33,7 +31,7 @@ function getJson(httpResponsePromise) {
 }
 
 const logIn = async (credentials) => {
-    return getJson(fetch(SERVER_URL + '/sessions', {
+    return getJson(fetch(SERVER_URL + "/sessions", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -44,17 +42,8 @@ const logIn = async (credentials) => {
     )
   };
 
-  const logOut = async() => {
-    return getJson(fetch(SERVER_URL + '/sessions/current', {
-      method: 'DELETE',
-      credentials: 'include'  
-    })
-    )
-  }
-
   const API = {
     logIn,
-    logOut,
   };
   
   module.exports= API;

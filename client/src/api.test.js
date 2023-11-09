@@ -52,9 +52,3 @@ describe('Test the login', () => {
         }
     });
 });
-
-describe('Test the logout', () => {
-    test('logOut - shoul send a  ', async () => {
-            
-    });
-});
