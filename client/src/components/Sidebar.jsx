@@ -12,30 +12,41 @@ import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import logo from "../assets/images/logo.png";
+import { Link } from "react-router-dom";
 
-const sidebarMainOptions = [
+const sidebarMainTabs = [
   {
-    name: "Proposals",
-    icon: <SchoolRoundedIcon />,
+    id: "proposals",
+    label: "Proposals",
+    icon: <SchoolRoundedIcon color="primary" />,
+    path: "/proposals",
   },
   {
-    name: "Applications",
-    icon: <BookRoundedIcon />,
+    id: "applications",
+    label: "Applications",
+    icon: <BookRoundedIcon color="primary" />,
+    path: "/applications",
   },
   {
-    name: "Notifications",
-    icon: <EmailRoundedIcon />,
+    id: "notifications",
+    label: "Notifications",
+    icon: <EmailRoundedIcon color="primary" />,
+    path: "/notifications",
   },
 ];
 
-const sidebarSecondaryOptions = [
+const sidebarSecondaryTabs = [
   {
-    name: "Settings",
-    icon: <SettingsRoundedIcon />,
+    id: "settings",
+    label: "Settings",
+    icon: <SettingsRoundedIcon color="primary" />,
+    path: "/settings",
   },
   {
-    name: "Logout",
-    icon: <LogoutRoundedIcon />,
+    id: "logout",
+    label: "Logout",
+    icon: <LogoutRoundedIcon color="primary" />,
+    path: "/",
   },
 ];
 
@@ -56,25 +67,44 @@ function Sidebar(props) {
       </Box>
       <Divider />
       <List>
-        {sidebarMainOptions.map((option) => (
-          <ListItem key={option.name} disablePadding>
-            <ListItemButton>
-              <ListItemIcon>{option.icon}</ListItemIcon>
-              <ListItemText primary={option.name} />
+        {sidebarMainTabs.map((tab) => (
+          <ListItem key={tab.id} disablePadding>
+            <ListItemButton
+              component={Link}
+              to={tab.path}
+              selected={props.selectedTab === tab.id}
+              onClick={() => {
+                props.handleTabSelection(tab.id);
+                props.closeDrawer();
+              }}
+            >
+              <ListItemIcon>{tab.icon}</ListItemIcon>
+              <ListItemText primary={tab.label} />
             </ListItemButton>
           </ListItem>
         ))}
       </List>
-      <List sx={{ marginTop: "auto" }}>
-        {sidebarSecondaryOptions.map((option) => (
-          <ListItem key={option.name} disablePadding>
-            <ListItemButton>
-              <ListItemIcon>{option.icon}</ListItemIcon>
-              <ListItemText primary={option.name} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
+      <Box sx={{ marginTop: "auto" }}>
+        <Divider />
+        <List>
+          {sidebarSecondaryTabs.map((tab) => (
+            <ListItem key={tab.id} disablePadding>
+              <ListItemButton
+                component={Link}
+                to={tab.path}
+                selected={props.selectedTab === tab.id}
+                onClick={() => {
+                  props.handleTabSelection(tab.id);
+                  props.closeDrawer();
+                }}
+              >
+                <ListItemIcon>{tab.icon}</ListItemIcon>
+                <ListItemText primary={tab.label} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </Box>
     </Box>
   );
 

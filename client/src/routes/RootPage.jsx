@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import { useState } from "react";
 import Navbar from "../components/NavBar";
 import Sidebar from "../components/SideBar";
-import { Box, Toolbar } from "@mui/material";
+import Box from "@mui/material/Box";
 
 const drawerWidth = 240;
 const logoHeight = 70;
@@ -10,23 +10,36 @@ const navbarHeight = 65;
 
 function RootPage() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("proposals");
+
+  const closeDrawer = () => {
+    setMobileOpen(false);
+  };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  const handleTabSelection = (tabId) => {
+    setSelectedTab(tabId);
   };
 
   return (
     <div id="root-page">
       <Box sx={{ display: "flex" }}>
         <Navbar
+          selectedTab={selectedTab}
           drawerWidth={drawerWidth}
           handleDrawerToggle={handleDrawerToggle}
         />
         <Sidebar
+          selectedTab={selectedTab}
           logoHeight={logoHeight}
           drawerWidth={drawerWidth}
           mobileOpen={mobileOpen}
+          closeDrawer={closeDrawer}
           handleDrawerToggle={handleDrawerToggle}
+          handleTabSelection={handleTabSelection}
         />
         <Box
           component="main"
@@ -38,7 +51,6 @@ function RootPage() {
             marginTop: 8,
           }}
         >
-          <Toolbar />
           <Outlet />
         </Box>
       </Box>

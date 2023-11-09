@@ -17,4 +17,22 @@ export const getDesignTokens = (mode) => ({
           // Dark mode palette
         }),
   },
+  typography: {
+    fontFamily: ["Montserrat", "sans-serif"].join(","),
+  },
+  components: {
+    MuiButtonBase: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+    MuiListItemButton: {
+      styleOverrides: {
+        root: {
+          paddingLeft: 24,
+          paddingRight: 24,
+        },
+      },
+    },
+  },
 });
