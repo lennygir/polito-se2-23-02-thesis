@@ -1,6 +1,7 @@
 const SERVER_URL = 'http://localhost:3000/api';
 
 
+
 /**
  * A utility function for parsing the HTTP response.
  */
@@ -56,4 +57,4 @@ const logIn = async (credentials) => {
     logOut,
   };
   
-  export default API;
+  module.exports= API;
