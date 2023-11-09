@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { useState } from "react";
-import Navbar from "../components/NavBar";
-import Sidebar from "../components/SideBar";
+import Navbar from "../components/Navbar";
+import Sidebar from "../components/Sidebar";
 import Box from "@mui/material/Box";
 
 const drawerWidth = 240;
