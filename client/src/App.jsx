@@ -1,34 +1,38 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
+import CssBaseline from "@mui/material/CssBaseline";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { ThemeProvider } from "@mui/material";
+import { useThemeContext } from "./theme/ThemeContextProvider";
+import RootPage from "./routes/RootPage";
+import ProposalsPage from "./routes/ProposalsPage";
+import ApplicationsPage from "./routes/ApplicationsPage";
+import NotificationsPage from "./routes/NotificationsPage";
+import SettingsPage from "./routes/SettingsPage";
+import ErrorPage from "./routes/ErrorPage";
 
 function App() {
-  const [count, setCount] = useState(0);
+  const { theme } = useThemeContext();
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <BrowserRouter>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Main />
+      </ThemeProvider>
+    </BrowserRouter>
+  );
+}
+
+function Main() {
+  return (
+    <Routes>
+      <Route path="/" element={<RootPage />}>
+        <Route path="proposals" element={<ProposalsPage />} />
+        <Route path="applications" element={<ApplicationsPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="*" element={<ErrorPage />} />
+      </Route>
+    </Routes>
   );
 }
 
