@@ -42,6 +42,7 @@ function RootPage(props) {
           closeDrawer={closeDrawer}
           handleDrawerToggle={handleDrawerToggle}
           handleTabSelection={handleTabSelection}
+          logout={props.logout}
         />
         <Box
           component="main"

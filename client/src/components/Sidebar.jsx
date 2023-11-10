@@ -36,20 +36,18 @@ const sidebarMainTabs = [
   },
 ];
 
-const sidebarSecondaryTabs = [
-  {
-    id: "settings",
-    label: "Settings",
-    icon: <SettingsRoundedIcon color="primary" />,
-    path: "/settings",
-  },
-  {
-    id: "logout",
-    label: "Logout",
-    icon: <LogoutRoundedIcon color="primary" />,
-    path: "/",
-  },
-];
+const settingsTab = {
+  id: "settings",
+  label: "Settings",
+  icon: <SettingsRoundedIcon color="primary" />,
+  path: "/settings",
+};
+
+const logoutTab = {
+  id: "logout",
+  label: "Logout",
+  icon: <LogoutRoundedIcon color="primary" />,
+};
 
 function Sidebar(props) {
   const { mode } = useThemeContext();
@@ -97,22 +95,33 @@ function Sidebar(props) {
       <Box sx={{ marginTop: "auto" }}>
         <Divider />
         <List>
-          {sidebarSecondaryTabs.map((tab) => (
-            <ListItem key={tab.id} disablePadding>
-              <ListItemButton
-                component={Link}
-                to={tab.path}
-                selected={props.selectedTab === tab.id}
-                onClick={() => {
-                  props.handleTabSelection(tab.id);
-                  props.closeDrawer();
-                }}
-              >
-                <ListItemIcon>{tab.icon}</ListItemIcon>
-                <ListItemText primary={tab.label} />
-              </ListItemButton>
-            </ListItem>
-          ))}
+          <ListItem key={settingsTab.id} disablePadding>
+            <ListItemButton
+              component={Link}
+              to={settingsTab.path}
+              selected={props.selectedTab === settingsTab.id}
+              onClick={() => {
+                props.handleTabSelection(settingsTab.id);
+                props.closeDrawer();
+              }}
+            >
+              <ListItemIcon>{settingsTab.icon}</ListItemIcon>
+              <ListItemText primary={settingsTab.label} />
+            </ListItemButton>
+          </ListItem>
+          <ListItem key={logoutTab.id} disablePadding>
+            <ListItemButton
+              selected={props.selectedTab === logoutTab.id}
+              onClick={() => {
+                props.handleTabSelection(logoutTab.id);
+                props.closeDrawer();
+                props.logout();
+              }}
+            >
+              <ListItemIcon>{logoutTab.icon}</ListItemIcon>
+              <ListItemText primary={logoutTab.label} />
+            </ListItemButton>
+          </ListItem>
         </List>
       </Box>
     </Box>
