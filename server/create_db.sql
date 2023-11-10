@@ -6,12 +6,21 @@ PRAGMA INTEGRITY_CHECK;
 
 
 -- Create the new database
-ATTACH DATABASE '/Users/lucatortore/Downloads/polito-se2-23-02-bc427ff623b6d9683c3c68b01f718e43c07ebc1a/polito-se2-23-02-thesis/server/cmsmall.db' AS new_db;
+ATTACH DATABASE './thesis_managment.db' AS new_db;
 
 -- Create the Departments table
 CREATE TABLE IF NOT EXISTS new_db.Degree (
     cod_degree INTEGER PRIMARY KEY,
     title_degree TEXT
+);
+
+CREATE TABLE IF NOT EXISTS new_db.Career (
+    id INTEGER PRIMARY KEY,
+    cod_course TEXT,
+    title_course TEXT,
+    cfu INTEGER,
+    grade INTEGER,
+    date DATE
 );
 
 CREATE TABLE IF NOT EXISTS new_db.Departments (
