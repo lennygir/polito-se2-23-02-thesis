@@ -198,7 +198,7 @@ VALUES
 ('s319823', 'QR67890', 'Data Structures and Algorithms', 7, 25, '2022-11-12'),
 ('s223456', 'ST12345', 'Power Systems Analysis', 9, 28, '2021-07-30'),
 ('s308920', 'UV67890', 'Engineering Project Management', 8, 26, '2022-01-18'),
-('s111111', 'WX12345', 'Robotics and Automation', 10, 30, '2021-11-05'),
+('s309618', 'WX12345', 'Robotics and Automation', 10, 30, '2021-11-05'),
 ('s319823', 'YZ67890', 'Computer Networks', 8, 23, '2022-09-25'),
 ('s308747', 'BC12345', 'Advanced Programming Techniques', 7, 27, '2022-03-15'),
 ('s309618', 'DE67890', 'Machine Learning Fundamentals', 9, 28, '2021-08-22'),
