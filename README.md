@@ -1,5 +1,44 @@
 # Theses Management System
 
+## Run in production
+
+### Prerequisites
+
+- Docker
+
+### Run
+
+You can either retrieve the image from the docker hub either build it yourself.
+
+```bash
+
+# Build the docker image 
+docker build -t polito-thesis .
+
+# Retrieve the image from the docker hub
+docker pull <TODO>/polito-thesis
+
+```
+
+Once you have the image locally you can run it with the following command:
+
+```bash
+
+docker run -p 80:80 --name polito-thesis polito-thesis
+
+```
+
+and stop it with:
+
+```bash
+
+docker stop polito-thesis
+docker rm polito-thesis
+
+```
+
+Once the docker container is running you can access the application using [localhost:80](http://localhost:80).
+
 ## React Client Application Routes
 
 - Route `/`: login page
