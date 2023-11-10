@@ -13,6 +13,7 @@ import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import logo from "../assets/images/logo.png";
 import { Link } from "react-router-dom";
+import { useThemeContext } from "../theme/ThemeContextProvider";
 
 const sidebarMainTabs = [
   {
@@ -35,22 +36,22 @@ const sidebarMainTabs = [
   },
 ];
 
-const sidebarSecondaryTabs = [
-  {
-    id: "settings",
-    label: "Settings",
-    icon: <SettingsRoundedIcon color="primary" />,
-    path: "/settings",
-  },
-  {
-    id: "logout",
-    label: "Logout",
-    icon: <LogoutRoundedIcon color="primary" />,
-    path: "/",
-  },
-];
+const settingsTab = {
+  id: "settings",
+  label: "Settings",
+  icon: <SettingsRoundedIcon color="primary" />,
+  path: "/settings",
+};
+
+const logoutTab = {
+  id: "logout",
+  label: "Logout",
+  icon: <LogoutRoundedIcon color="primary" />,
+};
 
 function Sidebar(props) {
+  const { mode } = useThemeContext();
+
   const drawer = (
     <Box
       sx={{
@@ -63,7 +64,14 @@ function Sidebar(props) {
         marginY={3}
         sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
       >
-        <img src={logo} alt="PoliLogo" height={props.logoHeight} />
+        <img
+          src={logo}
+          alt="PoliLogo"
+          style={{
+            filter: mode === "dark" ? "brightness(0) invert(1)" : "invert(0)",
+          }}
+          height={props.logoHeight}
+        />
       </Box>
       <Divider />
       <List>
@@ -87,22 +95,33 @@ function Sidebar(props) {
       <Box sx={{ marginTop: "auto" }}>
         <Divider />
         <List>
-          {sidebarSecondaryTabs.map((tab) => (
-            <ListItem key={tab.id} disablePadding>
-              <ListItemButton
-                component={Link}
-                to={tab.path}
-                selected={props.selectedTab === tab.id}
-                onClick={() => {
-                  props.handleTabSelection(tab.id);
-                  props.closeDrawer();
-                }}
-              >
-                <ListItemIcon>{tab.icon}</ListItemIcon>
-                <ListItemText primary={tab.label} />
-              </ListItemButton>
-            </ListItem>
-          ))}
+          <ListItem key={settingsTab.id} disablePadding>
+            <ListItemButton
+              component={Link}
+              to={settingsTab.path}
+              selected={props.selectedTab === settingsTab.id}
+              onClick={() => {
+                props.handleTabSelection(settingsTab.id);
+                props.closeDrawer();
+              }}
+            >
+              <ListItemIcon>{settingsTab.icon}</ListItemIcon>
+              <ListItemText primary={settingsTab.label} />
+            </ListItemButton>
+          </ListItem>
+          <ListItem key={logoutTab.id} disablePadding>
+            <ListItemButton
+              selected={props.selectedTab === logoutTab.id}
+              onClick={() => {
+                props.handleTabSelection(logoutTab.id);
+                props.closeDrawer();
+                props.logout();
+              }}
+            >
+              <ListItemIcon>{logoutTab.icon}</ListItemIcon>
+              <ListItemText primary={logoutTab.label} />
+            </ListItemButton>
+          </ListItem>
         </List>
       </Box>
     </Box>

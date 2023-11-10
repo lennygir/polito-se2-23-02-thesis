@@ -15,6 +15,12 @@ export const getDesignTokens = (mode) => ({
         }
       : {
           // Dark mode palette
+          primary: {
+            main: "#ef6c00",
+          },
+          secondary: {
+            main: "#1e4aa2",
+          },
         }),
   },
   typography: {

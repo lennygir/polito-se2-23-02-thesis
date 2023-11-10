@@ -8,7 +8,7 @@ const drawerWidth = 240;
 const logoHeight = 70;
 const navbarHeight = 65;
 
-function RootPage() {
+function RootPage(props) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState("proposals");
 
@@ -31,6 +31,8 @@ function RootPage() {
           selectedTab={selectedTab}
           drawerWidth={drawerWidth}
           handleDrawerToggle={handleDrawerToggle}
+          handleTabSelection={handleTabSelection}
+          currentDate={props.currentDate}
         />
         <Sidebar
           selectedTab={selectedTab}
@@ -40,6 +42,7 @@ function RootPage() {
           closeDrawer={closeDrawer}
           handleDrawerToggle={handleDrawerToggle}
           handleTabSelection={handleTabSelection}
+          logout={props.logout}
         />
         <Box
           component="main"

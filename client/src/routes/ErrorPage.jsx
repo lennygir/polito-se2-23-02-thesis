@@ -1,37 +1,61 @@
-import { Box, Button, Grid, Typography } from "@mui/material";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Container from "@mui/material/Container";
+import Typography from "@mui/material/Typography";
 import { Link } from "react-router-dom";
+import { useThemeContext } from "../theme/ThemeContextProvider";
+import logo from "../assets/images/logo.png";
 
 function ErrorPage() {
+  const { mode } = useThemeContext();
   return (
-    <Grid
-      container
-      direction="column"
-      justifyContent="center"
-      alignItems="center"
-    >
-      <Typography
-        component="h1"
-        variant="h2"
-        align="center"
-        color="text.primary"
-        gutterBottom
-      >
-        Oops...
-      </Typography>
-      <Typography
-        variant="h5"
-        align="center"
-        color="text.secondary"
-        component="p"
-      >
-        This is not the route you're looking for.
-      </Typography>
-      <Box marginTop={4}>
-        <Link to="/">
-          <Button variant="contained">Go back</Button>
-        </Link>
-      </Box>
-    </Grid>
+    <div id="error-page">
+      <Container maxWidth="md">
+        <Box
+          sx={{
+            marginTop: 8,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Box marginBottom={4}>
+            <img
+              src={logo}
+              alt="PoliLogo"
+              style={{
+                filter:
+                  mode === "dark" ? "brightness(0) invert(1)" : "invert(0)",
+              }}
+              height={100}
+            />
+          </Box>
+          <Typography
+            component="h1"
+            variant="h2"
+            align="center"
+            color="text.primary"
+            gutterBottom
+          >
+            Oops...
+          </Typography>
+          <Typography
+            variant="h5"
+            align="center"
+            color="text.secondary"
+            component="p"
+          >
+            This is not the route you're looking for.
+          </Typography>
+          <Box marginTop={4}>
+            <Link to="/">
+              <Button variant="contained">Go back</Button>
+            </Link>
+          </Box>
+        </Box>
+      </Container>
+    </div>
   );
 }
 
