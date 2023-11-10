@@ -186,14 +186,40 @@ VALUES  ('s123456', 'Torchiano', 'Marco', 'marco.torchiano@polito.it', 'SOFTENG'
         ('s328382', 'Millo', 'Federico', 'federico.millo@polito.it', 'E3', 'DENERG');
 
 INSERT INTO CAREER (id, cod_course, title_course, cfu, grade, date)
-VALUES  ('s319823', 'AB12345', 'Introduction to Computer Science', 6, 28, '2022-05-15'),
-        ('s223456', 'CD67890', 'Electrical Circuits and Systems', 9, 24, '2021-12-10'),
-        ('s308747', 'EF98765', 'Mechanics of Materials', 8, 27, '2022-08-20'),
-        ('s319823', 'GH54321', 'Thermodynamics', 7, 22, '2022-02-28'),
-        ('s308747', 'IJ67890', 'Digital Signal Processing', 12, 30, '2021-10-05'),
-        ('s223456', 'KL12345', 'Fluid Mechanics', 10, 26, '2022-06-08'),
-        ('s308920', 'MN67890', 'Engineering Ethics', 6, 20, '2021-09-15'),
-        ('s309618', 'OP12345', 'Control Systems', 11, 29, '2022-04-02');
+VALUES 
+('s319823', 'AB12345', 'Introduction to Computer Science', 6, 28, '2022-05-15'),
+('s223456', 'CD67890', 'Electrical Circuits and Systems', 9, 24, '2021-12-10'),
+('s308747', 'EF98765', 'Mechanics of Materials', 8, 27, '2022-08-20'),
+('s319823', 'GH54321', 'Thermodynamics', 7, 22, '2022-02-28'),
+('s308747', 'IJ67890', 'Digital Signal Processing', 12, 30, '2021-10-05'),
+('s223456', 'KL12345', 'Fluid Mechanics', 10, 26, '2022-06-08'),
+('s308920', 'MN67890', 'Engineering Ethics', 6, 20, '2021-09-15'),
+('s309618', 'OP12345', 'Control Systems', 11, 29, '2022-04-02'),
+('s319823', 'QR67890', 'Data Structures and Algorithms', 7, 25, '2022-11-12'),
+('s223456', 'ST12345', 'Power Systems Analysis', 9, 28, '2021-07-30'),
+('s308920', 'UV67890', 'Engineering Project Management', 8, 26, '2022-01-18'),
+('s111111', 'WX12345', 'Robotics and Automation', 10, 30, '2021-11-05'),
+('s319823', 'YZ67890', 'Computer Networks', 8, 23, '2022-09-25'),
+('s308747', 'BC12345', 'Advanced Programming Techniques', 7, 27, '2022-03-15'),
+('s309618', 'DE67890', 'Machine Learning Fundamentals', 9, 28, '2021-08-22'),
+('s319823', 'FG12345', 'Database Management Systems', 8, 25, '2022-07-12'),
+('s223456', 'HI67890', 'Communication Systems', 10, 29, '2021-06-01'),
+('s308920', 'JK12345', 'Software Engineering Principles', 7, 24, '2022-10-08'),
+('s309618', 'LM67890', 'Human-Computer Interaction', 9, 26, '2021-05-19'),
+('s319823', 'NO12345', 'Artificial Intelligence', 11, 30, '2022-12-30'),
+('s308747', 'PQ12345', 'Network Security', 8, 25, '2022-04-15'),
+('s309618', 'RS67890', 'Embedded Systems Design', 10, 28, '2021-09-08'),
+('s319823', 'TU12345', 'Operating Systems', 7, 22, '2022-01-30'),
+('s223456', 'UV67890', 'Circuit Design', 9, 27, '2021-08-18'),
+('s308920', 'WX12345', 'Computer Architecture', 8, 26, '2022-06-05'),
+('s309618', 'YZ67890', 'Software Testing and Quality Assurance', 10, 29, '2021-12-22'),
+('s319823', 'BC12345', 'Web Development Fundamentals', 8, 23, '2022-10-28'),
+('s308747', 'DE67890', 'Natural Language Processing', 7, 27, '2022-02-12'),
+('s309618', 'FG12345', 'Parallel and Distributed Computing', 9, 28, '2021-07-03'),
+('s319823', 'HI67890', 'Computer Graphics', 8, 25, '2022-09-18');
+
+
+
 
 INSERT INTO Proposals (id, title, supervisor, co_supervisors, keywords, type ,`groups`, description, required_knowledge, notes, expiration_date ,level, cds)
 VALUES  (1, 'Gamification di attività di modellazione UML', 's123456', 's345678', 'GAMIFICATION, SOFTWARE ENGINEERING, SOFTWARE QUALITY, UML', 'RESEARCH', 'SOFTENG', 'La gamification è definita come l applicazione di elementi tipici dei videogiochi (punteggi, competizione con altri utenti, regole di gioco, ecc.) a qualsiasi altra attività, in modo da incrementare il coinvolgimento e le prestazioni degli utenti coinvolti. Lobiettivo della tesi è lapplicazione di caratteristiche tipiche della gamification alla pratica della modellazione UML, e la valutazione dei benefici derivanti. La tesi consisterà nello sviluppo di una piattaforma con funzionalità di gaming competitivo della costruzione di diagrammi delle classi UML. I meccanismi di gamification dovranno premiare diversi aspetti di qualità del modello costruito, quali completezza, correttezza, coerenza, minimalità e leggibilità. Il sistema dovrà prevedere funzionalità di mantenimento dello storico dei punteggi, e di visualizzazione della classifica corrente dei giocatori.', 'UML Modeling, Java', NULL, '2023-12-18', 'MSC', 'LM-32 (DM270)'),
