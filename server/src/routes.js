@@ -13,9 +13,10 @@ router.get("/api", (req, res) => {
 
 // login endpoint
 /*
+    body:
     {
-        "user": "s123456",
-        "password": "password"
+        "email": "s123456@studenti.polito.it",
+        "password": "s123456"
     }
     returns
     if user is a student: {
