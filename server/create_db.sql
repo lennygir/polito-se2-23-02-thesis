@@ -1,14 +1,14 @@
 -- TO RUN THIS SCRIPT:
 -- inside /server: npm install sqlite3
--- sqlite3 polito-original.db < createDB.sql
+-- sqlite3 polito-original.db < create_db.sql
 
 -- Destruction of the old tables if they exist
 DROP TABLE IF EXISTS STUDENT;
 DROP TABLE IF EXISTS TEACHER;
 DROP TABLE IF EXISTS DEGREE;
 DROP TABLE IF EXISTS CAREER;
-DROP TABLE IF EXISTS DEPARTMENT;
-DROP TABLE IF EXISTS `GROUPS`;
+DROP TABLE IF EXISTS DEPARTMENTS;
+DROP TABLE IF EXISTS GROUPS;
 DROP TABLE IF EXISTS PROPOSALS;
 DROP TABLE IF EXISTS APPLICATIONS;
 DROP TABLE IF EXISTS USERS;
@@ -18,12 +18,12 @@ CREATE TABLE IF NOT EXISTS DEGREE (
   title_degree TEXT
 );
 
-CREATE TABLE IF NOT EXISTS DEPARTMENT ( 
+CREATE TABLE IF NOT EXISTS DEPARTMENTS (
   cod_department TEXT PRIMARY KEY,
   name_department TEXT 
 );
 
-CREATE TABLE IF NOT EXISTS `GROUPS` ( 
+CREATE TABLE IF NOT EXISTS GROUPS ( 
   cod_group TEXT PRIMARY KEY,
   name_group TEXT,
   cod_department TEXT,
@@ -39,11 +39,11 @@ CREATE TABLE IF NOT EXISTS STUDENT (
   email TEXT NOT NULL UNIQUE,
   cod_degree TEXT, 
   enrollment_year YEAR,
-  FOREIGN KEY(cod_degree) REFERENCES DEGREE(cod_degree)
+  FOREIGN KEY (cod_degree) REFERENCES DEGREE(cod_degree)
 );
 
 CREATE TABLE IF NOT EXISTS CAREER ( 
-  id TEXT ,
+  id TEXT,
   cod_course TEXT,
   title_course TEXT,
   cfu INTEGER,
@@ -51,7 +51,6 @@ CREATE TABLE IF NOT EXISTS CAREER (
   date DATE,
   PRIMARY KEY (id, cod_course),
   FOREIGN KEY (id) REFERENCES STUDENT (id)
-
 );
 
 CREATE TABLE IF NOT EXISTS TEACHER (
@@ -68,8 +67,8 @@ CREATE TABLE IF NOT EXISTS TEACHER (
 CREATE TABLE IF NOT EXISTS PROPOSALS (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT,
-  supervisor TEXT, -- is the professor
-  co_supervisors TEXT, -- in the specifications it's said to be plural, so there can be multiple co-supervisors
+  supervisor TEXT,
+  co_supervisors TEXT,
   keywords TEXT,
   type TEXT,
   groups TEXT,
@@ -81,7 +80,6 @@ CREATE TABLE IF NOT EXISTS PROPOSALS (
   cds TEXT,
   FOREIGN KEY (supervisor) REFERENCES TEACHER (id),
   FOREIGN KEY (cds) REFERENCES DEGREE (cod_degree)
-  -- you cannot reference the co_supervisors because there can be many and they can be also external people
 );
 
 CREATE TABLE IF NOT EXISTS APPLICATIONS (
@@ -117,7 +115,7 @@ VALUES  ('LM-32 (DM270)', 'Computer Engineering'),
         ('LM-20 (DM270)', 'Aerospace Engineering'),
         ('LM-04 (DM270)', 'Architecture');
 
-INSERT INTO DEPARTMENT (cod_department, name_department)
+INSERT INTO DEPARTMENTS (cod_department, name_department)
 VALUES  ('DAUIN', 'Departments of Control and Computer Engineering'),
         ('DET', 'Departments of Electronics and Telecommunications'),
         ('DENERG', 'Departments of Energetical Engineering'),
@@ -126,7 +124,7 @@ VALUES  ('DAUIN', 'Departments of Control and Computer Engineering'),
         ('DIMEAS', 'Departments of Mechanical and Aerospace Engineering'),
         ('DAD', 'Departments of Architecture and Design');
 
-INSERT INTO `GROUPS` (cod_group, name_group, cod_department)
+INSERT INTO GROUPS (cod_group, name_group, cod_department)
 VALUES  ('ELITE', 'Intelligent and Interactive Systems', 'DAUIN'),
         ('SOFTENG', 'Software Engineering Group', 'DAUIN'),
         ('TORSEC', 'Security Group', 'DAUIN'),
@@ -150,14 +148,7 @@ VALUES
         ('s309618', 'Bertetto', 'Lorenzo', 'Male', 'Italy', 's309618@studenti.polito.it', 'LM-32 (DM270)', 2022),
         ('s317743', 'Baracco', 'Francesco', 'Male', 'Italy', 's317743@studenti.polito.it', 'LM-32 (DM270)', 2022),
         ('s321503', 'Girardot', 'Lenny', 'Male', 'France', 's321503@studenti.polito.it', 'LM-32 (DM270)', 2023),
-        ('s308920', 'Ghorbani', 'Ghazal', 'Female', 'Iran', 's308920@studenti.polito.it', 'LM-32 (DM270)', 2023),
-        ('s123456', 'Rossi', 'Mario', 'Male', 'Italy', 's123456@studenti.polito.it', 'LM-32 (DM270)', 2023),
-        ('s223456', 'Smith', 'John', 'Male', 'England', 's223456@studenti.polito.it', 'LM-23 (DM270)', 2023),
-        ('s323456', 'Lagrange', 'Sophia', 'Female', 'USA', 's323456@studenti.polito.it', 'LM-33 (DM270)', 2023),
-        ('s423456', 'Ulfstain', 'Karl', 'Male', 'Germany', 's423456@studenti.polito.it', 'LM-25 (DM270)', 2022),
-        ('s523456', 'Wang', 'Wei', 'Male', 'China', 's523456@studenti.polito.it', 'LM-29 (DM270)', 2022),
-        ('s623456', 'Phuaviach', 'Ariel', 'Male', 'Poland', 's623456@studenti.polito.it', 'LM-22 (DM270)', 2022),
-        ('s723456', 'McScrooge', 'Lisa', 'Female', 'England', 's723456@studenti.polito.it', 'LM-20 (DM270)', 2023);
+        ('s308920', 'Ghorbani', 'Ghazal', 'Female', 'Iran', 's308920@studenti.polito.it', 'LM-32 (DM270)', 2023);
 
 INSERT INTO TEACHER (id, surname, name, email, cod_group, cod_department)
 VALUES  ('s123456', 'Torchiano', 'Marco', 'marco.torchiano@polito.it', 'SOFTENG', 'DAUIN'),
@@ -186,42 +177,33 @@ VALUES  ('s123456', 'Torchiano', 'Marco', 'marco.torchiano@polito.it', 'SOFTENG'
         ('s328382', 'Millo', 'Federico', 'federico.millo@polito.it', 'E3', 'DENERG');
 
 INSERT INTO CAREER (id, cod_course, title_course, cfu, grade, date)
-VALUES 
-('s319823', 'AB12345', 'Introduction to Computer Science', 6, 28, '2022-05-15'),
-('s223456', 'CD67890', 'Electrical Circuits and Systems', 9, 24, '2021-12-10'),
-('s308747', 'EF98765', 'Mechanics of Materials', 8, 27, '2022-08-20'),
-('s319823', 'GH54321', 'Thermodynamics', 7, 22, '2022-02-28'),
-('s308747', 'IJ67890', 'Digital Signal Processing', 12, 30, '2021-10-05'),
-('s223456', 'KL12345', 'Fluid Mechanics', 10, 26, '2022-06-08'),
-('s308920', 'MN67890', 'Engineering Ethics', 6, 20, '2021-09-15'),
-('s309618', 'OP12345', 'Control Systems', 11, 29, '2022-04-02'),
-('s319823', 'QR67890', 'Data Structures and Algorithms', 7, 25, '2022-11-12'),
-('s223456', 'ST12345', 'Power Systems Analysis', 9, 28, '2021-07-30'),
-('s308920', 'UV67890', 'Engineering Project Management', 8, 26, '2022-01-18'),
-('s309618', 'WX12345', 'Robotics and Automation', 10, 30, '2021-11-05'),
-('s319823', 'YZ67890', 'Computer Networks', 8, 23, '2022-09-25'),
-('s308747', 'BC12345', 'Advanced Programming Techniques', 7, 27, '2022-03-15'),
-('s309618', 'DE67890', 'Machine Learning Fundamentals', 9, 28, '2021-08-22'),
-('s319823', 'FG12345', 'Database Management Systems', 8, 25, '2022-07-12'),
-('s223456', 'HI67890', 'Communication Systems', 10, 29, '2021-06-01'),
-('s308920', 'JK12345', 'Software Engineering Principles', 7, 24, '2022-10-08'),
-('s309618', 'LM67890', 'Human-Computer Interaction', 9, 26, '2021-05-19'),
-('s319823', 'NO12345', 'Artificial Intelligence', 11, 30, '2022-12-30'),
-('s308747', 'PQ12345', 'Network Security', 8, 25, '2022-04-15'),
-('s309618', 'RS67890', 'Embedded Systems Design', 10, 28, '2021-09-08'),
-('s319823', 'TU12345', 'Operating Systems', 7, 22, '2022-01-30'),
-('s223456', 'UV67890', 'Circuit Design', 9, 27, '2021-08-18'),
-('s308920', 'WX12345', 'Computer Architecture', 8, 26, '2022-06-05'),
-('s309618', 'YZ67890', 'Software Testing and Quality Assurance', 10, 29, '2021-12-22'),
-('s319823', 'BC12345', 'Web Development Fundamentals', 8, 23, '2022-10-28'),
-('s308747', 'DE67890', 'Natural Language Processing', 7, 27, '2022-02-12'),
-('s309618', 'FG12345', 'Parallel and Distributed Computing', 9, 28, '2021-07-03'),
-('s319823', 'HI67890', 'Computer Graphics', 8, 25, '2022-09-18');
+VALUES  ('s319823', 'AB12345', 'Introduction to Computer Science', 6, 28, '2022-05-15'),
+        ('s308747', 'AB12345', 'Introduction to Computer Science', 6, 28, '2022-05-15'),
+        ('s317743', 'AB12345', 'Introduction to Computer Science', 6, 28, '2022-05-15'),
+        ('s309618', 'CD67890', 'Electrical Circuits and Systems', 9, 24, '2021-12-10'),
+        ('s319823', 'CD67890', 'Electrical Circuits and Systems', 9, 24, '2021-12-10'),
+        ('s319823', 'EF98765', 'Mechanics of Materials', 8, 27, '2022-08-20'),
+        ('s308920', 'EF98765', 'Mechanics of Materials', 8, 27, '2022-08-20'),
+        ('s308747', 'GH54321', 'Thermodynamics', 7, 22, '2022-02-28'),
+        ('s317743', 'GH54321', 'Thermodynamics', 7, 22, '2022-02-28'),
+        ('s321503', 'GH54321', 'Thermodynamics', 7, 22, '2022-02-28'),
+        ('s308747', 'IJ67890', 'Digital Signal Processing', 12, 30, '2021-10-05'),
+        ('s319823', 'IJ67890', 'Digital Signal Processing', 12, 30, '2021-10-05'),
+        ('s308747', 'KL12345', 'Fluid Mechanics', 10, 26, '2022-06-08'),
+        ('s309618', 'MN67890', 'Engineering Ethics', 6, 20, '2021-09-15'),
+        ('s321503', 'OP12345', 'Control Systems', 11, 29, '2022-04-02'),
+        ('s309618', 'OP12345', 'Control Systems', 11, 29, '2022-04-02'),
+        ('s321503', 'QR67890', 'Data Structures and Algorithms', 7, 25, '2022-11-12'),
+        ('s309618', 'QR67890', 'Data Structures and Algorithms', 7, 25, '2022-11-12'),
+        ('s308747', 'QR67890', 'Data Structures and Algorithms', 7, 25, '2022-11-12'),
+        ('s317743', 'ST12345', 'Power Systems Analysis', 9, 28, '2021-07-30'),
+        ('s308920', 'ST12345', 'Power Systems Analysis', 9, 28, '2021-07-30'),
+        ('s309618', 'UV67890', 'Engineering Project Management', 8, 26, '2022-01-18'),
+        ('s308920', 'UV67890', 'Engineering Project Management', 8, 26, '2022-01-18');
 
 
 
-
-INSERT INTO Proposals (id, title, supervisor, co_supervisors, keywords, type ,`groups`, description, required_knowledge, notes, expiration_date ,level, cds)
+INSERT INTO PROPOSALS (id, title, supervisor, co_supervisors, keywords, type ,`groups`, description, required_knowledge, notes, expiration_date ,level, cds)
 VALUES  (1, 'Gamification di attività di modellazione UML', 's123456', 's345678', 'GAMIFICATION, SOFTWARE ENGINEERING, SOFTWARE QUALITY, UML', 'RESEARCH', 'SOFTENG', 'La gamification è definita come l applicazione di elementi tipici dei videogiochi (punteggi, competizione con altri utenti, regole di gioco, ecc.) a qualsiasi altra attività, in modo da incrementare il coinvolgimento e le prestazioni degli utenti coinvolti. Lobiettivo della tesi è lapplicazione di caratteristiche tipiche della gamification alla pratica della modellazione UML, e la valutazione dei benefici derivanti. La tesi consisterà nello sviluppo di una piattaforma con funzionalità di gaming competitivo della costruzione di diagrammi delle classi UML. I meccanismi di gamification dovranno premiare diversi aspetti di qualità del modello costruito, quali completezza, correttezza, coerenza, minimalità e leggibilità. Il sistema dovrà prevedere funzionalità di mantenimento dello storico dei punteggi, e di visualizzazione della classifica corrente dei giocatori.', 'UML Modeling, Java', NULL, '2023-12-18', 'MSC', 'LM-32 (DM270)'),
         (2, 'Analisi empirica dei difetti in R Markdown', 's123456', 's122349, s298399', 'MARKDOWN, DEVELOP' ,'RESEARCH', 'SOFTENG', 'I file R Markdown sono adottati ampiamente per lo sviluppo iterativo di workflow di analisi e visualizzazione dei dati. Laffidabilità dei risultati e la possibilità di riutilizzare le analisi dipendono pesantemente dalla correttezza dei file Rmd. Obiettivo della tesi è quello di analizzare file Rmd disponibili in repository pubblici e identificare e classificare i difetti.', 'Linguaggio R, Ambiente R Studio', NULL, '2023-12-28', 'MSC', 'LM-32 (DM270)'),
         (3, 'Data-centric AI: Dataset augmentation techniques for bias and data quality improvement', 's123456', 's940590', 'AI' ,'COMPANY, EXPERIMENTAL, RESEARCH', 'SOFTENG, ELITE', 'Clearbox AI Control Room has a feature to generate synthetic datasets for dataset augmentation. The thesis work is focused on the experimentation of techniques that can help detect bias in the original datasets and mitigate them by augmenting the original dataset using synthetic points. The project will require identifying the types of bias within a dataset and identifying intervention mechanisms to remove the bias using synthetic data generation methods. Clearbox AI is an innovative SME, incubated in I3P, winner of the National Innovation Award (PNI 2019) in the ICT category and the EU Seal of Excellence awarded by the European Commission. Clearbox AI is developing a unique and innovative technology ("AI Control Room"), which allows putting into production artificial intelligence models that are robust, explainable and monitorable over time.', 'Good programming skills and basic knowledge of common data analytics tools and techniques. Grade point average equal to or higher than 26 will play a relevant role in the selection.', NULL, '2023-11-30', 'MSC', 'LM-32 (DM270)'),
