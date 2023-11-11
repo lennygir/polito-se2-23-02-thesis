@@ -33,7 +33,7 @@ function ProposalForm(props) {
 
   const [formData, setFormData] = useState({
     title: "",
-    supervisor: user ? user.name : "",
+    supervisor: user ? user.email : "",
     coSupervisors: [],
     externalCoSupervisors: "",
     expirationDate: dayjs().format("YYYY-MM-DD"),

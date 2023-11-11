@@ -19,6 +19,7 @@ import SettingsPage from "./routes/SettingsPage";
 import ErrorPage from "./routes/ErrorPage";
 import UserContext from "./contexts/UserContext";
 import LoginPage from "./routes/LoginPage";
+import API from "./API";
 
 function App() {
   const { theme } = useThemeContext();
@@ -43,13 +44,15 @@ function Main() {
   const [cds, setCds] = useState([]);
 
   const handleLogin = (credentials) => {
-    // TODO: Call login API
-    setUser({ name: "Mario Rossi", role: "professor" });
-    navigate("/proposals");
+    API.logIn(credentials)
+      .then((user) => {
+        setUser(user);
+        navigate("/proposals");
+      })
+      .catch((err) => console.log(err));
   };
 
   const handleLogout = () => {
-    // TODO: Call logout API
     setUser(undefined);
     navigate("/");
   };
