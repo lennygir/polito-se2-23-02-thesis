@@ -87,9 +87,11 @@ function LoginPage(props) {
             component="form"
             onSubmit={handleSubmit}
             noValidate
+            autoComplete="on"
             sx={{ mt: 1 }}
           >
             <TextField
+              autoComplete="on"
               margin="normal"
               required
               fullWidth
@@ -106,6 +108,7 @@ function LoginPage(props) {
               helperText={emailError}
             />
             <TextField
+              autoComplete="on"
               margin="normal"
               required
               fullWidth
@@ -120,10 +123,6 @@ function LoginPage(props) {
                 setPasswordError("");
               }}
               helperText={passwordError}
-            />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
             />
             <Button
               type="submit"

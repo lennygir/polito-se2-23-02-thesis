@@ -2,9 +2,13 @@
 
 ## React Client Application Routes
 
-- Route `/`: page content and purpose
-- Route `/something/:param`: page content and purpose, param specification
-- ...
+- Route `/`: login page
+- Route `/proposals`: students see the list of proposals for their cds, teachers see the list of their proposals
+- Route `/add-propsal`: teachers can create a new proposal
+- Route `/applications`: students see the list of their applications, teachers see the list of applications to their proposals
+- Route `/notifications`: students and teachers see the list of notifications related to the proposals/applications
+- Route `/settings`: users can change the theme and the current date
+- Route `*`: non-existing routes view
 
 ## API Server
 
