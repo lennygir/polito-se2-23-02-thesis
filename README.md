@@ -12,9 +12,14 @@
 
 ## API Server
 
-- POST `/api/login`
-  - request parameters and request body content
-  - response body content
+- POST `/api/sessions`
+  - request body content example
+  ```
+  {
+    "email": "s309618@studenti.polito.it",
+    "password": "s309618"
+  }
+  ```
 - GET `/api/something`
   - request parameters
   - response body content
@@ -25,7 +30,7 @@
 
 ## Database Tables
 
-- Table `users` - contains xx yy zz
+- Table `users` - contains [email, password]
 - Table `something` - contains ww qq ss
 - ...
 
