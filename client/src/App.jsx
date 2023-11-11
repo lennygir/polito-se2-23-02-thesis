@@ -1,34 +1,62 @@
+import dayjs from "dayjs";
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
+import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
+import { ThemeProvider } from "@mui/material";
+import { useThemeContext } from "./theme/ThemeContextProvider";
+import CssBaseline from "@mui/material/CssBaseline";
+import RootPage from "./routes/RootPage";
+import ProposalsPage from "./routes/ProposalsPage";
+import ApplicationsPage from "./routes/ApplicationsPage";
+import NotificationsPage from "./routes/NotificationsPage";
+import SettingsPage from "./routes/SettingsPage";
+import ErrorPage from "./routes/ErrorPage";
+import UserContext from "./contexts/UserContext";
+import LoginPage from "./routes/LoginPage";
 
 function App() {
-  const [count, setCount] = useState(0);
+  const { theme } = useThemeContext();
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <BrowserRouter>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Main />
+      </ThemeProvider>
+    </BrowserRouter>
+  );
+}
+
+function Main() {
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState(undefined);
+  const [currentDate, setCurrentDate] = useState(dayjs().format("YYYY-MM-DD"));
+
+  const handleLogin = (credentials) => {
+    // TODO: Call login API
+    setUser("Mario Rossi");
+    navigate("/proposals");
+  };
+
+  const handleLogout = () => {
+    // TODO: Call logout API
+    setUser(undefined);
+    navigate("/");
+  };
+
+  return (
+    <UserContext.Provider value={user}>
+      <Routes>
+        {/* prettier-ignore */}
+        <Route path="/" element={user ? <RootPage currentDate={currentDate} logout={handleLogout} /> : <LoginPage login={handleLogin} />}>
+          <Route path="proposals" element={<ProposalsPage />} />
+          <Route path="applications" element={<ApplicationsPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="settings" element={<SettingsPage currentDate={currentDate} setCurrentDate={setCurrentDate}/>} />
+        </Route>
+        <Route path="*" element={<ErrorPage />} />
+      </Routes>
+    </UserContext.Provider>
   );
 }
 
