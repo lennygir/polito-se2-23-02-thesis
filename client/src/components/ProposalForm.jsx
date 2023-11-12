@@ -3,6 +3,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import FormControl from "@mui/material/FormControl";
+import FormHelperText from "@mui/material/FormHelperText";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import OutlinedInput from "@mui/material/OutlinedInput";
@@ -13,6 +14,7 @@ import Typography from "@mui/material/Typography";
 import UserContext from "../contexts/UserContext";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
+import validator from "validator";
 
 const types = ["Research", "Company", "Experimental", "Abroad"];
 const levels = ["Bachelor Degree", "Master Degree"];
@@ -47,11 +49,31 @@ function ProposalForm(props) {
     cds: "",
   });
 
+  const [formErrors, setFormErrors] = useState({
+    title: "",
+    supervisor: "",
+    coSupervisors: "",
+    externalCoSupervisors: "",
+    expirationDate: "",
+    type: "",
+    level: "",
+    groups: "",
+    description: "",
+    requiredKnowledge: "",
+    keywords: "",
+    notes: "",
+    cds: "",
+  });
+
   const handleSingleInputChange = (event) => {
     const { name, value } = event.target;
     setFormData((prevFormData) => ({
       ...prevFormData,
       [name]: value,
+    }));
+    setFormErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: "",
     }));
   };
 
@@ -68,10 +90,69 @@ function ProposalForm(props) {
       ...prevFormData,
       [name]: typeof value === "string" ? value.split(",") : value,
     }));
+    setFormErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: "",
+    }));
+  };
+
+  const validateForm = () => {
+    if (validator.isEmpty(formData.title)) {
+      setFormErrors((prevFormErrors) => ({
+        ...prevFormErrors,
+        title: "Please provide a title",
+      }));
+    }
+    if (!validator.isDate(formData.expirationDate)) {
+      setFormErrors((prevFormErrors) => ({
+        ...prevFormErrors,
+        expirationDate: "Please provide an expiration date",
+      }));
+    }
+    if (formData.type.length === 0) {
+      setFormErrors((prevFormErrors) => ({
+        ...prevFormErrors,
+        type: "Please provide at least one type",
+      }));
+    }
+    if (formData.groups.length === 0) {
+      setFormErrors((prevFormErrors) => ({
+        ...prevFormErrors,
+        groups: "Please provide at least one group",
+      }));
+    }
+    if (validator.isEmpty(formData.level)) {
+      setFormErrors((prevFormErrors) => ({
+        ...prevFormErrors,
+        level: "Please provide a level",
+      }));
+    }
+    if (validator.isEmpty(formData.cds)) {
+      setFormErrors((prevFormErrors) => ({
+        ...prevFormErrors,
+        cds: "Please provide a cds",
+      }));
+    }
+    if (validator.isEmpty(formData.description)) {
+      setFormErrors((prevFormErrors) => ({
+        ...prevFormErrors,
+        description: "Please provide a description",
+      }));
+    }
+    if (validator.isEmpty(formData.requiredKnowledge)) {
+      setFormErrors((prevFormErrors) => ({
+        ...prevFormErrors,
+        requiredKnowledge:
+          "Please provide the required knowledge for this proposal",
+      }));
+    }
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    validateForm();
+    // TODO: validate multiple strings fields
+    // TODO: call API
     console.log(formData);
   };
 
@@ -80,6 +161,7 @@ function ProposalForm(props) {
       {/* Title field */}
       <FormControl fullWidth>
         <TextField
+          required
           multiline
           rows={2}
           name="title"
@@ -87,6 +169,8 @@ function ProposalForm(props) {
           margin="normal"
           value={formData.title}
           onChange={handleSingleInputChange}
+          error={!!formErrors.title}
+          helperText={formErrors.title}
         />
       </FormControl>
       <Stack
@@ -151,11 +235,23 @@ function ProposalForm(props) {
       <Stack direction="row" alignItems="center" marginTop={{ xs: 1, md: 3 }}>
         <Typography variant="h7">Expiration&nbsp;date</Typography>
         <DatePicker
-          slotProps={{ textField: { fullWidth: true, color: "primary" } }}
+          slotProps={{
+            textField: {
+              fullWidth: true,
+              color: "primary",
+              helperText: formErrors.expirationDate,
+            },
+          }}
           sx={{ ml: 5 }}
           defaultValue={dayjs(formData.expirationDate)}
           value={dayjs(formData.expirationDate)}
           onChange={handleDateChange}
+          onError={(error) =>
+            setFormErrors((prevFormErrors) => ({
+              ...prevFormErrors,
+              expirationDate: "Please provide a valid date",
+            }))
+          }
           disableFuture={false}
           disablePast
           format="DD/MM/YYYY"
@@ -169,7 +265,7 @@ function ProposalForm(props) {
         marginTop={4}
       >
         {/* Type field */}
-        <FormControl fullWidth>
+        <FormControl fullWidth required error={!!formErrors.type}>
           <InputLabel id="type-label">Type</InputLabel>
           <Select
             multiple
@@ -193,10 +289,11 @@ function ProposalForm(props) {
               </MenuItem>
             ))}
           </Select>
+          <FormHelperText>{formErrors.type}</FormHelperText>
         </FormControl>
 
         {/* Groups field */}
-        <FormControl fullWidth>
+        <FormControl fullWidth required error={!!formErrors.groups}>
           <InputLabel id="groups-label">Groups</InputLabel>
           <Select
             multiple
@@ -220,6 +317,7 @@ function ProposalForm(props) {
               </MenuItem>
             ))}
           </Select>
+          <FormHelperText>{formErrors.groups}</FormHelperText>
         </FormControl>
       </Stack>
 
@@ -231,6 +329,7 @@ function ProposalForm(props) {
       >
         {/* Level field */}
         <TextField
+          required
           fullWidth
           select
           name="level"
@@ -239,6 +338,8 @@ function ProposalForm(props) {
           defaultValue={levels[0]}
           value={formData.level}
           onChange={handleSingleInputChange}
+          error={!!formErrors.level}
+          helperText={formErrors.level}
         >
           {levels.map((level) => (
             <MenuItem key={level} value={level}>
@@ -249,6 +350,7 @@ function ProposalForm(props) {
 
         {/* CDS field */}
         <TextField
+          required
           fullWidth
           select
           name="cds"
@@ -257,6 +359,8 @@ function ProposalForm(props) {
           defaultValue={props.cds[0]}
           value={formData.cds}
           onChange={handleSingleInputChange}
+          error={!!formErrors.cds}
+          helperText={formErrors.cds}
         >
           {props.cds.map((level) => (
             <MenuItem key={level} value={level}>
@@ -281,6 +385,7 @@ function ProposalForm(props) {
       {/* Description field */}
       <FormControl fullWidth id="description">
         <TextField
+          required
           multiline
           rows={6}
           id="description"
@@ -289,12 +394,15 @@ function ProposalForm(props) {
           margin="normal"
           value={formData.description}
           onChange={handleSingleInputChange}
+          error={!!formErrors.description}
+          helperText={formErrors.description}
         />
       </FormControl>
 
       {/* Required knowledge field */}
       <FormControl fullWidth sx={{ mt: 1 }} id="required-knowledge">
         <TextField
+          required
           multiline
           rows={4}
           id="required-knowledge"
@@ -303,6 +411,8 @@ function ProposalForm(props) {
           margin="normal"
           value={formData.requiredKnowledge}
           onChange={handleSingleInputChange}
+          error={!!formErrors.requiredKnowledge}
+          helperText={formErrors.requiredKnowledge}
         />
       </FormControl>
 
@@ -317,7 +427,6 @@ function ProposalForm(props) {
           margin="normal"
           value={formData.notes}
           onChange={handleSingleInputChange}
-          helperText="* Optional"
         />
       </FormControl>
       <Button fullWidth type="submit" variant="contained" sx={{ mt: 3, mb: 2 }}>
