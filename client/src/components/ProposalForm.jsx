@@ -180,7 +180,7 @@ function ProposalForm(props) {
         required_knowledge: formData.requiredKnowledge,
         notes: formData.notes,
         expiration_date: formData.expirationDate,
-        level: formData.level,
+        level: formData.level === "Bachelor Degree" ? "BSC" : "MSC",
         cds: formData.cds,
       };
       props.createProposal(data);

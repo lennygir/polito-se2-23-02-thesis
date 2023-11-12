@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -9,10 +9,14 @@ import ProposalForm from "../components/ProposalForm";
 import API from "../API";
 
 function CreateProposalPage(props) {
+  const navigate = useNavigate();
+
   const createProposal = (proposal) => {
     API.createProposal(proposal)
       .then(() => {
         console.log("Page created successfully");
+        props.setDirty(true);
+        navigate("/proposals");
       })
       .catch((err) => console.log(err));
   };

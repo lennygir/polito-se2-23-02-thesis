@@ -37,11 +37,14 @@ function App() {
 function Main() {
   const navigate = useNavigate();
 
+  const [dirty, setDirty] = useState(false);
   const [user, setUser] = useState(undefined);
   const [currentDate, setCurrentDate] = useState(dayjs().format("YYYY-MM-DD"));
   const [teachers, setTeachers] = useState([]);
   const [groups, setGroups] = useState([]);
   const [cds, setCds] = useState([]);
+  const [proposals, setProposals] = useState([]);
+  const [applications, setApplications] = useState([]);
 
   const handleLogin = (credentials) => {
     API.logIn(credentials)
@@ -94,13 +97,33 @@ function Main() {
     getCds();
   }, []);
 
+  useEffect(() => {
+    // TODO: Re-fetch proposals
+    setDirty(false);
+  }, [dirty]);
+
+  // Virtual clock
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      const currentLocalDate = dayjs().format("YYYY-MM-DD");
+
+      if (currentLocalDate !== currentDate) {
+        // Update the state when the new day begins
+        setCurrentDate(currentLocalDate);
+      }
+    }, 1000 * 60); // Check every minute
+
+    // Clear the interval when the component is unmounted
+    return () => clearInterval(intervalId);
+  }, [currentDate]);
+
   return (
     <UserContext.Provider value={user}>
       <Routes>
         {/* prettier-ignore */}
         <Route path="/" element={user ? <RootPage currentDate={currentDate} logout={handleLogout} /> : <LoginPage login={handleLogin} />}>
           <Route path="proposals" element={user ? <ProposalsPage /> : <Navigate replace to="/" />} />
-          <Route path="add-proposal" element={user ? <CreateProposalPage teachers={teachers} groups={groups} cds={cds} /> : <Navigate replace to="/" />} />
+          <Route path="add-proposal" element={user ? <CreateProposalPage teachers={teachers} groups={groups} cds={cds} setDirty={setDirty}/> : <Navigate replace to="/" />} />
           <Route path="applications" element={user ? <ApplicationsPage /> : <Navigate replace to="/" /> } />
           <Route path="notifications" element={user ? <NotificationsPage /> : <Navigate replace to="/" />} />
           <Route path="settings" element={user ? <SettingsPage currentDate={currentDate} setCurrentDate={setCurrentDate}/> : <Navigate replace to="/" />} />
