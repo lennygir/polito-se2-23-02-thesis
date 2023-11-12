@@ -16,8 +16,8 @@ function LoginPage(props) {
   const { mode } = useThemeContext();
 
   // Form fields
-  const [email, setEmail] = useState("s308747@studenti.polito.it");
-  const [password, setPassword] = useState("s308747");
+  const [email, setEmail] = useState("marco.torchiano@polito.it");
+  const [password, setPassword] = useState("s123456");
 
   // Form errors
   const [emailError, setEmailError] = useState("");
@@ -87,9 +87,11 @@ function LoginPage(props) {
             component="form"
             onSubmit={handleSubmit}
             noValidate
+            autoComplete="on"
             sx={{ mt: 1 }}
           >
             <TextField
+              autoComplete="on"
               margin="normal"
               required
               fullWidth
@@ -106,6 +108,7 @@ function LoginPage(props) {
               helperText={emailError}
             />
             <TextField
+              autoComplete="on"
               margin="normal"
               required
               fullWidth
@@ -120,10 +123,6 @@ function LoginPage(props) {
                 setPasswordError("");
               }}
               helperText={passwordError}
-            />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
             />
             <Button
               type="submit"
