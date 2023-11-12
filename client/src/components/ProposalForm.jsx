@@ -49,22 +49,9 @@ function ProposalForm(props) {
     cds: "",
   });
 
-  const [formErrors, setFormErrors] = useState({
-    title: "",
-    supervisor: "",
-    coSupervisors: "",
-    externalCoSupervisors: "",
-    expirationDate: "",
-    type: "",
-    level: "",
-    groups: "",
-    description: "",
-    requiredKnowledge: "",
-    keywords: "",
-    notes: "",
-    cds: "",
-  });
+  const [formErrors, setFormErrors] = useState({});
 
+  // Single input field
   const handleSingleInputChange = (event) => {
     const { name, value } = event.target;
     setFormData((prevFormData) => ({
@@ -77,6 +64,7 @@ function ProposalForm(props) {
     }));
   };
 
+  // Date input field
   const handleDateChange = (date) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
@@ -84,6 +72,7 @@ function ProposalForm(props) {
     }));
   };
 
+  // Multiple input field
   const handleMultipleInputChange = (event) => {
     const { name, value } = event.target;
     setFormData((prevFormData) => ({
@@ -96,64 +85,107 @@ function ProposalForm(props) {
     }));
   };
 
+  // Form validation
   const validateForm = () => {
+    const errors = {};
+
     if (validator.isEmpty(formData.title)) {
-      setFormErrors((prevFormErrors) => ({
-        ...prevFormErrors,
-        title: "Please provide a title",
-      }));
+      errors.title = "Please provide a title";
     }
     if (!validator.isDate(formData.expirationDate)) {
-      setFormErrors((prevFormErrors) => ({
-        ...prevFormErrors,
-        expirationDate: "Please provide an expiration date",
-      }));
+      errors.expirationDate = "Please provide an expiration date";
     }
     if (formData.type.length === 0) {
-      setFormErrors((prevFormErrors) => ({
-        ...prevFormErrors,
-        type: "Please provide at least one type",
-      }));
+      errors.type = "Please provide at least one type";
     }
     if (formData.groups.length === 0) {
-      setFormErrors((prevFormErrors) => ({
-        ...prevFormErrors,
-        groups: "Please provide at least one group",
-      }));
+      errors.groups = "Please provide at least one group";
     }
     if (validator.isEmpty(formData.level)) {
-      setFormErrors((prevFormErrors) => ({
-        ...prevFormErrors,
-        level: "Please provide a level",
-      }));
+      errors.level = "Please provide a level";
     }
     if (validator.isEmpty(formData.cds)) {
-      setFormErrors((prevFormErrors) => ({
-        ...prevFormErrors,
-        cds: "Please provide a cds",
-      }));
+      errors.cds = "Please provide a cds";
     }
     if (validator.isEmpty(formData.description)) {
-      setFormErrors((prevFormErrors) => ({
-        ...prevFormErrors,
-        description: "Please provide a description",
-      }));
+      errors.description = "Please provide a description";
     }
     if (validator.isEmpty(formData.requiredKnowledge)) {
-      setFormErrors((prevFormErrors) => ({
-        ...prevFormErrors,
-        requiredKnowledge:
-          "Please provide the required knowledge for this proposal",
-      }));
+      errors.requiredKnowledge =
+        "Please provide the required knowledge for this proposal";
     }
+    if (!validator.isEmpty(formData.externalCoSupervisors)) {
+      const externalCoSupervisorsArray = formData.externalCoSupervisors
+        .split("\n")
+        .map((email) => email.trim());
+      let invalidCount = 0;
+      const validExternalCoSupervisors = externalCoSupervisorsArray.filter(
+        (email) => {
+          if (!validator.isEmail(email)) {
+            invalidCount++;
+            return false;
+          }
+          return true;
+        }
+      );
+      if (invalidCount > 0) {
+        errors.externalCoSupervisors = "Please insert valid email addresses";
+      }
+    }
+    if (!validator.isEmpty(formData.keywords)) {
+      const keywordsArray = formData.keywords
+        .split("\n")
+        .map((keyword) => keyword.trim());
+      let invalidCount = 0;
+      const validKeywords = keywordsArray.filter((keyword) => {
+        if (!validator.isAscii(keyword)) {
+          invalidCount++;
+          return false;
+        }
+        return true;
+      });
+      if (invalidCount > 0) {
+        errors.keywords = "Please insert only letters or numbers";
+      }
+    }
+    return errors;
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    validateForm();
-    // TODO: validate multiple strings fields
-    // TODO: call API
-    console.log(formData);
+
+    const errors = validateForm();
+
+    const hasErrors = Object.values(errors).some((error) => error !== "");
+    if (hasErrors) {
+      // Set the errors in the form
+      setFormErrors(errors);
+      console.log("Form prevented for errors");
+      return;
+    } else {
+      // Parse data and send the form
+      const data = {
+        title: formData.title,
+        supervisor: user.id,
+        co_supervisors: formData.coSupervisors.concat(
+          formData.externalCoSupervisors
+            .split("\n")
+            .map((email) => email.trim())
+        ),
+        groups: formData.groups,
+        keywords: formData.keywords
+          .split("\n")
+          .map((keyword) => keyword.trim()),
+        types: formData.type,
+        description: formData.description,
+        required_knowledge: formData.requiredKnowledge,
+        notes: formData.notes,
+        expiration_date: formData.expirationDate,
+        level: formData.level,
+        cds: formData.cds,
+      };
+      console.log(data);
+    }
   };
 
   return (
@@ -189,7 +221,7 @@ function ProposalForm(props) {
           disabled
           helperText="Supervisor cannot be changed"
         />
-        {/* Academic co-supervisors field */}
+        {/* Co-supervisors field */}
         <FormControl fullWidth>
           <InputLabel id="co-supervisors-label">Co-supervisors</InputLabel>
           <Select
@@ -222,12 +254,19 @@ function ProposalForm(props) {
       {/* External co-supervisor */}
       <FormControl fullWidth sx={{ mt: 2 }}>
         <TextField
+          multiline
+          rows={3}
           name="externalCoSupervisors"
           label="External co-supervisors"
           margin="normal"
           value={formData.externalCoSupervisors}
           onChange={handleSingleInputChange}
-          helperText="Write one or more valid email addresses separated by comma"
+          helperText={
+            formErrors.externalCoSupervisors !== ""
+              ? formErrors.externalCoSupervisors
+              : "Enter one email address per line"
+          }
+          error={!!formErrors.externalCoSupervisors}
         />
       </FormControl>
 
@@ -373,12 +412,19 @@ function ProposalForm(props) {
       {/* Keywords field */}
       <FormControl fullWidth sx={{ mt: 2 }}>
         <TextField
+          multiline
+          rows={3}
           name="keywords"
           label="Keywords"
           margin="normal"
           value={formData.keywords}
           onChange={handleSingleInputChange}
-          helperText="Write one or more keywords separated by comma"
+          helperText={
+            formErrors.keywords !== ""
+              ? formErrors.keywords
+              : "Write one keyword per line"
+          }
+          error={!!formErrors.keywords}
         />
       </FormControl>
 

@@ -59,7 +59,11 @@ function Main() {
 
   const getTeachers = () => {
     // TODO: Call getTeachers API
-    const teachers = ["Mario Rossi", "Gianpiero Cabodi", "Alessandro Savino"];
+    const teachers = [
+      "mario@rossi.it",
+      "gianpiero.cabodi@polito.it",
+      "alessandro.savino@polito.it",
+    ];
     setTeachers(teachers);
   };
 
