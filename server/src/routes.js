@@ -3,7 +3,15 @@
 const router = require("express").Router();
 const userDao = require("./user-dao");
 const { check, validationResult } = require("express-validator");
-const { getTeacher, getGroup, insertProposal } = require("./theses-dao");
+const {
+  getTeacher,
+  getGroup,
+  insertProposal,
+  getStudent,
+  getProposal,
+  insertApplication,
+  getApplication,
+} = require("./theses-dao");
 const dayjs = require("dayjs");
 
 // ==================================================
@@ -142,6 +150,37 @@ router.post(
       }
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
+    }
+  },
+);
+
+router.post(
+  "/api/applications",
+  check("student").isString().isLength({ min: 7, max: 7 }),
+  check("proposal").isInt({ gt: 0 }),
+  async (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).json({ message: "Invalid application content" });
+    }
+    try {
+      const { proposal, student } = req.body;
+      const db_student = await getStudent(student);
+      const db_proposal = await getProposal(proposal);
+      if (db_student === false || db_proposal === false) {
+        return res.status(400).json({ message: "Invalid application content" });
+      } else if (await getApplication(student, proposal)) {
+        return res.status(400).json({ message: "Application already present" });
+      } else {
+        const application = await insertApplication(
+          proposal,
+          student,
+          "pending",
+        );
+        return res.status(200).json(application);
+      }
+    } catch (e) {
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );

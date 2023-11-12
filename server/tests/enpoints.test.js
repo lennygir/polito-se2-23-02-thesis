@@ -2,7 +2,72 @@
 
 const request = require("supertest");
 const app = require("../src/server");
+const { deleteApplication } = require("../src/theses-dao");
 
+describe("Application Insertion Tests", () => {
+  const application = {
+    student: "s309618",
+    proposal: 8,
+  };
+  test("Insertion of a correct application", async () => {
+    await deleteApplication(application.student, application.proposal);
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          student_id: "s309618",
+          proposal_id: 8,
+          state: "pending",
+        });
+      });
+  });
+  test("Insertion of an application already existent", async () => {
+    await deleteApplication(application.student, application.proposal);
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application);
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: "Application already present",
+        });
+      });
+  });
+  test("Insertion of an application from a wrong student", () => {
+    application.student = "s000000";
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: "Invalid application content",
+        });
+      });
+  });
+  test("Insertion of an application with a wrong proposal", () => {
+    application.proposal = -5;
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: "Invalid application content",
+        });
+      });
+  });
+});
 describe("Proposal Insertion Tests", () => {
   test("Insertion of a correct proposal", () => {
     const proposal = {

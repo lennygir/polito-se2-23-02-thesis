@@ -4,6 +4,22 @@
 
 const { db } = require("./db");
 
+exports.insertApplication = (proposal, student, state) => {
+  return new Promise((resolve, reject) => {
+    db.run(
+      "insert into APPLICATIONS(proposal_id, student_id, state) values(?,?,?)",
+      [proposal, student, state],
+      function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({ proposal_id: proposal, student_id: student, state: state });
+        }
+      },
+    );
+  });
+};
+
 exports.insertProposal = (
   title,
   supervisor,
@@ -46,9 +62,56 @@ exports.insertProposal = (
   });
 };
 
+exports.getApplication = (student_id, proposal_id) => {
+  return new Promise((resolve, reject) => {
+    db.get(
+      "select * from APPLICATIONS where student_id = ? and proposal_id = ?",
+      student_id,
+      proposal_id,
+      (err, row) => {
+        if (err) {
+          reject(err);
+        } else if (row === undefined) {
+          resolve(false);
+        } else {
+          resolve(row);
+        }
+      },
+    );
+  });
+};
+
 exports.getTeacher = (id) => {
   return new Promise((resolve, reject) => {
     db.get("select * from TEACHER where id = ?", id, (err, row) => {
+      if (err) {
+        reject(err);
+      } else if (row === undefined) {
+        resolve(false);
+      } else {
+        resolve(row);
+      }
+    });
+  });
+};
+
+exports.getProposal = (id) => {
+  return new Promise((resolve, reject) => {
+    db.get("select * from PROPOSALS where id = ?", id, (err, row) => {
+      if (err) {
+        reject(err);
+      } else if (row === undefined) {
+        resolve(false);
+      } else {
+        resolve(row);
+      }
+    });
+  });
+};
+
+exports.getStudent = (id) => {
+  return new Promise((resolve, reject) => {
+    db.get("select * from STUDENT where id = ?", id, (err, row) => {
       if (err) {
         reject(err);
       } else if (row === undefined) {
@@ -72,6 +135,22 @@ exports.getGroup = (cod_group) => {
           resolve(false);
         } else {
           resolve(row);
+        }
+      },
+    );
+  });
+};
+
+exports.deleteApplication = (student_id, proposal_id) => {
+  return new Promise((resolve, reject) => {
+    db.run(
+      "delete from APPLICATIONS where student_id = ? and proposal_id = ?",
+      [student_id, proposal_id],
+      function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(true);
         }
       },
     );
