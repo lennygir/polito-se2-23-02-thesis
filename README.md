@@ -23,8 +23,8 @@
     "title": "Proposta di tesi fighissima",
     "supervisor": "s345678",
     "co_supervisors": [
-      "s122349",
-      "s298399"
+      "s122349@gmail.com",
+      "s298399@outlook.com"
     ],
     "groups": [
       "ELITE",
