@@ -161,3 +161,36 @@ describe("Proposal Insertion Tests", () => {
       });
   });
 });
+
+describe("Get All Teachers Test", () => {
+  test("Correct get of all teachers from db", () => {
+    
+    return request(app)
+      .get("/api/teacher")
+      .expect("Content-Type", /json/)
+      .expect(200)
+  });
+  
+});
+
+describe("Get All Groups Test", () => {
+  test("Correct get of all groups from db", () => {
+    
+    return request(app)
+      .get("/api/groups")
+      .expect("Content-Type", /json/)
+      .expect(200)
+  });
+  
+});
+
+describe("Get All Degrees Test", () => {
+  test("Correct get of all degress from db", () => {
+    
+    return request(app)
+      .get("/api/degree")
+      .expect("Content-Type", /json/)
+      .expect(200)
+  });
+  
+});

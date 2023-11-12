@@ -60,6 +60,22 @@ exports.getTeacher = (id) => {
   });
 };
 
+exports.getTeachers = () => {
+  
+  return new Promise((resolve, reject) => {
+    db.all("select id, surname, name from TEACHER", (err, row) => {
+      if (err) {
+        console.log(err)
+        reject(err);
+      } else if (row === undefined) {
+        resolve(false);
+      } else {
+        resolve(row);
+      }
+    });
+  });
+};
+
 exports.getGroup = (cod_group) => {
   return new Promise((resolve, reject) => {
     db.get(
@@ -75,5 +91,37 @@ exports.getGroup = (cod_group) => {
         }
       },
     );
+  });
+};
+
+exports.getGroups = () => {
+  
+  return new Promise((resolve, reject) => {
+    db.all("select cod_group from GROUPS", (err, row) => {
+      if (err) {
+        console.log(err)
+        reject(err);
+      } else if (row === undefined) {
+        resolve(false);
+      } else {
+        resolve(row);
+      }
+    });
+  });
+};
+
+exports.getDegrees = () => {
+  
+  return new Promise((resolve, reject) => {
+    db.all("select cod_degree, title_degree from DEGREE", (err, row) => {
+      if (err) {
+        console.log(err)
+        reject(err);
+      } else if (row === undefined) {
+        resolve(false);
+      } else {
+        resolve(row);
+      }
+    });
   });
 };
