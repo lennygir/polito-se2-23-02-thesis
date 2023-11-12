@@ -76,6 +76,8 @@ router.post(
   "/api/proposals",
   check("title").isString(),
   check("supervisor").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  check("co_supervisors").isArray(),
+  check("co_supervisors.*").isEmail(),
   check("groups").isArray(),
   check("groups.*").isString(),
   check("keywords").isArray(),

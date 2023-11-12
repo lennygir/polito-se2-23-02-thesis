@@ -8,7 +8,7 @@ describe("Proposal Insertion Tests", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
       supervisor: "s345678",
-      co_supervisors: ["s122349", "s298399"],
+      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
       groups: ["ELITE", "SOFTENG"],
       keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
       types: ["EXPERIMENTAL", "RESEARCH"],
@@ -29,7 +29,7 @@ describe("Proposal Insertion Tests", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
       supervisor: "s345678",
-      co_supervisors: ["s122349", "s298399"],
+      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
       groups: ["ELITE", "SOFTENG"],
       keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
       types: ["EXPERIMENTAL", "RESEARCH"],
@@ -49,7 +49,7 @@ describe("Proposal Insertion Tests", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
       supervisor: "s000000",
-      co_supervisors: ["s122349", "s298399"],
+      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
       groups: ["ELITE", "SOFTENG"],
       keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
       types: ["EXPERIMENTAL", "RESEARCH"],
@@ -72,7 +72,7 @@ describe("Proposal Insertion Tests", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
       supervisor: "s345678",
-      co_supervisors: ["s122349", "s298399"],
+      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
       groups: ["ELITE", "SOFTENG"],
       keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
       types: ["EXPERIMENTAL", "RESEARCH"],
@@ -95,7 +95,7 @@ describe("Proposal Insertion Tests", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
       supervisor: "s345678",
-      co_supervisors: ["s122349", "s298399"],
+      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
       groups: ["ELITE", "SOFTENG"],
       keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
       types: ["EXPERIMENTAL", "RESEARCH"],
@@ -118,7 +118,7 @@ describe("Proposal Insertion Tests", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
       supervisor: "s345678",
-      co_supervisors: ["s122349", "s298399"],
+      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
       groups: ["ELITE", "SOFTENG", "WRONG GROUP"],
       keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
       types: ["EXPERIMENTAL", "RESEARCH"],
@@ -141,7 +141,7 @@ describe("Proposal Insertion Tests", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
       supervisor: "s345678",
-      co_supervisors: ["s122349", "s298399"],
+      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
       groups: ["ELITE", "SOFTENG"],
       keywords: "SOFTWARE ENGINEERING",
       types: ["EXPERIMENTAL", "RESEARCH"],
