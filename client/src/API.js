@@ -38,8 +38,21 @@ const logIn = async (credentials) => {
   );
 };
 
+const createProposal = async (proposal) => {
+  return getJson(
+    fetch(SERVER_URL + "/proposals", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(proposal),
+    })
+  );
+};
+
 const API = {
   logIn,
+  createProposal,
 };
 
 export default API;

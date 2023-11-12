@@ -6,8 +6,17 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import ProposalForm from "../components/ProposalForm";
+import API from "../API";
 
 function CreateProposalPage(props) {
+  const createProposal = (proposal) => {
+    API.createProposal(proposal)
+      .then(() => {
+        console.log("Page created successfully");
+      })
+      .catch((err) => console.log(err));
+  };
+
   return (
     <div id="crete-proposal-page">
       <Paper elevation={1} sx={{ mb: 5 }}>
@@ -35,6 +44,7 @@ function CreateProposalPage(props) {
             teachers={props.teachers}
             groups={props.groups}
             cds={props.cds}
+            createProposal={createProposal}
           />
         </Box>
       </Paper>

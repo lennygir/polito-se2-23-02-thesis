@@ -160,7 +160,6 @@ function ProposalForm(props) {
     if (hasErrors) {
       // Set the errors in the form
       setFormErrors(errors);
-      console.log("Form prevented for errors");
       return;
     } else {
       // Parse data and send the form
@@ -184,7 +183,7 @@ function ProposalForm(props) {
         level: formData.level,
         cds: formData.cds,
       };
-      console.log(data);
+      props.createProposal(data);
     }
   };
 
