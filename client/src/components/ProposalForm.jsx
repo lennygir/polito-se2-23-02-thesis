@@ -1,43 +1,32 @@
 import { useContext, useState } from "react";
+import dayjs from "dayjs";
+import validator from "validator";
+import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
 import FormControl from "@mui/material/FormControl";
 import FormHelperText from "@mui/material/FormHelperText";
-import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
-import OutlinedInput from "@mui/material/OutlinedInput";
-import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import UserContext from "../contexts/UserContext";
 import { DatePicker } from "@mui/x-date-pickers";
-import dayjs from "dayjs";
-import validator from "validator";
 
-const types = ["Research", "Company", "Experimental", "Abroad"];
-const levels = ["Bachelor Degree", "Master Degree"];
-
-const item_height = 48;
-const item_padding_top = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: item_height * 4.5 + item_padding_top,
-      width: 250,
-    },
-  },
-};
+const TYPES = ["Research", "Company", "Experimental", "Abroad"];
+const LEVELS = ["Bachelor Degree", "Master Degree"];
 
 function ProposalForm(props) {
   const user = useContext(UserContext);
+  const [teachers, setTeachers] = useState(
+    props.teachers.map((teacher) => teacher.email)
+  );
 
   const [formData, setFormData] = useState({
     title: "",
     supervisor: user ? user.email : "",
     coSupervisors: [],
-    externalCoSupervisors: "",
+    externalCoSupervisor: "",
     expirationDate: dayjs().format("YYYY-MM-DD"),
     type: [],
     level: "",
@@ -49,7 +38,21 @@ function ProposalForm(props) {
     cds: "",
   });
 
-  const [formErrors, setFormErrors] = useState({});
+  const [formErrors, setFormErrors] = useState({
+    title: "",
+    supervisor: "",
+    coSupervisors: "",
+    externalCoSupervisor: "",
+    expirationDate: "",
+    type: "",
+    level: "",
+    groups: "",
+    description: "",
+    requiredKnowledge: "",
+    keywords: "",
+    notes: "",
+    cds: "",
+  });
 
   // Single input field
   const handleSingleInputChange = (event) => {
@@ -64,24 +67,44 @@ function ProposalForm(props) {
     }));
   };
 
+  // Multiple input fields
+  const handleAutocompleteChange = (fieldName) => (event, values, reason) => {
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [fieldName]: values,
+    }));
+    setFormErrors((prevErrors) => ({
+      ...prevErrors,
+      [fieldName]: "",
+    }));
+  };
+
+  // Add external co-supervisor to co-supervisors array
+  const addCoSupervisor = () => {
+    const externalCoSup = formData.externalCoSupervisor.trim();
+
+    if (externalCoSup && !validator.isEmail(externalCoSup)) {
+      // Invalid input
+      setFormErrors((prevErrors) => ({
+        ...prevErrors,
+        externalCoSupervisor: "Please provide a valid email address",
+      }));
+    } else {
+      setTeachers([...teachers, externalCoSup]);
+      // Update the co-supervisors
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        coSupervisors: [...prevFormData.coSupervisors, externalCoSup],
+        externalCoSupervisor: "", // Reset the input field
+      }));
+    }
+  };
+
   // Date input field
   const handleDateChange = (date) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
       expirationDate: dayjs(date).format("YYYY-MM-DD"),
-    }));
-  };
-
-  // Multiple input field
-  const handleMultipleInputChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [name]: typeof value === "string" ? value.split(",") : value,
-    }));
-    setFormErrors((prevErrors) => ({
-      ...prevErrors,
-      [name]: "",
     }));
   };
 
@@ -113,24 +136,6 @@ function ProposalForm(props) {
     if (validator.isEmpty(formData.requiredKnowledge)) {
       errors.requiredKnowledge =
         "Please provide the required knowledge for this proposal";
-    }
-    if (!validator.isEmpty(formData.externalCoSupervisors)) {
-      const externalCoSupervisorsArray = formData.externalCoSupervisors
-        .split("\n")
-        .map((email) => email.trim());
-      let invalidCount = 0;
-      const validExternalCoSupervisors = externalCoSupervisorsArray.filter(
-        (email) => {
-          if (!validator.isEmail(email)) {
-            invalidCount++;
-            return false;
-          }
-          return true;
-        }
-      );
-      if (invalidCount > 0) {
-        errors.externalCoSupervisors = "Please insert valid email addresses";
-      }
     }
     if (!validator.isEmpty(formData.keywords)) {
       const keywordsArray = formData.keywords
@@ -166,11 +171,7 @@ function ProposalForm(props) {
       const data = {
         title: formData.title,
         supervisor: user.id,
-        co_supervisors: formData.coSupervisors.concat(
-          formData.externalCoSupervisors
-            .split("\n")
-            .map((email) => email.trim())
-        ),
+        co_supervisors: formData.coSupervisors,
         groups: formData.groups,
         keywords: formData.keywords
           .split("\n")
@@ -180,7 +181,7 @@ function ProposalForm(props) {
         required_knowledge: formData.requiredKnowledge,
         notes: formData.notes,
         expiration_date: formData.expirationDate,
-        level: formData.level,
+        level: formData.level === "Bachelor Degree" ? "BSC" : "MSC",
         cds: formData.cds,
       };
       props.createProposal(data);
@@ -222,51 +223,57 @@ function ProposalForm(props) {
         />
         {/* Co-supervisors field */}
         <FormControl fullWidth>
-          <InputLabel id="co-supervisors-label">Co-supervisors</InputLabel>
-          <Select
+          <Autocomplete
             multiple
-            labelId="co-supervisors-label"
             name="coSupervisors"
+            options={teachers}
+            getOptionLabel={(option) => option}
             value={formData.coSupervisors}
-            onChange={handleMultipleInputChange}
-            input={
-              <OutlinedInput id="co-supervisors-chip" label="Co-supervisors" />
+            onChange={(event, values, reason) =>
+              handleAutocompleteChange("coSupervisors")(event, values, reason)
             }
-            renderValue={(selected) => (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                {selected.map((value) => (
-                  <Chip key={value} label={value} />
-                ))}
-              </Box>
+            filterSelectedOptions
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Co-supervisors"
+                placeholder="Email"
+              />
             )}
-            MenuProps={MenuProps}
-          >
-            {props.teachers.map((prof) => (
-              <MenuItem key={prof} value={prof}>
-                {prof}
-              </MenuItem>
-            ))}
-          </Select>
+          />
         </FormControl>
       </Stack>
 
       {/* External co-supervisor */}
-      <FormControl fullWidth sx={{ mt: 2 }}>
-        <TextField
-          multiline
-          rows={3}
-          name="externalCoSupervisors"
-          label="External co-supervisors"
-          margin="normal"
-          value={formData.externalCoSupervisors}
-          onChange={handleSingleInputChange}
-          helperText={
-            formErrors.externalCoSupervisors !== ""
-              ? formErrors.externalCoSupervisors
-              : "Enter one email address per line"
-          }
-          error={!!formErrors.externalCoSupervisors}
-        />
+      <FormControl fullWidth sx={{ mt: 4 }}>
+        <Stack
+          spacing={1}
+          direction="row"
+          alignItems="flex-start"
+          justifyContent="space-between"
+        >
+          <TextField
+            fullWidth
+            name="externalCoSupervisor"
+            label="External co-supervisor"
+            margin="normal"
+            value={formData.externalCoSupervisor}
+            onChange={handleSingleInputChange}
+            helperText={
+              formErrors.externalCoSupervisor !== ""
+                ? formErrors.externalCoSupervisor
+                : "Enter one email address at a time"
+            }
+            error={!!formErrors.externalCoSupervisor}
+          />
+          <Button
+            variant="outlined"
+            sx={{ height: "56px" }}
+            onClick={addCoSupervisor}
+          >
+            Add
+          </Button>
+        </Stack>
       </FormControl>
 
       {/* Expiration date field */}
@@ -304,57 +311,51 @@ function ProposalForm(props) {
       >
         {/* Type field */}
         <FormControl fullWidth required error={!!formErrors.type}>
-          <InputLabel id="type-label">Type</InputLabel>
-          <Select
+          <Autocomplete
             multiple
-            labelId="type-label"
             name="type"
+            options={TYPES}
+            getOptionLabel={(option) => option}
             value={formData.type}
-            onChange={handleMultipleInputChange}
-            input={<OutlinedInput id="type-chip" label="Type" />}
-            renderValue={(selected) => (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                {selected.map((value) => (
-                  <Chip key={value} label={value} />
-                ))}
-              </Box>
+            onChange={(event, values, reason) =>
+              handleAutocompleteChange("type")(event, values, reason)
+            }
+            filterSelectedOptions
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                required
+                label="Type"
+                placeholder="Type"
+                error={!!formErrors.type}
+              />
             )}
-            MenuProps={MenuProps}
-          >
-            {types.map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
-              </MenuItem>
-            ))}
-          </Select>
+          />
           <FormHelperText>{formErrors.type}</FormHelperText>
         </FormControl>
 
         {/* Groups field */}
         <FormControl fullWidth required error={!!formErrors.groups}>
-          <InputLabel id="groups-label">Groups</InputLabel>
-          <Select
+          <Autocomplete
             multiple
-            labelId="groups-label"
             name="groups"
+            options={props.groups}
+            getOptionLabel={(option) => option}
             value={formData.groups}
-            onChange={handleMultipleInputChange}
-            input={<OutlinedInput id="groups-chip" label="Groups" />}
-            renderValue={(selected) => (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                {selected.map((value) => (
-                  <Chip key={value} label={value} />
-                ))}
-              </Box>
+            onChange={(event, values, reason) =>
+              handleAutocompleteChange("groups")(event, values, reason)
+            }
+            filterSelectedOptions
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                required
+                label="Groups"
+                placeholder="Group"
+                error={!!formErrors.groups}
+              />
             )}
-            MenuProps={MenuProps}
-          >
-            {props.groups.map((group) => (
-              <MenuItem key={group} value={group}>
-                {group}
-              </MenuItem>
-            ))}
-          </Select>
+          />
           <FormHelperText>{formErrors.groups}</FormHelperText>
         </FormControl>
       </Stack>
@@ -373,13 +374,13 @@ function ProposalForm(props) {
           name="level"
           label="Level"
           margin="normal"
-          defaultValue={levels[0]}
+          defaultValue={LEVELS[0]}
           value={formData.level}
           onChange={handleSingleInputChange}
           error={!!formErrors.level}
           helperText={formErrors.level}
         >
-          {levels.map((level) => (
+          {LEVELS.map((level) => (
             <MenuItem key={level} value={level}>
               {level}
             </MenuItem>

@@ -81,7 +81,7 @@ function LoginPage(props) {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign in
+            Login
           </Typography>
           <Box
             component="form"
@@ -130,7 +130,7 @@ function LoginPage(props) {
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign In
+              Login
             </Button>
           </Box>
         </Box>
