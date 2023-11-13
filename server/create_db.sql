@@ -113,7 +113,15 @@ VALUES  ('LM-32 (DM270)', 'Computer Engineering'),
         ('LM-29 (DM270)', 'Electronic and Communications Engineering'),
         ('LM-22 (DM270)', 'Chemical Engineering'),
         ('LM-20 (DM270)', 'Aerospace Engineering'),
-        ('LM-04 (DM270)', 'Architecture');
+        ('LM-04 (DM270)', 'Architecture'),
+        ('L-8-T (DM270)', 'Computer Engineering'),
+        ('L-7-T (DM270)', 'Civil Engineering'),
+        ('L-9-T (DM270)', 'Mechanical Engineering'),
+        ('L-9-A (DM270)', 'Automotive Engineering'),
+        ('L-8-E (DM270)', 'Electronic and Communications Engineering'),
+        ('L-8-C (DM270)', 'Chemical Engineering'),
+        ('L-8-A (DM270)', 'Aerospace Engineering'),
+        ('L-7-A (DM270)', 'Architecture');
 
 INSERT INTO DEPARTMENTS (cod_department, name_department)
 VALUES  ('DAUIN', 'Departments of Control and Computer Engineering'),
@@ -148,7 +156,14 @@ VALUES
         ('s309618', 'Bertetto', 'Lorenzo', 'Male', 'Italy', 's309618@studenti.polito.it', 'LM-32 (DM270)', 2022),
         ('s317743', 'Baracco', 'Francesco', 'Male', 'Italy', 's317743@studenti.polito.it', 'LM-32 (DM270)', 2022),
         ('s321503', 'Girardot', 'Lenny', 'Male', 'France', 's321503@studenti.polito.it', 'LM-32 (DM270)', 2023),
-        ('s308920', 'Ghorbani', 'Ghazal', 'Female', 'Iran', 's308920@studenti.polito.it', 'LM-32 (DM270)', 2023);
+        ('s308920', 'Ghorbani', 'Ghazal', 'Female', 'Iran', 's308920@studenti.polito.it', 'LM-32 (DM270)', 2023),
+        ('s319831', 'Choi', 'Seo-yeon', 'Female', 'South Korea', 's319831@studenti.polito.it', 'L-8-T (DM270)', 2023),
+        ('s319832', 'Gomez', 'Luis', 'Male', 'Spain', 's319832@studenti.polito.it', 'L-9-A (DM270)', 2023),
+        ('s319833', 'Bianchi', 'Giulia', 'Female', 'Italy', 's319833@studenti.polito.it', 'LM-33 (DM270)', 2023),
+        ('s319834', 'Ahmed', 'Mohammed', 'Male', 'Egypt', 's319834@studenti.polito.it', 'L-8-C (DM270)', 2023),
+        ('s319835', 'Lopez', 'Isabella', 'Female', 'Mexico', 's319835@studenti.polito.it', 'LM-23 (DM270)', 2023),
+        ('s319836', 'Nakamura', 'Yuki', 'Male', 'Japan', 's319836@studenti.polito.it', 'L-9 (DM270)', 2023),
+        ('s319837', 'Silva', 'Ana', 'Female', 'Brazil', 's319837@studenti.polito.it', 'LM-29 (DM270)', 2023);
 
 INSERT INTO TEACHER (id, surname, name, email, cod_group, cod_department)
 VALUES  ('s123456', 'Torchiano', 'Marco', 'marco.torchiano@polito.it', 'SOFTENG', 'DAUIN'),
@@ -219,5 +234,22 @@ VALUES  (1, 'Gamification di attività di modellazione UML', 's123456', 's345678
 INSERT INTO USERS (email, password)
 VALUES ('marco.torchiano@polito.it', 's123456'),
        ('maurizio.morisio@polito.it', 's234567'),
+       ('s317743@studenti.polito.it', 's317743'),
        ('s309618@studenti.polito.it', 's309618'),
-       ('s319823@studenti.polito.it', 's319823');
+       ('s319823@studenti.polito.it', 's319823'),
+       ('s319831@studenti.polito.it', 's319831'),
+       ('s319832@studenti.polito.it', 's319832'),
+       ('s319833@studenti.polito.it', 's319833'),
+       ('s319834@studenti.polito.it', 's319834'),
+       ('s319835@studenti.polito.it', 's319835'),
+       ('s319836@studenti.polito.it', 's319836'),
+       ('s319837@studenti.polito.it', 's319837');
+
+INSERT INTO APPLICATIONS (proposal_id,student_id,state)
+VALUES (1,'s317743','rejected'),
+       (2,'s317743','pending'),
+       (3,'s317743','pending'),
+       (4,'s317743','pending'),
+       (1,'s309618','rejected'),
+       (6,'s309618','rejected'),
+       (8,'s309618','accepted');
