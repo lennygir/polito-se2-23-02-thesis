@@ -206,9 +206,9 @@ router.get("/api/degrees", async (req, res) => {
   }
 });
 
-router.get("/api/proposals/:cds", check("cds").isString(), async (req, res) => {
+router.get("/api/proposals", check("cds").isString(), async (req, res) => {
   try {
-    const cds = req.params.cds;
+    const cds = req.query.cds;
     const proposals = await getProposalsByDegree(cds);
     return res.status(200).json(proposals);
   } catch (err) {

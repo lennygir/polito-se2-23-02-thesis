@@ -175,14 +175,11 @@ describe("Proposal Insertion Tests", () => {
   });
 });
 
-
-
-
 describe("Proposal Retrieval Tests", () => {
   test("Get all the proposals from a specific field of study", () => {
     const cds = "LM-32 (DM270)";
     return request(app)
-      .get(`/api/proposals/${cds}`)
+      .get(`/api/proposals?cds=${cds}`)
       .set("Content-Type", "application/json")
       .expect(200)
       .then((response) => {
@@ -195,7 +192,7 @@ describe("Proposal Retrieval Tests", () => {
   test("Get all the proposals from a field of study that doesn't exists", () => {
     const cds = "aaaaaaaaaaaaaaaaaaaaaaaaa";
     return request(app)
-      .get(`/api/proposals/${cds}`)
+      .get(`/api/proposals?cds=${cds}`)
       .set("Content-Type", "application/json")
       .expect(200)
       .then((response) => {

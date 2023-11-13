@@ -107,6 +107,43 @@
     }
   ]
   ```
+  
+- GET `/api/proposals?cds=LM-32 (DM270)`
+  - returned json
+  ```
+  [
+    {
+      "id": 1,
+      "title": "Gamification di attività di modellazione UML",
+      "supervisor": "s123456",
+      "co_supervisors": "s345678",
+      "keywords": "GAMIFICATION, SOFTWARE ENGINEERING, SOFTWARE QUALITY, UML",
+      "type": "RESEARCH",
+      "groups": "SOFTENG",
+      "description": "La gamification è definita come l applicazione di elementi tipici dei videogiochi (punteggi, competizione con altri utenti, regole di gioco, ecc.) a qualsiasi altra attività, in modo da incrementare il coinvolgimento e le prestazioni degli utenti coinvolti. Lobiettivo della tesi è lapplicazione di caratteristiche tipiche della gamification alla pratica della modellazione UML, e la valutazione dei benefici derivanti. La tesi consisterà nello sviluppo di una piattaforma con funzionalità di gaming competitivo della costruzione di diagrammi delle classi UML. I meccanismi di gamification dovranno premiare diversi aspetti di qualità del modello costruito, quali completezza, correttezza, coerenza, minimalità e leggibilità. Il sistema dovrà prevedere funzionalità di mantenimento dello storico dei punteggi, e di visualizzazione della classifica corrente dei giocatori.",
+      "required_knowledge": "UML Modeling, Java",
+      "notes": null,
+      "expiration_date": "2023-12-18",
+      "level": "MSC",
+      "cds": "LM-32 (DM270)"
+    },
+    {
+      "id": 2,
+      "title": "Analisi empirica dei difetti in R Markdown",
+      "supervisor": "s123456",
+      "co_supervisors": "s122349, s298399",
+      "keywords": "MARKDOWN, DEVELOP",
+      "type": "RESEARCH",
+      "groups": "SOFTENG",
+      "description": "I file R Markdown sono adottati ampiamente per lo sviluppo iterativo di workflow di analisi e visualizzazione dei dati. Laffidabilità dei risultati e la possibilità di riutilizzare le analisi dipendono pesantemente dalla correttezza dei file Rmd. Obiettivo della tesi è quello di analizzare file Rmd disponibili in repository pubblici e identificare e classificare i difetti.",
+      "required_knowledge": "Linguaggio R, Ambiente R Studio",
+      "notes": null,
+      "expiration_date": "2023-12-28",
+      "level": "MSC",
+      "cds": "LM-32 (DM270)"
+    }
+  ]
+  ```
 - POST `/api/something`
   - request parameters and request body content
   - response body content
