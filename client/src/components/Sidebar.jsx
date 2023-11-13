@@ -18,7 +18,7 @@ import { useThemeContext } from "../theme/ThemeContextProvider";
 const sidebarMainTabs = [
   {
     id: "proposals",
-    label: "Proposals",
+    label: "Theses",
     icon: <SchoolRoundedIcon color="primary" />,
     path: "/proposals",
   },
