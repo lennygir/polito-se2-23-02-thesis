@@ -12,7 +12,7 @@ import SettingsPage from "./routes/SettingsPage";
 import ErrorPage from "./routes/ErrorPage";
 import UserContext from "./contexts/UserContext";
 import LoginPage from "./routes/LoginPage";
-import API from './API';
+import API from "./API";
 
 function App() {
   const { theme } = useThemeContext();
@@ -32,26 +32,6 @@ function Main() {
 
   const [user, setUser] = useState(undefined);
   const [currentDate, setCurrentDate] = useState(dayjs().format("YYYY-MM-DD"));
-
-  const handleLogin = async(credentials) => {
-    // TODO: Call login API
-    try {
-      const user = await API.logIn(credentials);
-      console.log(user);
-      setUser(user);
-      navigate("/proposals");
-    } catch (err) {
-      // error is handled and visualized in the login form, do not manage error, throw it
-      throw err;
-    }
-    
-  };
-
-  const handleLogout = () => {
-    // TODO: Call logout API
-    setUser(undefined);
-    navigate("/");
-  };
 
   return (
     <UserContext.Provider value={user}>
