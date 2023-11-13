@@ -3,7 +3,7 @@
 const router = require("express").Router();
 const userDao = require("./user-dao");
 const { check, validationResult } = require("express-validator");
-const { getTeacher, getGroup, insertProposal } = require("./theses-dao");
+const { getTeacher, getGroup, insertProposal,getProposalsByDegree } = require("./theses-dao");
 const dayjs = require("dayjs");
 
 // ==================================================
@@ -145,6 +145,19 @@ router.post(
     }
   },
 );
+
+router.get('/api/proposals/:cds',
+  check('cds').isString(),
+  async(req,res) => {
+    try{
+      const cds= req.params.cds;
+      const proposals= await getProposalsByDegree(cds);
+      return res.status(200).json(proposals);
+    } catch(err){
+      return res.status(500).json({ message: 'Internal Server Error' });
+    }
+
+});
 
 // ==================================================
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS

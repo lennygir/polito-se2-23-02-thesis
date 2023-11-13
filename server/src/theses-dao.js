@@ -77,3 +77,26 @@ exports.getGroup = (cod_group) => {
     );
   });
 };
+
+exports.getProposalsByDegree = (cds) => {
+  return new Promise((resolve, reject) => {
+    db.all(`
+      SELECT *
+      FROM PROPOSALS
+      WHERE cds = ? AND id NOT IN (
+        SELECT proposal_id
+        FROM APPLICATIONS
+        WHERE state = 'accepted' AND proposal_id IS NOT NULL
+      )`,
+        cds,
+        (err, rows) => {
+          if (err) {
+            reject(err); 
+          }else{
+            resolve(rows);
+          }        
+        }
+      );
+      
+  });
+};

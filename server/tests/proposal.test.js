@@ -161,3 +161,33 @@ describe("Proposal Insertion Tests", () => {
       });
   });
 });
+
+
+
+
+describe("Proposal Retrieval Tests", () => {
+  test("Get all the proposals from a specific field of study", () => {
+    const cds = "LM-32 (DM270)";
+    return request(app)
+      .get(`/api/proposals/${cds}`)
+      .set("Content-Type", "application/json")
+      .expect(200)
+      .then((response) => {
+        response.body.forEach((proposal) => {
+          expect(proposal.cds).toBe(cds);
+        });
+      });
+  });
+
+  test("Get all the proposals from a field of study that doesn't exists", () => {
+    const cds = "aaaaaaaaaaaaaaaaaaaaaaaaa";
+    return request(app)
+      .get(`/api/proposals/${cds}`)
+      .set("Content-Type", "application/json")
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toBeInstanceOf(Array);
+        expect(response.body.length).toBe(0);
+      });
+  });
+});
