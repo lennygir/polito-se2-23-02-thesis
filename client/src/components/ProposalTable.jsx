@@ -45,4 +45,8 @@ function ProposalTable(props) {
   );
 }
 
+<<<<<<< HEAD
 export default ProposalTable;
+=======
+export default ProposalTable;
+>>>>>>> fix: using the table component

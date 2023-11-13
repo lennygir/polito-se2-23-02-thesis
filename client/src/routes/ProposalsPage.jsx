@@ -34,7 +34,19 @@ const proposals = [
 function ProposalsPage() {
   const user = useContext(UserContext);
 
-  const studentView = <></>;
+  const studentView = (
+    <>
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Typography variant="h4">
+          Thesis
+        </Typography>
+        <TextField label="Rechercher" variant="outlined" InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }} />
+      </Stack>
+      
+      <ProposalTable data={proposals} />
+    
+    </>
+  );
 
   const professorView = (
     <>
