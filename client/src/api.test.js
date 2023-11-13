@@ -26,7 +26,6 @@ describe("Test the login", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      credentials: "include",
       body: JSON.stringify(credentials),
     });
     expect(result).toEqual(expectedResponse);
@@ -143,5 +142,15 @@ test("getGroups - should send correct data", async () => {
   const result = await API.getGroups();
 
   expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/groups`);
+  expect(result).toEqual(mockApiResponse);
+});
+
+  test('getProposalsByDegree- should return correct data', async () => {
+  fetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve(mockApiResponse),
+  });
+  const result = await API.getProposalsByDegree('degreeValue');
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/degreeValue`);
   expect(result).toEqual(mockApiResponse);
 });

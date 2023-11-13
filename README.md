@@ -144,6 +144,14 @@
     }
   ]
   ```
+- GET `/api/proposals/:cds`
+  - return the list of active proposals for a specific cds
+  - request body content example
+  ```
+  {
+    "cds": "Computer Engineering"
+  }
+  ```
 - POST `/api/something`
   - request parameters and request body content
   - response body content
