@@ -3,7 +3,7 @@
 const router = require("express").Router();
 const userDao = require("./user-dao");
 const { check, validationResult } = require("express-validator");
-const { getTeacher, getGroup, insertProposal,getProposals_by_degree } = require("./theses-dao");
+const { getTeacher, getGroup, insertProposal,getProposalsByDegree } = require("./theses-dao");
 const dayjs = require("dayjs");
 
 // ==================================================
@@ -151,7 +151,7 @@ router.get('/api/proposals/:cds',
   async(req,res) => {
     try{
       const cds= req.params.cds;
-      const proposals= await getProposals_by_degree(cds);
+      const proposals= await getProposalsByDegree(cds);
       return res.status(200).json(proposals);
     } catch(err){
       return res.status(500).json({ message: 'Internal Server Error' });

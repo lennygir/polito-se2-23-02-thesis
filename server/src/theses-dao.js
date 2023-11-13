@@ -78,7 +78,7 @@ exports.getGroup = (cod_group) => {
   });
 };
 
-exports.getProposals_by_degree = (cds) => {
+exports.getProposalsByDegree = (cds) => {
   return new Promise((resolve, reject) => {
     db.all(`
       SELECT *

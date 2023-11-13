@@ -50,14 +50,14 @@ const createProposal = async (proposal) => {
   );
 };
 
-const getProposals_by_degree= async(degree) =>{
+const getProposalsByDegree= async(degree) =>{
   return getJson(fetch(SERVER_URL + "/proposals/" + degree))
 }
 
 const API = {
   logIn,
   createProposal,
-  getProposals_by_degree,
+  getProposalsByDegree,
 };
 
 export default API;
