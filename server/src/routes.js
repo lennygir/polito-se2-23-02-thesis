@@ -150,7 +150,7 @@ router.get('/api/proposals/:cds',
   check('cds').isString(),
   async(req,res) => {
     try{
-      const cds= req.body;
+      const cds= req.params.cds;
       const proposals= await getProposals_by_degree(cds);
       return res.status(200).json(proposals);
     } catch(err){
