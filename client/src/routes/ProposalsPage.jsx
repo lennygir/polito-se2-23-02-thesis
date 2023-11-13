@@ -7,7 +7,7 @@ import Hidden from "@mui/material/Hidden";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import UserContext from "../contexts/UserContext";
-import ProposalList from "../components/ProposalList";
+import ProposalTable from "../components/ProposalTable";
 
 const proposals = [
   {
@@ -56,7 +56,7 @@ function ProposalsPage() {
           </Button>
         </Hidden>
       </Stack>
-      <ProposalList data={proposals} />
+      <ProposalTable data={proposals} />
       <Hidden smUp>
         <Stack
           direction="row"
