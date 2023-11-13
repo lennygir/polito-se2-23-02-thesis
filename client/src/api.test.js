@@ -1,3 +1,4 @@
+
 import API from "./API";
 const SERVER_URL = "http://localhost:3000/api";
 
@@ -42,7 +43,9 @@ describe("Test the login", () => {
         ok: false,
         json: () => Promise.resolve(errorResponse),
       });
+
       await API.logIn(credentials);
+
       expect(fetch).toHaveBeenCalledWith(SERVER_URL + "/sessions", {
         method: "POST",
         headers: {

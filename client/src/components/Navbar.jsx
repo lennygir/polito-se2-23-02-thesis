@@ -7,10 +7,13 @@ import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useThemeContext } from "../theme/ThemeContextProvider";
+import { useContext } from "react";
 import { Link } from "react-router-dom";
+import UserContext from "../contexts/UserContext";
 
 function Navbar(props) {
   const { mode } = useThemeContext();
+  const user = useContext(UserContext);
 
   return (
     <AppBar
@@ -31,7 +34,7 @@ function Navbar(props) {
           <MenuIcon />
         </IconButton>
         <Typography variant="h6" noWrap component="div">
-          Logged in as student
+          {user?.name + " " + user?.surname}
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
         <Button

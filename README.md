@@ -2,9 +2,13 @@
 
 ## React Client Application Routes
 
-- Route `/`: page content and purpose
-- Route `/something/:param`: page content and purpose, param specification
-- ...
+- Route `/`: login page
+- Route `/proposals`: students see the list of proposals for their cds, teachers see the list of their proposals
+- Route `/add-propsal`: teachers can create a new proposal
+- Route `/applications`: students see the list of their applications, teachers see the list of applications to their proposals
+- Route `/notifications`: students and teachers see the list of notifications related to the proposals/applications
+- Route `/settings`: users can change the theme and the current date
+- Route `*`: non-existing routes view
 
 ## API Server
 
@@ -16,9 +20,36 @@
     "password": "s309618"
   }
   ```
-- GET `/api/something`
-  - request parameters
-  - response body content
+- GET `/api/proposals`
+  - request body content example
+  ```
+  {
+    "title": "Proposta di tesi fighissima",
+    "supervisor": "s345678",
+    "co_supervisors": [
+      "s122349@gmail.com",
+      "s298399@outlook.com"
+    ],
+    "groups": [
+      "ELITE",
+      "SOFTENG"
+    ],
+    "keywords": [
+      "SOFTWARE ENGINEERING",
+      "SOFTWARE DEVELOPMENT"
+    ],
+    "types": [
+      "EXPERIMENTAL",
+      "RESEARCH"
+    ],
+    "description": "Accetta questa tesi che e' una bomba",
+    "required_knowledge": "non devi sapere nulla",
+    "notes": null,
+    "expiration_date": "2019-01-25T02:00:00.000Z",
+    "level": "MSC",
+    "cds": "LM-32 (DM270)"
+  }
+  ```
 - POST `/api/something`
   - request parameters and request body content
   - response body content
