@@ -2,6 +2,19 @@
 
 const request = require("supertest");
 const app = require("../src/server");
+const { getGroups, getTeachers, getDegrees } = require("../src/theses-dao");
+
+jest.mock("../src/theses-dao.js", () => {
+  const theses_dao = jest.requireActual("../src/theses-dao.js");
+  return {
+    ...theses_dao,
+    getTeachers: jest.fn(),
+    getGroups: jest.fn(),
+    getDegrees: jest.fn(),
+  };
+});
+
+beforeEach(() => jest.resetAllMocks());
 
 describe("Proposal Insertion Tests", () => {
   test("Insertion of a correct proposal", () => {
@@ -189,5 +202,103 @@ describe("Proposal Retrieval Tests", () => {
         expect(response.body).toBeInstanceOf(Array);
         expect(response.body.length).toBe(0);
       });
+  });
+});
+
+describe("Get All Teachers Test", () => {
+  test("Correct get of all teachers from db", () => {
+    getTeachers.mockResolvedValue([
+      { id: "s123456", surname: "Torchiano", name: "Marco" },
+      { id: "s234567", surname: "Morisio", name: "Maurizio" },
+    ]);
+    return request(app)
+      .get("/api/teachers")
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .then((response) => {
+        // Assuming the response body is an array
+        expect(Array.isArray(response.body)).toBe(true);
+        // todo: Add more specific checks on the response body if needed
+      });
+  });
+
+  test("Get 404 for an empty group table db", () => {
+    getTeachers.mockResolvedValue([]);
+    return request(app)
+      .get("/api/teachers")
+      .expect("Content-Type", /json/)
+      .expect(404);
+  });
+
+  test("Get 500 for an internal server error", () => {
+    getTeachers.mockImplementation(() => {
+      throw "SQLITE_ERROR_SOMETHING";
+    });
+    return request(app)
+      .get("/api/teachers")
+      .expect("Content-Type", /json/)
+      .expect(500);
+  });
+});
+
+describe("Get All Groups Test", () => {
+  test("Correct get of all groups from db", () => {
+    getGroups.mockResolvedValue([
+      { cod_group: "SOFTENG" },
+      { cod_group: "ELITE" },
+    ]);
+    return request(app)
+      .get("/api/groups")
+      .expect("Content-Type", /json/)
+      .expect(200);
+  });
+
+  test("Get 404 for an empty group table db", () => {
+    getGroups.mockResolvedValue([]);
+    return request(app)
+      .get("/api/groups")
+      .expect("Content-Type", /json/)
+      .expect(404);
+  });
+
+  test("Get 500 for an internal server error", () => {
+    getGroups.mockImplementation(() => {
+      throw "SQLITE_ERROR_SOMETHING";
+    });
+    return request(app)
+      .get("/api/groups")
+      .expect("Content-Type", /json/)
+      .expect(500);
+  });
+});
+
+describe("Get All Degrees Test", () => {
+  test("Correct get of all degrees from db", () => {
+    getDegrees.mockResolvedValue([
+      { cod_degree: "LM-32 (DM270)", title_degree: "Computer Engineering" },
+      { cod_degree: "LM-23 (DM270)", title_degree: "Civil Engineering" },
+    ]);
+    return request(app)
+      .get("/api/degrees")
+      .expect("Content-Type", /json/)
+      .expect(200);
+  });
+
+  test("Get 404 for an empty degree table db", () => {
+    getDegrees.mockResolvedValue([]);
+    return request(app)
+      .get("/api/degrees")
+      .expect("Content-Type", /json/)
+      .expect(404);
+  });
+
+  test("Get 500 for an internal server error", () => {
+    getDegrees.mockImplementation(() => {
+      throw "SQLITE_ERROR_SOMETHING";
+    });
+    return request(app)
+      .get("/api/degrees")
+      .expect("Content-Type", /json/)
+      .expect(500);
   });
 });
