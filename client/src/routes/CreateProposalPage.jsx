@@ -23,27 +23,34 @@ function CreateProposalPage(props) {
 
   return (
     <div id="crete-proposal-page">
-      <Paper elevation={1} sx={{ mb: 5 }}>
-        <Stack
-          paddingTop={4}
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
+      <Stack
+        paddingTop={4}
+        sx={{ pt: { md: 4, xs: 0 } }}
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+      >
+        <Button
+          component={Link}
+          to="/proposals"
+          variant="outlined"
+          startIcon={<ArrowBackIcon />}
+          sx={{ ml: { md: 4, xs: 0 } }}
         >
-          <Button
-            component={Link}
-            to="/proposals"
-            variant="outlined"
-            startIcon={<ArrowBackIcon />}
-            sx={{ ml: 4 }}
-          >
-            Back
-          </Button>
-        </Stack>
-        <Typography variant="h4" padding={4}>
-          New Thesis Proposal
-        </Typography>
-        <Box paddingX={5} paddingBottom={3}>
+          Back
+        </Button>
+      </Stack>
+      <Typography
+        variant="h4"
+        sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}
+      >
+        New Thesis Proposal
+      </Typography>
+      <Paper
+        elevation={1}
+        sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}
+      >
+        <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
           <ProposalForm
             teachers={props.teachers}
             groups={props.groups}
