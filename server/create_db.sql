@@ -107,21 +107,21 @@ CREATE TABLE IF NOT EXISTS USERS (
 
 INSERT INTO DEGREE (cod_degree, title_degree)
 VALUES  ('LM-32 (DM270)', 'Computer Engineering'),
-        ('LM-23 (DM270)', 'Civil Engineering'),
-        ('LM-33 (DM270)', 'Mechanical Engineering'),
-        ('LM-25 (DM270)', 'Automotive Engineering'),
-        ('LM-29 (DM270)', 'Electronic and Communications Engineering'),
-        ('LM-22 (DM270)', 'Chemical Engineering'),
-        ('LM-20 (DM270)', 'Aerospace Engineering'),
-        ('LM-04 (DM270)', 'Architecture'),
-        ('L-8-T (DM270)', 'Computer Engineering'),
-        ('L-7-T (DM270)', 'Civil Engineering'),
-        ('L-9-T (DM270)', 'Mechanical Engineering'),
-        ('L-9-A (DM270)', 'Automotive Engineering'),
-        ('L-8-E (DM270)', 'Electronic and Communications Engineering'),
-        ('L-8-C (DM270)', 'Chemical Engineering'),
-        ('L-8-A (DM270)', 'Aerospace Engineering'),
-        ('L-7-A (DM270)', 'Architecture');
+        ('LM-23 (DM271)', 'Civil Engineering'),
+        ('LM-33 (DM272)', 'Mechanical Engineering'),
+        ('LM-25 (DM273)', 'Automotive Engineering'),
+        ('LM-29 (DM274)', 'Electronic and Communications Engineering'),
+        ('LM-22 (DM275)', 'Chemical Engineering'),
+        ('LM-20 (DM276)', 'Aerospace Engineering'),
+        ('LM-04 (DM277)', 'Architecture'),
+        ('L-8-T (DM278)', 'Computer Engineering'),
+        ('L-7-T (DM279)', 'Civil Engineering'),
+        ('L-9-T (DM280)', 'Mechanical Engineering'),
+        ('L-9-A (DM281)', 'Automotive Engineering'),
+        ('L-8-E (DM282)', 'Electronic and Communications Engineering'),
+        ('L-8-C (DM283)', 'Chemical Engineering'),
+        ('L-8-A (DM284)', 'Aerospace Engineering'),
+        ('L-7-A (DM285)', 'Architecture');
 
 INSERT INTO DEPARTMENTS (cod_department, name_department)
 VALUES  ('DAUIN', 'Departments of Control and Computer Engineering'),
