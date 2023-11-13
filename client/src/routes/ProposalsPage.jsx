@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import Button from "@mui/material/Button";
@@ -8,43 +8,47 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import UserContext from "../contexts/UserContext";
 import ProposalTable from "../components/ProposalTable";
-
-const proposals = [
-  {
-    id: 1,
-    supervisor: "marco.torchiano@polito.it",
-    title:
-      "Proposta number 1 Proposta number 1 Proposta number 1 Proposta number 1 Proposta number 1 Proposta number 1 Proposta number 1 Proposta number 1 Proposta number 1 Proposta number 1",
-    expirationDate: "10/01/2024",
-  },
-  {
-    id: 2,
-    supervisor: "marco.torchiano@polito.it",
-    title: "Proposta number 2",
-    expirationDate: "15/04/2024",
-  },
-  {
-    id: 3,
-    supervisor: "marco.torchiano@polito.it",
-    title: "Proposta number 3",
-    expirationDate: "01/03/2024",
-  },
-];
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
+import SearchIcon from "@mui/icons-material/Search";
+import API from "../API";
 
 function ProposalsPage() {
   const user = useContext(UserContext);
+  const [searchValue, setSearchValue] = useState("");
+  const [proposals, setProposals] = useState([]);
+  const [dirty, setDirty] = useState(false);
+
+  const handleSearch = (e) => {
+    setSearchValue(e.target.value);
+  }
+
+  const filterProposals = () => {
+    return proposals.filter((p) => {
+      return p.title.toLowerCase().includes(searchValue.toLowerCase()) || 
+        p.supervisor.toLowerCase().includes(searchValue.toLowerCase());
+    });
+  }
 
   const studentView = (
     <>
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Typography variant="h4">
-          Thesis
+      <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Typography
+          variant="h4"
+          sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}
+        >
+          Available thesis
         </Typography>
-        <TextField label="Rechercher" variant="outlined" InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }} />
+        <Hidden smDown>
+          <TextField label="Rechercher" onChange={handleSearch} variant="outlined" InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }} />
+        </Hidden>
       </Stack>
       
-      <ProposalTable data={proposals} />
-    
+      <ProposalTable data={filterProposals()} />
+
+      <Hidden smUp>
+        <TextField label="Rechercher" onChange={handleSearch} variant="outlined" InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }} />
+      </Hidden>
     </>
   );
 
@@ -89,11 +93,27 @@ function ProposalsPage() {
     </>
   );
 
-  return (
-    <div id="proposals-page">
-      {user?.role === "student" ? studentView : professorView}
-    </div>
-  );
+  if(user?.role === "student") {
+
+    // Fetch data to get the proposals on first render & when dirty changes
+    useEffect(() => {
+      API.getProposalsByDegree(user.cod_degree).then((proposals) => {
+        setProposals(proposals);
+      });
+    }, [dirty]);
+
+    return (
+      <div id="proposals-page">
+        {studentView}
+      </div>
+    );
+  } else {
+    return (
+      <div id="proposals-page">
+        {professorView}
+      </div>
+    );
+  }
 }
 
 export default ProposalsPage;

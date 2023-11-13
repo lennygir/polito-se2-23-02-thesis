@@ -73,8 +73,4 @@ function ProposalRow(props) {
   );
 }
 
-<<<<<<< HEAD
 export default ProposalRow;
-=======
-export default ProposalRow;
->>>>>>> fix: using the table component
