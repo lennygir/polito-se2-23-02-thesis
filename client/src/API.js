@@ -42,8 +42,39 @@ const logIn = async (credentials) => {
     )
   };
 
+  const getTeachers= async() => {
+    return getJson(fetch(SERVER_URL + '/teachers'));
+
+  }
+
+  const getDegrees= async() => {
+    return getJson(fetch(SERVER_URL + '/degrees'));
+  }
+
+  const getGroups= async() => {
+    return getJson(fetch(SERVER_URL + '/groups'));
+  }
+
+  const createProposal = async (proposal) => {
+    return getJson(
+      fetch(SERVER_URL + "/proposals", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(proposal),
+      })
+    );
+  };
+
   const API = {
     logIn,
+    getTeachers, 
+    createProposal,
+    getDegrees,
+    getGroups,
   };
   
-  module.exports= API;
+  export default API;
+
+  
