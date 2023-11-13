@@ -153,12 +153,9 @@ router.get(
     try {
       
       const teachers = await getTeachers();
-      console.log(teachers)
-      if (teachers === false) {
-        return res.status(400).send({ message: "Invalid proposal content" });
-      } 
+      
       if (teachers.length === 0){
-        return res.status(400).send({ message: "No teacher found in the database"});
+        return res.status(404).send({ message: "No teacher found in the database"});
       }
       
       return res.status(200).json(teachers);
@@ -174,14 +171,11 @@ router.get(
   "/api/groups",
   async (req, res) => {
     try {
-      
+      //get the groups from db
       const groups = await getGroups();
-      console.log(groups)
-      if (groups === false) {
-        return res.status(400).send({ message: "Invalid content" });
-      } 
+  
       if (groups.length === 0){
-        return res.status(400).send({ message: "No group found in the database"});
+        return res.status(404).send({ message: "No group found in the database"});
       }
       
       return res.status(200).json(groups);
@@ -199,12 +193,9 @@ router.get(
     try {
       
       const degrees = await getDegrees();
-      console.log(degrees)
-      if (degrees === false) {
-        return res.status(400).send({ message: "Invalid content" });
-      } 
+      
       if (degrees.length === 0){
-        return res.status(400).send({ message: "No group found in the database"});
+        return res.status(404).send({ message: "No group found in the database"});
       }
       
       return res.status(200).json(degrees);

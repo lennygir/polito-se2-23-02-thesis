@@ -45,6 +45,63 @@
     "level": "MSC",
     "cds": "LM-32 (DM270)"
   }
+- GET `/api/teacher`
+  - no body request
+  - return the list of all teachers
+  - return 200 for correct behavior
+  - return 404 for empty teachers table
+  - return 500 for internal server error
+  - example of return value
+  ```
+  [
+    {
+      id :"s123456",
+      surname: "Torchiano",
+      name: "Marco"
+    },
+    {
+      id: "s234567",
+      surname: "Morisio",
+      name: "Maurizio"
+    }
+  ]
+  ```
+
+  - GET `/api/groups`
+  - no body request
+  - return the list of all groups
+  - return 200 for correct behavior
+  - return 404 for empty groups table
+  - return 500 for internal server error
+  - example of return value
+  ```
+  [
+    {
+      cod_group: "SOFTENG"
+    },
+    {
+      cod_group: "ELITE"
+    }
+  ]
+  ```
+- GET `/api/degree`
+  - no body request
+  - return the list of all degrees
+  - return 200 for correct behavior
+  - return 404 for empty degree table
+  - return 500 for internal server error
+  - example of return value
+  ```
+  [
+    {
+      cod_degree :"LM-32 (DM270)",
+      title_degree: "Computer Engineering"
+    },
+    { 
+      cod_degree: "LM-23 (DM270)",
+      title_degree: "Civil Engineering"
+    }
+  ]
   ```
 - POST `/api/something`
   - request parameters and request body content
