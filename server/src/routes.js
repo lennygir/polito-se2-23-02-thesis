@@ -3,7 +3,14 @@
 const router = require("express").Router();
 const userDao = require("./user-dao");
 const { check, validationResult } = require("express-validator");
-const { getTeacher, getTeachers, getGroup, getGroups, getDegrees, insertProposal } = require("./theses-dao");
+const {
+  getTeacher,
+  getTeachers,
+  getGroup,
+  getGroups,
+  getDegrees,
+  insertProposal,
+} = require("./theses-dao");
 const dayjs = require("dayjs");
 
 // ==================================================
@@ -147,64 +154,56 @@ router.post(
 );
 
 // endpoint to get all teachers {id, surname, name}
-router.get(
-  "/api/teacher",
-  async (req, res) => {
-    try {
-      
-      const teachers = await getTeachers();
-      
-      if (teachers.length === 0){
-        return res.status(404).send({ message: "No teacher found in the database"});
-      }
-      
-      return res.status(200).json(teachers);
-      
-    } catch (e) {
-      return res.status(500).send({ message: "Internal server error" });
+router.get("/api/teachers", async (req, res) => {
+  try {
+    const teachers = await getTeachers();
+
+    if (teachers.length === 0) {
+      return res
+        .status(404)
+        .send({ message: "No teacher found in the database" });
     }
-  },
-);
+
+    return res.status(200).json(teachers);
+  } catch (e) {
+    return res.status(500).send({ message: "Internal server error" });
+  }
+});
 
 // endpoint to get all groups {cod_group}
-router.get(
-  "/api/groups",
-  async (req, res) => {
-    try {
-      //get the groups from db
-      const groups = await getGroups();
-  
-      if (groups.length === 0){
-        return res.status(404).send({ message: "No group found in the database"});
-      }
-      
-      return res.status(200).json(groups);
-      
-    } catch (e) {
-      return res.status(500).send({ message: "Internal server error" });
+router.get("/api/groups", async (req, res) => {
+  try {
+    //get the groups from db
+    const groups = await getGroups();
+
+    if (groups.length === 0) {
+      return res
+        .status(404)
+        .send({ message: "No group found in the database" });
     }
-  },
-);
+
+    return res.status(200).json(groups);
+  } catch (e) {
+    return res.status(500).send({ message: "Internal server error" });
+  }
+});
 
 // endpoint to get all degree {cod_degree, title_degree}
-router.get(
-  "/api/degree",
-  async (req, res) => {
-    try {
-      
-      const degrees = await getDegrees();
-      
-      if (degrees.length === 0){
-        return res.status(404).send({ message: "No group found in the database"});
-      }
-      
-      return res.status(200).json(degrees);
-      
-    } catch (e) {
-      return res.status(500).send({ message: "Internal server error" });
+router.get("/api/degrees", async (req, res) => {
+  try {
+    const degrees = await getDegrees();
+
+    if (degrees.length === 0) {
+      return res
+        .status(404)
+        .send({ message: "No group found in the database" });
     }
-  },
-);
+
+    return res.status(200).json(degrees);
+  } catch (e) {
+    return res.status(500).send({ message: "Internal server error" });
+  }
+});
 
 // ==================================================
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS

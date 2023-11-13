@@ -16,7 +16,7 @@
     "password": "s309618"
   }
   ```
-- GET `/api/proposals`
+- POST `/api/proposals`
   - request body content example
   ```
   {
@@ -45,7 +45,7 @@
     "level": "MSC",
     "cds": "LM-32 (DM270)"
   }
-- GET `/api/teacher`
+- GET `/api/teachers`
   - no body request
   - return the list of all teachers
   - return 200 for correct behavior
@@ -84,7 +84,7 @@
     }
   ]
   ```
-- GET `/api/degree`
+- GET `/api/degrees`
   - no body request
   - return the list of all degrees
   - return 200 for correct behavior
