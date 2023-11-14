@@ -10,6 +10,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import dayjs from "dayjs";
 
 function ProposalRow(props) {
   const proposal = props.proposal;
@@ -38,7 +39,9 @@ function ProposalRow(props) {
         >
           {proposal.title}
         </TableCell>
-        <TableCell align="center">{proposal.expirationDate}</TableCell>
+        <TableCell align="center">
+          {dayjs(proposal.expiration_date).format("DD/MM/YYYY")}
+        </TableCell>
         <TableCell align="right">
           <IconButton onClick={handleOpenMenu}>
             <MoreVertIcon />

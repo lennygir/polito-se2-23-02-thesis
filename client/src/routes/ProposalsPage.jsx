@@ -1,6 +1,7 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Fab from "@mui/material/Fab";
 import Hidden from "@mui/material/Hidden";
@@ -12,14 +13,12 @@ import UserContext from "../contexts/UserContext";
 import ProposalTable from "../components/ProposalTable";
 import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
-import API from "../API";
 import ProposalFilters from "../components/ProposalFilters";
 
-function ProposalsPage() {
+function ProposalsPage(props) {
+  const proposals = props.proposals;
   const user = useContext(UserContext);
   const [searchValue, setSearchValue] = useState("");
-  const [proposals, setProposals] = useState([]);
-  const [dirty, setDirty] = useState(false);
 
   const handleSearch = (e) => {
     setSearchValue(e.target.value);
@@ -67,6 +66,7 @@ function ProposalsPage() {
         <ProposalFilters />
       </Toolbar>
       <ProposalTable data={filterProposals()} />
+      <Box height={5} marginTop={3} />
     </>
   );
 
@@ -91,6 +91,7 @@ function ProposalsPage() {
         </Hidden>
       </Stack>
       <ProposalTable data={proposals} />
+      <Box height={5} marginTop={3} />
       <Hidden smUp>
         <Stack
           direction="row"
@@ -111,18 +112,11 @@ function ProposalsPage() {
     </>
   );
 
-  if (user?.role === "student") {
-    // Fetch data to get the proposals on first render & when dirty changes
-    useEffect(() => {
-      API.getProposalsByDegree(user.cod_degree).then((proposals) => {
-        setProposals(proposals);
-      });
-    }, [dirty]);
-
-    return <div id="proposals-page">{studentView}</div>;
-  } else {
-    return <div id="proposals-page">{professorView}</div>;
-  }
+  return (
+    <div id="proposals-page">
+      {user?.role === "student" ? studentView : professorView}
+    </div>
+  );
 }
 
 export default ProposalsPage;

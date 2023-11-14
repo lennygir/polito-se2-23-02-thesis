@@ -63,7 +63,7 @@ const createProposal = async (proposal) => {
 };
 
 const getProposalsByDegree = async (degree) => {
-  return getJson(fetch(SERVER_URL + "/proposals/" + degree));
+  return getJson(fetch(SERVER_URL + "/proposals?cds=" + degree));
 };
 
 const API = {
