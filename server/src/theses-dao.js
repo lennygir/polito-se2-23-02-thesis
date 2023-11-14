@@ -63,7 +63,7 @@ exports.getTeacher = (id) => {
 exports.getTeachers = () => {
 
   return new Promise((resolve, reject) => {
-    db.all("select id, surname, name from TEACHER", (err, row) => {
+    db.all("select id, surname, name, email from TEACHER", (err, row) => {
       if (err) {
         console.log(err)
         reject(err);
