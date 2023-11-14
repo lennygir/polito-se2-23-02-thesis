@@ -65,12 +65,15 @@ function ProposalsPage(props) {
         />
         <ProposalFilters />
       </Toolbar>
-      <ProposalTable data={filterProposals()} />
+      <ProposalTable
+        data={filterProposals()}
+        getTeacherById={props.getTeacherById}
+      />
       <Box height={5} marginTop={3} />
     </>
   );
 
-  const professorView = (
+  const teacherView = (
     <>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography
@@ -114,7 +117,7 @@ function ProposalsPage(props) {
 
   return (
     <div id="proposals-page">
-      {user?.role === "student" ? studentView : professorView}
+      {user?.role === "student" ? studentView : teacherView}
     </div>
   );
 }
