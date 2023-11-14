@@ -15,7 +15,6 @@ function ProposalTable(props) {
       sx={{
         marginTop: { md: 1, sm: 0 },
         marginX: { md: 4, sm: 0 },
-        maxHeight: "70vh",
         overflowY: "auto",
         borderRadius: 4,
       }}

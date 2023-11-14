@@ -4,14 +4,16 @@ import AddIcon from "@mui/icons-material/Add";
 import Button from "@mui/material/Button";
 import Fab from "@mui/material/Fab";
 import Hidden from "@mui/material/Hidden";
+import OutlinedInput from "@mui/material/OutlinedInput";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import Toolbar from "@mui/material/Toolbar";
 import UserContext from "../contexts/UserContext";
 import ProposalTable from "../components/ProposalTable";
-import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
 import API from "../API";
+import ProposalFilters from "../components/ProposalFilters";
 
 function ProposalsPage() {
   const user = useContext(UserContext);
@@ -21,14 +23,16 @@ function ProposalsPage() {
 
   const handleSearch = (e) => {
     setSearchValue(e.target.value);
-  }
+  };
 
   const filterProposals = () => {
     return proposals.filter((p) => {
-      return p.title.toLowerCase().includes(searchValue.toLowerCase()) || 
-        p.supervisor.toLowerCase().includes(searchValue.toLowerCase());
+      return (
+        p.title.toLowerCase().includes(searchValue.toLowerCase()) ||
+        p.supervisor.toLowerCase().includes(searchValue.toLowerCase())
+      );
     });
-  }
+  };
 
   const studentView = (
     <>
@@ -37,18 +41,32 @@ function ProposalsPage() {
           variant="h4"
           sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}
         >
-          Available thesis
+          Theses Proposals
         </Typography>
-        <Hidden smDown>
-          <TextField label="Rechercher" onChange={handleSearch} variant="outlined" InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }} />
-        </Hidden>
       </Stack>
-      
+      <Toolbar
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          height: 96,
+          marginX: { md: 3, xs: -1 },
+        }}
+      >
+        <OutlinedInput
+          sx={{ borderRadius: 4, width: { md: "300px", xs: "200px" } }}
+          placeholder="Search proposal..."
+          onChange={handleSearch}
+          startAdornment={
+            <InputAdornment position="start">
+              <SearchIcon
+                sx={{ color: "text.disabled", width: 20, height: 20 }}
+              />
+            </InputAdornment>
+          }
+        />
+        <ProposalFilters />
+      </Toolbar>
       <ProposalTable data={filterProposals()} />
-
-      <Hidden smUp>
-        <TextField label="Rechercher" onChange={handleSearch} variant="outlined" InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }} />
-      </Hidden>
     </>
   );
 
@@ -93,8 +111,7 @@ function ProposalsPage() {
     </>
   );
 
-  if(user?.role === "student") {
-
+  if (user?.role === "student") {
     // Fetch data to get the proposals on first render & when dirty changes
     useEffect(() => {
       API.getProposalsByDegree(user.cod_degree).then((proposals) => {
@@ -102,17 +119,9 @@ function ProposalsPage() {
       });
     }, [dirty]);
 
-    return (
-      <div id="proposals-page">
-        {studentView}
-      </div>
-    );
+    return <div id="proposals-page">{studentView}</div>;
   } else {
-    return (
-      <div id="proposals-page">
-        {professorView}
-      </div>
-    );
+    return <div id="proposals-page">{professorView}</div>;
   }
 }
 
