@@ -21,6 +21,7 @@ import ErrorContext from "./contexts/ErrorContext";
 import UserContext from "./contexts/UserContext";
 import LoginPage from "./routes/LoginPage";
 import API from "./API";
+import ViewProposalPage from "./routes/ViewProposalPage";
 
 function App() {
   const { theme } = useThemeContext();
@@ -168,6 +169,7 @@ function Main() {
           {/* prettier-ignore */}
           <Route path="/" element={user ? <RootPage currentDate={currentDate} logout={handleLogout} /> : <LoginPage login={handleLogin} />}>
           <Route path="proposals" element={user ? <ProposalsPage /> : <Navigate replace to="/" />} />
+          <Route path="proposals/:proposalId" element={user ? <ViewProposalPage /> : <Navigate replace to="/" />} />
           <Route path="add-proposal" element={user ? <CreateProposalPage teachers={teachers} groups={groups} cds={cds} setDirty={setDirty} setAlert={setAlert}/> : <Navigate replace to="/" />} />
           <Route path="applications" element={user ? <ApplicationsPage /> : <Navigate replace to="/" /> } />
           <Route path="notifications" element={user ? <NotificationsPage /> : <Navigate replace to="/" />} />
