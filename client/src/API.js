@@ -67,6 +67,23 @@ const getProposalsByDegree = async(degree) =>{
   return getJson(fetch(SERVER_URL + "/proposals/" + degree))
 }
 
+const getProposalsByTeacher = async(teacher_id) =>{
+  return getJson(fetch(SERVER_URL + "/proposals/" + teacher_id))
+}
+
+
+const insertApplication = async (application) => {
+  return getJson(
+    fetch(SERVER_URL + "/applications", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(application), //request body: {proposal: "proposal_id",student:"student_id"}
+    })
+  );
+};
+
 const API = {
   logIn,
   getTeachers,
@@ -74,6 +91,8 @@ const API = {
   getDegrees,
   getGroups,
   getProposalsByDegree,
+  getProposalsByTeacher,
+  insertApplication,
 };
 
 export default API;
