@@ -67,12 +67,12 @@ const getProposalsByDegree = async (degree) => {
 };
 
 const API = {
-  logIn,
-  getTeachers,
   createProposal,
   getDegrees,
   getGroups,
+  getTeachers,
   getProposalsByDegree,
+  logIn,
 };
 
 export default API;

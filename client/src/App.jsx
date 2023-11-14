@@ -102,25 +102,6 @@ function Main() {
     setAlert({ message: errMsg, severity: "error" });
   };
 
-  const getTeachers = () => {
-    // TODO: Call getTeachers API
-    const teachers = [
-      {
-        id: 1,
-        email: "mario@rossi.it",
-      },
-      {
-        id: 2,
-        email: "gianpiero.cabodi@polito.it",
-      },
-      {
-        id: 3,
-        email: "alessandro.savino@polito.it",
-      },
-    ];
-    setTeachers(teachers);
-  };
-
   const fetchStaticData = async () => {
     try {
       const [teachers, groups, degrees] = await Promise.all([
@@ -128,7 +109,7 @@ function Main() {
         API.getGroups(),
         API.getDegrees(),
       ]);
-      // setTeachers(teachers);
+      setTeachers(teachers);
       setGroups(groups);
       setDegrees(degrees);
     } catch (err) {
@@ -136,14 +117,32 @@ function Main() {
     }
   };
 
-  // Fetch needed data after login
-  useEffect(() => {
-    getTeachers();
-  }, []);
+  const fetchDynamicData = async () => {
+    try {
+      if (user.role === "student") {
+        // The student fetches the proposals for his degree
+        const [proposals, applications] = await Promise.all([
+          API.getProposalsByDegree(user.cod_degree),
+        ]);
+        setProposals(proposals);
+      } else if (user.role === "teacher") {
+        // The teacher fetches the proposals that he created
+        // const [proposals, applications] = await Promise.all([
+        //   API.getProposalsByDegree(user.cod_degree),
+        // ]);
+        // setProposals(proposals);
+      }
+    } catch (err) {
+      return handleErrors(err);
+    }
+  };
 
+  // Re-fetch dynamic data when needed
   useEffect(() => {
-    // TODO: Re-fetch proposals
-    setDirty(false);
+    if (dirty) {
+      fetchDynamicData();
+      setDirty(false);
+    }
   }, [dirty]);
 
   // Virtual clock
