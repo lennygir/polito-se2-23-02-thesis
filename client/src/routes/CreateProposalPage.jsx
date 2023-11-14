@@ -60,7 +60,7 @@ function CreateProposalPage(props) {
           <ProposalForm
             teachers={props.teachers}
             groups={props.groups}
-            cds={props.cds}
+            degrees={props.degrees}
             createProposal={createProposal}
           />
         </Box>

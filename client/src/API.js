@@ -38,7 +38,6 @@ const logIn = async (credentials) => {
   );
 };
 
-
 const getTeachers = async () => {
   return getJson(fetch(SERVER_URL + "/teachers"));
 };
@@ -63,17 +62,17 @@ const createProposal = async (proposal) => {
   );
 };
 
-const getProposalsByDegree = async(degree) =>{
-  return getJson(fetch(SERVER_URL + "/proposals/" + degree))
-}
+const getProposalsByDegree = async (degree) => {
+  return getJson(fetch(SERVER_URL + "/proposals/" + degree));
+};
 
 const API = {
-  logIn,
-  getTeachers,
   createProposal,
   getDegrees,
   getGroups,
+  getTeachers,
   getProposalsByDegree,
+  logIn,
 };
 
 export default API;
