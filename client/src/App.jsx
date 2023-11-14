@@ -67,6 +67,7 @@ function Main() {
     try {
       const user = await API.logIn(credentials);
       setUser(user);
+      setDirty(true);
       navigate("/proposals");
       setAlert({
         message: "Welcome, " + user.name + "!",
@@ -121,7 +122,7 @@ function Main() {
     try {
       if (user.role === "student") {
         // The student fetches the proposals for his degree
-        const [proposals, applications] = await Promise.all([
+        const [proposals] = await Promise.all([
           API.getProposalsByDegree(user.cod_degree),
         ]);
         setProposals(proposals);
@@ -166,7 +167,7 @@ function Main() {
         <Routes>
           {/* prettier-ignore */}
           <Route path="/" element={user ? <RootPage currentDate={currentDate} logout={handleLogout} /> : <LoginPage login={handleLogin} />}>
-          <Route path="proposals" element={user ? <ProposalsPage /> : <Navigate replace to="/" />} />
+          <Route path="proposals" element={user ? <ProposalsPage proposals={proposals} /> : <Navigate replace to="/" />} />
           <Route path="add-proposal" element={user ? <CreateProposalPage teachers={teachers} groups={groups} degrees={degrees} setDirty={setDirty} setAlert={setAlert}/> : <Navigate replace to="/" />} />
           <Route path="applications" element={user ? <ApplicationsPage /> : <Navigate replace to="/" /> } />
           <Route path="notifications" element={user ? <NotificationsPage /> : <Navigate replace to="/" />} />
