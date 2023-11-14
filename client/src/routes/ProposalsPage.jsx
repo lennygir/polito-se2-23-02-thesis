@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
@@ -19,19 +19,55 @@ function ProposalsPage(props) {
   const proposals = props.proposals;
   const user = useContext(UserContext);
   const [searchValue, setSearchValue] = useState("");
+  const [filteredProposals, setFilteredProposals] = useState([]);
+
+  useEffect(() => {
+    setFilteredProposals(proposals);
+  }, [proposals]);
 
   const handleSearch = (e) => {
     setSearchValue(e.target.value);
   };
 
-  const filterProposals = () => {
-    return proposals.filter((p) => {
+  const filterProposals = (filterValues = {}) => {
+    let filteredProposals = proposals.filter((p) => {
       return (
         p.title.toLowerCase().includes(searchValue.toLowerCase()) ||
         p.supervisor.toLowerCase().includes(searchValue.toLowerCase())
       );
     });
+
+    for(let filter in filterValues){
+      filteredProposals = filteredProposals.filter((p) => {
+        if(filterValues[filter].length === 0) {
+          return true; // If no filter is selected, return all proposals
+        }
+        for(let opt of filterValues[filter]) {
+          if(p[filter].includes(opt)){
+            return true;
+          }
+        }
+        return false;
+      });
+    }
+
+    setFilteredProposals(filteredProposals);
   };
+
+  const getUniqueValues = (array) => [... new Set(array)];
+
+  const filterValues = {
+    "type": getUniqueValues(proposals.map(p => p.type.split(',').map(t => t.replace(/ /g, ""))).reduce((acc, val) => {
+      acc.push(...val);
+      return acc;
+    }, [])),
+    "groups": getUniqueValues(proposals.map(p => p.groups.split(',').map(t => t.replace(/ /g, ""))).reduce((acc, val) => {
+      acc.push(...val);
+      return acc;
+    }, [])),
+    "level": getUniqueValues(proposals.map(p => p.level)),
+    "cds": getUniqueValues(proposals.map(p => p.cds)),
+  }
 
   const studentView = (
     <>
@@ -63,7 +99,7 @@ function ProposalsPage(props) {
             </InputAdornment>
           }
         />
-        <ProposalFilters />
+        <ProposalFilters filters={filterValues} onChange={filterProposals} />
       </Toolbar>
       <ProposalTable
         data={filterProposals()}
