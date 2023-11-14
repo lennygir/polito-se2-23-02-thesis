@@ -14,7 +14,10 @@ jest.mock("../src/theses-dao.js", () => {
   };
 });
 
-beforeEach(() => jest.resetAllMocks());
+beforeEach(() => {
+  jest.resetAllMocks();
+  jest.clearAllMocks();
+});
 
 describe("Proposal Insertion Tests", () => {
   test("Insertion of a correct proposal", () => {
@@ -205,8 +208,8 @@ describe("Proposal Retrieval Tests", () => {
 describe("Get All Teachers Test", () => {
   test("Correct get of all teachers from db", () => {
     getTeachers.mockResolvedValue([
-      { id: "s123456", surname: "Torchiano", name: "Marco" },
-      { id: "s234567", surname: "Morisio", name: "Maurizio" },
+      { id: "s123456", surname: "Torchiano", name: "Marco", email: "marco.torchiano@polito.it" },
+      { id: "s234567", surname: "Morisio", name: "Maurizio", email: "maurizio.morisio@polito.it" },
     ]);
     return request(app)
       .get("/api/teachers")
@@ -271,6 +274,7 @@ describe("Get All Groups Test", () => {
 
 describe("Get All Degrees Test", () => {
   test("Correct get of all degrees from db", () => {
+    
     getDegrees.mockResolvedValue([
       { cod_degree: "LM-32 (DM270)", title_degree: "Computer Engineering" },
       { cod_degree: "LM-23 (DM270)", title_degree: "Civil Engineering" },
