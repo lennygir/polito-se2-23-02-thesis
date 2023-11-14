@@ -162,14 +162,23 @@ function Main() {
     return () => clearInterval(intervalId);
   }, [currentDate]);
 
+  // Utility function to retrieve the teacher given its id
+  const getTeacherById = (teacherId) => {
+    return teachers.find((teacher) => teacher.id === teacherId);
+  };
+
+  const getDegreeById = (codDegree) => {
+    return degrees.find((degree) => degree.cod_degree === codDegree);
+  };
+
   return (
     <UserContext.Provider value={user}>
       <ErrorContext.Provider value={{ handleErrors }}>
         <Routes>
           {/* prettier-ignore */}
           <Route path="/" element={user ? <RootPage currentDate={currentDate} logout={handleLogout} /> : <LoginPage login={handleLogin} />}>
-          <Route path="proposals" element={user ? <ProposalsPage proposals={proposals} /> : <Navigate replace to="/" />} />
-          <Route path="proposals/:proposalId" element={user ? <ViewProposalPage /> : <Navigate replace to="/" />} />
+          <Route path="proposals" element={user ? <ProposalsPage proposals={proposals} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
+          <Route path="proposals/:proposalId" element={user ? <ViewProposalPage getTeacherById={getTeacherById} getDegreeById={getDegreeById} /> : <Navigate replace to="/" />} />
           <Route path="add-proposal" element={user ? <CreateProposalPage teachers={teachers} groups={groups} degrees={degrees} setDirty={setDirty} setAlert={setAlert}/> : <Navigate replace to="/" />} />
           <Route path="applications" element={user ? <ApplicationsPage /> : <Navigate replace to="/" /> } />
           <Route path="notifications" element={user ? <NotificationsPage /> : <Navigate replace to="/" />} />

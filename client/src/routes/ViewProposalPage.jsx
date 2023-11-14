@@ -1,7 +1,13 @@
-import { Button, Stack, Typography } from "@mui/material";
+import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { Link, useLocation } from "react-router-dom";
+import ProposalDetails from "../components/ProposalDetails";
 
-function ViewProposalPage() {
+function ViewProposalPage(props) {
+  const location = useLocation();
+
+  const proposal = location.state?.proposal;
+
   return (
     <div id="view-proposal-page">
       <Stack
@@ -27,6 +33,19 @@ function ViewProposalPage() {
       >
         Thesis Proposal
       </Typography>
+      <Paper
+        elevation={1}
+        sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}
+      >
+        <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
+          <ProposalDetails
+            proposal={proposal}
+            getTeacherById={props.getTeacherById}
+            getDegreeById={props.getDegreeById}
+          />
+        </Box>
+      </Paper>
+      <Box height={3} />
     </div>
   );
 }
