@@ -46,6 +46,21 @@ exports.insertProposal = (
   });
 };
 
+exports.getProposalsBySupervisior = (id) => {
+  
+  return new Promise((resolve, reject) => {
+    db.all("select * from PROPOSALS where supervisor = ?", id, (err, row) => {
+      if (err) {
+        reject(err);
+      } else if (row === undefined) {
+        resolve(false);
+      } else {
+        resolve(row);
+      }
+    });
+  });
+};
+
 exports.getTeacher = (id) => {
   return new Promise((resolve, reject) => {
     db.get("select * from TEACHER where id = ?", id, (err, row) => {

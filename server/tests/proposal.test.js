@@ -205,6 +205,33 @@ describe("Proposal Retrieval Tests", () => {
   });
 });
 
+describe("Get all proposals of a teacher", () => {
+  test("Correct get of all proposal of a teacher from db", () => {
+    const supervisor = {supervisor: "s456789"};
+    return request(app)
+      .get("/api/proposalsteacher")
+      .set("Content-Type", "application/json")
+      .send(supervisor)
+      .expect(200)
+  });
+  test("Return 404 for a non-existing supervisor", () => {
+    const supervisor = {supervisor: "s000000"};
+    return request(app)
+      .get("/api/proposalsteacher")
+      .set("Content-Type", "application/json")
+      .send(supervisor)
+      .expect(404)
+  });
+
+  test("Return 400 for an invalid supervisor id", () => {
+    const supervisor = {supervisor: 0};
+    return request(app)
+      .get("/api/proposalsteacher")
+      .set("Content-Type", "application/json")
+      .send(supervisor)
+      .expect(400)
+  });
+});
 describe("Get All Teachers Test", () => {
   test("Correct get of all teachers from db", () => {
     getTeachers.mockResolvedValue([
