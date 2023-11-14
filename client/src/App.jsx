@@ -50,7 +50,7 @@ function Main() {
   // Static arrays of all teachers, groups and cds loaded once after login
   const [teachers, setTeachers] = useState([]);
   const [groups, setGroups] = useState([]);
-  const [cds, setCds] = useState([]);
+  const [degrees, setDegrees] = useState([]);
 
   // Dynamic arrays of proposals and applications, different depending on logged in user
   // Must be refreshed after some operations
@@ -63,22 +63,29 @@ function Main() {
     severity: "success",
   });
 
-  const handleLogin = (credentials) => {
-    API.logIn(credentials)
-      .then((user) => {
-        setUser(user);
-        navigate("/proposals");
-        setAlert({
-          message: "Welcome, " + user.name + "!",
-          severity: "success",
-        });
-      })
-      .catch((err) => handleErrors(err));
+  const handleLogin = async (credentials) => {
+    try {
+      const user = await API.logIn(credentials);
+      setUser(user);
+      navigate("/proposals");
+      setAlert({
+        message: "Welcome, " + user.name + "!",
+        severity: "success",
+      });
+      await fetchStaticData();
+    } catch (err) {
+      handleErrors(err);
+    }
   };
 
   const handleLogout = () => {
     setUser(undefined);
     navigate("/");
+    setTeachers([]);
+    setGroups([]);
+    setDegrees([]);
+    setProposals([]);
+    setApplications([]);
   };
 
   const handleErrors = (err) => {
@@ -114,31 +121,24 @@ function Main() {
     setTeachers(teachers);
   };
 
-  const getGrups = () => {
-    // TODO: Call getGroups API
-    const groups = ["ELITE", "SOFTENG", "TORSEC"];
-    setGroups(groups);
+  const fetchStaticData = async () => {
+    try {
+      const [teachers, groups, degrees] = await Promise.all([
+        API.getTeachers(),
+        API.getGroups(),
+        API.getDegrees(),
+      ]);
+      // setTeachers(teachers);
+      setGroups(groups);
+      setDegrees(degrees);
+    } catch (err) {
+      return handleErrors(err);
+    }
   };
 
-  const getCds = () => {
-    // TODO: Call getCds API
-    const cds = [
-      "(LM-32) Computer Engineering",
-      "(LM-23) Civil Engineering",
-      "(LM-33) Mechanical Engineering",
-      "(LM-25) Automotive Engineering",
-      "(LM-29) Chemical Engineering",
-      "(LM-22) Aerospace Engineering",
-      "(LM-04) Architecture",
-    ];
-    setCds(cds);
-  };
-
+  // Fetch needed data after login
   useEffect(() => {
-    // Fetch data to get the proposals
     getTeachers();
-    getGrups();
-    getCds();
   }, []);
 
   useEffect(() => {
@@ -168,7 +168,7 @@ function Main() {
           {/* prettier-ignore */}
           <Route path="/" element={user ? <RootPage currentDate={currentDate} logout={handleLogout} /> : <LoginPage login={handleLogin} />}>
           <Route path="proposals" element={user ? <ProposalsPage /> : <Navigate replace to="/" />} />
-          <Route path="add-proposal" element={user ? <CreateProposalPage teachers={teachers} groups={groups} cds={cds} setDirty={setDirty} setAlert={setAlert}/> : <Navigate replace to="/" />} />
+          <Route path="add-proposal" element={user ? <CreateProposalPage teachers={teachers} groups={groups} degrees={degrees} setDirty={setDirty} setAlert={setAlert}/> : <Navigate replace to="/" />} />
           <Route path="applications" element={user ? <ApplicationsPage /> : <Navigate replace to="/" /> } />
           <Route path="notifications" element={user ? <NotificationsPage /> : <Navigate replace to="/" />} />
           <Route path="settings" element={user ? <SettingsPage currentDate={currentDate} setCurrentDate={setCurrentDate}/> : <Navigate replace to="/" />} />
