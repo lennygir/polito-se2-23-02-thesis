@@ -152,6 +152,57 @@
     "cds": "Computer Engineering"
   }
   ```
+- GET `/api/applications`
+  - params in query ()
+  ``` one of this two
+    teacher: s345678
+  ```
+  - return the list of proposal related to a teacher id or cds
+  - return 200 for correct behavior
+  - return 404 for no proposal related to that teacher or cds
+  - return 400 for invalid teacher id or cds
+  - return 500 for internal server error
+  - example of return value
+  ``` 
+    [
+      {
+        proposal_id: 1,
+        student_id: 's309618',
+        state: 'rejected',
+        student_name: 'Lorenzo',
+        student_surname: 'Bertetto',
+        teacher_name: 'Marco',
+        teacher_surname: 'Torchiano'
+      },
+      {
+        proposal_id: 1,
+        student_id: 's317743',
+        state: 'rejected',
+        student_name: 'Francesco',
+        student_surname: 'Baracco',
+        teacher_name: 'Marco',
+        teacher_surname: 'Torchiano'
+      },
+      {
+        proposal_id: 2,
+        student_id: 's317743',
+        state: 'pending',
+        student_name: 'Francesco',
+        student_surname: 'Baracco',
+        teacher_name: 'Marco',
+        teacher_surname: 'Torchiano'
+      },
+      {
+        proposal_id: 3,
+        student_id: 's317743',
+        state: 'pending',
+        student_name: 'Francesco',
+        student_surname: 'Baracco',
+        teacher_name: 'Marco',
+        teacher_surname: 'Torchiano'
+      }
+    ]
+  ```
 - POST `/api/something`
   - request parameters and request body content
   - response body content
