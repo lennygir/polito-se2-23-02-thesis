@@ -129,10 +129,10 @@ function Main() {
         setProposals(proposals);
       } else if (user.role === "teacher") {
         // The teacher fetches the proposals that he created
-        // const [proposals, applications] = await Promise.all([
-        //   API.getProposalsByDegree(user.cod_degree),
-        // ]);
-        // setProposals(proposals);
+        const [proposals] = await Promise.all([
+          API.getProposalsByTeacher(user.id),
+        ]);
+        setProposals(proposals);
       }
     } catch (err) {
       return handleErrors(err);

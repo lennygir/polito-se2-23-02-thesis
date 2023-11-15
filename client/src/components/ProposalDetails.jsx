@@ -1,14 +1,69 @@
-import Divider from "@mui/material/Divider";
-import Typography from "@mui/material/Typography";
 import dayjs from "dayjs";
+import { useContext, useState } from "react";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import Typography from "@mui/material/Typography";
+import UserContext from "../contexts/UserContext";
 
 function ProposalDetails(props) {
   const { proposal, getTeacherById, getDegreeById } = props;
   const supervisorTeacher = getTeacherById(proposal.supervisor);
   const degree = getDegreeById(proposal.cds);
+  const user = useContext(UserContext);
+
+  const [openDialog, setOpenDialog] = useState(false);
+
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handleSubmit = () => {
+    setOpenDialog(false);
+    const application = {
+      proposal: proposal.id,
+      student: user.id,
+    };
+    props.createApplication(application);
+  };
 
   return (
     <>
+      {user?.role === "student" && (
+        <Dialog maxWidth="xs" open={openDialog} onClose={handleCloseDialog}>
+          <DialogTitle>Confirm Submission</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to submit your application for this thesis
+              proposal? This action is irreversible, and your application will
+              be sent to the supervisor for consideration.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              paddingX: 3,
+            }}
+          >
+            <Button fullWidth onClick={handleCloseDialog} variant="outlined">
+              Cancel
+            </Button>
+            <Button fullWidth onClick={handleSubmit} variant="contained">
+              Submit
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
       <Typography variant="h5" gutterBottom paddingTop={2}>
         {proposal.title}
       </Typography>
@@ -26,10 +81,12 @@ function ProposalDetails(props) {
         <span style={{ fontWeight: "bold" }}>Co-supervisors: </span>
         {proposal.co_supervisors}
       </Typography>
-      <Typography variant="subtitle1" gutterBottom>
-        <span style={{ fontWeight: "bold" }}>Keywords: </span>
-        {proposal.keywords}
-      </Typography>
+      {proposal.keywords && proposal.keywords !== "" && (
+        <Typography variant="subtitle1" gutterBottom>
+          <span style={{ fontWeight: "bold" }}>Keywords: </span>
+          {proposal.keywords}
+        </Typography>
+      )}
       <Typography variant="subtitle1" gutterBottom>
         <span style={{ fontWeight: "bold" }}>Type: </span>
         {proposal.type}
@@ -63,6 +120,23 @@ function ProposalDetails(props) {
           <span style={{ fontWeight: "bold" }}>Notes: </span>
           {proposal.notes}
         </Typography>
+      )}
+      {user?.role === "student" && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Button
+            variant="contained"
+            sx={{ mt: 3, mb: 2 }}
+            onClick={handleOpenDialog}
+          >
+            Send Application
+          </Button>
+        </Box>
       )}
     </>
   );
