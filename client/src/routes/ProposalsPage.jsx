@@ -25,6 +25,10 @@ function ProposalsPage(props) {
     setFilteredProposals(proposals);
   }, [proposals]);
 
+  useEffect(() => {
+    filterProposals();
+  }, [searchValue]);
+
   const handleSearch = (e) => {
     setSearchValue(e.target.value);
   };
@@ -32,8 +36,16 @@ function ProposalsPage(props) {
   const filterProposals = (filterValues = {}) => {
     let filteredProposals = proposals.filter((p) => {
       return (
-        p.title.toLowerCase().includes(searchValue.toLowerCase()) ||
-        p.supervisor.toLowerCase().includes(searchValue.toLowerCase())
+        (p.title &&
+          p.title.toLowerCase().includes(searchValue.toLowerCase())) ||
+        (p.supervisor &&
+          p.supervisor.toLowerCase().includes(searchValue.toLowerCase())) ||
+        (p.required_knowledge &&
+          p.required_knowledge
+            .toLowerCase()
+            .includes(searchValue.toLowerCase())) ||
+        (p.keywords &&
+          p.keywords.toLowerCase().includes(searchValue.toLowerCase()))
       );
     });
 
@@ -65,16 +77,9 @@ function ProposalsPage(props) {
           return acc;
         }, [])
     ),
-    groups: getUniqueValues(
-      proposals
-        .map((p) => p.groups.split(",").map((t) => t.replace(/ /g, "")))
-        .reduce((acc, val) => {
-          acc.push(...val);
-          return acc;
-        }, [])
-    ),
+    groups: props.groups.map((d) => d.cod_group),
     level: getUniqueValues(proposals.map((p) => p.level)),
-    cds: getUniqueValues(proposals.map((p) => p.cds)),
+    cds: props.degrees.map((d) => d.cod_degree),
   };
 
   const studentView = (
