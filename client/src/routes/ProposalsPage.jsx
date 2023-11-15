@@ -102,7 +102,7 @@ function ProposalsPage(props) {
         <ProposalFilters filters={filterValues} onChange={filterProposals} />
       </Toolbar>
       <ProposalTable
-        data={filterProposals()}
+        data={filteredProposals}
         getTeacherById={props.getTeacherById}
       />
       <Box height={5} marginTop={3} />
