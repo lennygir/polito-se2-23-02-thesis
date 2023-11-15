@@ -60,6 +60,20 @@ exports.getTeacher = (id) => {
   });
 };
 
+exports.getStudent = (id) => {
+  return new Promise((resolve, reject) => {
+    db.get("select * from STUDENT where id = ?", id, (err, row) => {
+      if (err) {
+        reject(err);
+      } else if (row === undefined) {
+        resolve(false);
+      } else {
+        resolve(row);
+      }
+    });
+  });
+};
+
 exports.getTeachers = () => {
   return new Promise((resolve, reject) => {
     db.all("select id, surname, name, email from TEACHER", (err, row) => {
@@ -177,6 +191,36 @@ exports.getApplicationsOfTeacher = (teacher_id) => {
          and APPLICATIONS.student_id = STUDENT.id
          and PROPOSALS.supervisor = ?`,
       teacher_id,
+      (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      },
+    );
+  });
+};
+
+exports.getApplicationsOfStudent = (student_id) => {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `select APPLICATIONS.proposal_id, 
+                  APPLICATIONS.student_id, 
+                  APPLICATIONS.state, 
+                  STUDENT.name as student_name, 
+                  STUDENT.surname as student_surname, 
+                  TEACHER.name as teacher_name, 
+                  TEACHER.surname as teacher_surname
+       from APPLICATIONS,
+            PROPOSALS,
+            STUDENT,
+            TEACHER
+       where APPLICATIONS.proposal_id = PROPOSALS.id
+         and PROPOSALS.supervisor = TEACHER.id
+         and APPLICATIONS.student_id = STUDENT.id
+         and APPLICATIONS.student_id = ?`,
+      student_id,
       (err, rows) => {
         if (err) {
           reject(err);

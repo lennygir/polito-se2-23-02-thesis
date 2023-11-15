@@ -5,6 +5,7 @@ const userDao = require("./user-dao");
 const { check, validationResult } = require("express-validator");
 const {
   getTeacher,
+  getStudent,
   getTeachers,
   getGroup,
   getGroups,
@@ -12,6 +13,7 @@ const {
   insertProposal,
   getProposalsByDegree,
   getApplicationsOfTeacher,
+  getApplicationsOfStudent,
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -220,21 +222,41 @@ router.get("/api/proposals", check("cds").isString(), async (req, res) => {
 router.get(
   "/api/applications",
   check("teacher").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  check("student").isAlphanumeric().isLength({ min: 7, max: 7 }),
   async (req, res) => {
     try {
-      const teacher = await getTeacher(req.query.teacher);
-      if (teacher === false) {
-        return res.status(404).json({
-          message: `Teacher ${req.query.teacher} not found, cannot get the applications`,
-        });
-      } else {
-        const applications = await getApplicationsOfTeacher(teacher.id);
-        if (applications.length === 0) {
+      if (req.query.teacher !== undefined && req.query.student === undefined) {
+        const teacher = await getTeacher(req.query.teacher);
+        if (teacher === false) {
           return res.status(404).json({
-            message: `No application found for teacher ${req.query.teacher}`,
+            message: `Teacher ${req.query.teacher} not found, cannot get the applications`,
           });
         } else {
-          return res.status(200).json(applications);
+          const applications = await getApplicationsOfTeacher(teacher.id);
+          if (applications.length === 0) {
+            return res.status(404).json({
+              message: `No application found for teacher ${req.query.teacher}`,
+            });
+          } else {
+            return res.status(200).json(applications);
+          }
+        }
+      }
+      if (req.query.student !== undefined && req.query.teacher === undefined) {
+        const student = await getStudent(req.query.student);
+        if (student === false) {
+          return res.status(404).json({
+            message: `Student ${req.query.student} not found, cannot get the applications`,
+          });
+        } else {
+          const applications = await getApplicationsOfStudent(student.id);
+          if (applications.length === 0) {
+            return res.status(404).json({
+              message: `No application found for student ${req.query.student}`,
+            });
+          } else {
+            return res.status(200).json(applications);
+          }
         }
       }
     } catch (e) {
