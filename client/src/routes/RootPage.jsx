@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { useState } from "react";
-import Navbar from "../components/NavBar";
-import Sidebar from "../components/SideBar";
+import Navbar from "../components/Navbar";
+import Sidebar from "../components/Sidebar";
 import Box from "@mui/material/Box";
 
 const drawerWidth = 240;
@@ -49,7 +49,7 @@ function RootPage(props) {
           sx={{
             flexGrow: 1,
             p: 3,
-            width: { sm: `calc(100% - ${drawerWidth}px)` },
+            width: "100%",
             height: `calc(100vh - ${navbarHeight}px)`,
             marginTop: 8,
           }}

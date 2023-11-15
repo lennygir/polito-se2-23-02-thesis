@@ -5,8 +5,13 @@ const userDao = require("./user-dao");
 const { check, validationResult } = require("express-validator");
 const {
   getTeacher,
+  getTeachers,
   getGroup,
+  getGroups,
+  getDegrees,
   insertProposal,
+  getProposalsBySupervisor,
+  getProposalsByDegree,
   getStudent,
   getProposal,
   insertApplication,
@@ -150,6 +155,85 @@ router.post(
       }
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
+    }
+  },
+);
+
+// endpoint to get all teachers {id, surname, name, email}
+router.get("/api/teachers", async (req, res) => {
+  try {
+    const teachers = await getTeachers();
+
+    if (teachers.length === 0) {
+      return res
+        .status(404)
+        .send({ message: "No teacher found in the database" });
+    }
+
+    return res.status(200).json(teachers);
+  } catch (e) {
+    return res.status(500).send({ message: "Internal server error" });
+  }
+});
+
+// endpoint to get all groups {cod_group}
+router.get("/api/groups", async (req, res) => {
+  try {
+    //get the groups from db
+    const groups = await getGroups();
+
+    if (groups.length === 0) {
+      return res
+        .status(404)
+        .send({ message: "No group found in the database" });
+    }
+
+    return res.status(200).json(groups);
+  } catch (e) {
+    return res.status(500).send({ message: "Internal server error" });
+  }
+});
+
+// endpoint to get all degrees {cod_degree, title_degree}
+router.get("/api/degrees", async (req, res) => {
+  try {
+    const degrees = await getDegrees();
+
+    if (degrees.length === 0) {
+      return res
+        .status(404)
+        .send({ message: "No degree found in the database" });
+    }
+
+    return res.status(200).json(degrees);
+  } catch (e) {
+    return res.status(500).send({ message: "Internal server error" });
+  }
+});
+
+router.get(
+  "/api/proposals",
+  check("cds").isString(),
+  check("supervisor").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  async (req, res) => {
+    try {
+      const cds = req.query.cds;
+      const supervisor = req.query.supervisor;
+      let proposals;
+      if (cds !== undefined && supervisor === undefined) {
+        proposals = await getProposalsByDegree(cds);
+      }
+      if (supervisor !== undefined && cds === undefined) {
+        proposals = await getProposalsBySupervisor(supervisor);
+      }
+      if (proposals.length === 0) {
+        return res
+          .status(404)
+          .send({ message: "No proposal found in the database" });
+      }
+      return res.status(200).json(proposals);
+    } catch (err) {
+      return res.status(500).json({ message: "Internal Server Error" });
     }
   },
 );

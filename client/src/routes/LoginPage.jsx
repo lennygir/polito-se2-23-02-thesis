@@ -16,8 +16,8 @@ function LoginPage(props) {
   const { mode } = useThemeContext();
 
   // Form fields
-  const [email, setEmail] = useState("s308747@studenti.polito.it");
-  const [password, setPassword] = useState("s308747");
+  const [email, setEmail] = useState("marco.torchiano@polito.it");
+  const [password, setPassword] = useState("s123456");
 
   // Form errors
   const [emailError, setEmailError] = useState("");
@@ -81,15 +81,17 @@ function LoginPage(props) {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign in
+            Login
           </Typography>
           <Box
             component="form"
             onSubmit={handleSubmit}
             noValidate
+            autoComplete="on"
             sx={{ mt: 1 }}
           >
             <TextField
+              autoComplete="on"
               margin="normal"
               required
               fullWidth
@@ -106,6 +108,7 @@ function LoginPage(props) {
               helperText={emailError}
             />
             <TextField
+              autoComplete="on"
               margin="normal"
               required
               fullWidth
@@ -121,17 +124,13 @@ function LoginPage(props) {
               }}
               helperText={passwordError}
             />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
-            />
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign In
+              Login
             </Button>
           </Box>
         </Box>

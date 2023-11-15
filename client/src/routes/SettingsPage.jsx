@@ -8,11 +8,17 @@ import DateSetting from "../components/DateSetting";
 function SettingsPage(props) {
   return (
     <div id="settings-page">
-      <Paper elevation={1}>
-        <Typography variant="h4" padding={4}>
-          Settings
-        </Typography>
-        <Box paddingX={5}>
+      <Typography
+        variant="h4"
+        sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}
+      >
+        Settings
+      </Typography>
+      <Paper
+        elevation={1}
+        sx={{ mx: { md: 4, xs: 0 }, mt: { md: 1, sm: 0 }, borderRadius: 4 }}
+      >
+        <Box sx={{ px: { md: 5, xs: 2 } }}>
           <ThemeToggle />
           <Divider />
           <DateSetting
