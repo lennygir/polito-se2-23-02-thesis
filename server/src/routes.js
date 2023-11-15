@@ -159,7 +159,7 @@ router.get('/api/proposalsteacher',
     try {
       const supervisor_id = req.body.supervisor;
       const proposals = await getProposalsBySupervisior(supervisor_id);
-      console.log(proposals)
+      
       if (proposals.length === 0){
         return res.status(404).send({ message: "No proposal found in the database"});
       }
@@ -232,15 +232,30 @@ router.get(
 );
 
 
-router.get("/api/proposals", check("cds").isString(), async (req, res) => {
-  try {
-  
-    const cds = req.query.cds;
-    const proposals = await getProposalsByDegree(cds);
-    return res.status(200).json(proposals);
-  } catch (err) {
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
+router.get("/api/proposals",
+  check("cds").isString(),
+  check("supervisor").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  async (req, res) => {
+    try {
+     
+      const cds = req.query.cds;
+      const supervisor = req.query.supervisor;
+      
+      let proposals
+      if((cds != undefined || cds != null) && supervisor == undefined){
+        proposals = await getProposalsByDegree(cds);
+      }
+      if((supervisor != undefined || supervisor != null) && cds == undefined){
+        proposals = await getProposalsBySupervisior(supervisor);
+      }
+      
+      if (proposals.length === 0){
+        return res.status(404).send({ message: "No proposal found in the database"});
+      }
+      return res.status(200).json(proposals);
+    } catch (err) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
 });
 
 

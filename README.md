@@ -50,16 +50,16 @@
     "cds": "LM-32 (DM270)"
   }
 
-- GET `/api/proposalsbyid`
-  - body request
+- GET `/api/proposals`
+  - params in query ()
+  ``` one of this two
+    supevisor: s123456
+    cds: Computer Engineering
   ```
-    {
-      supervisor: "s456789"
-    }
-  - return the list of proposal related to a teacher id
+  - return the list of proposal related to a teacher id or cds
   - return 200 for correct behavior
-  - return 404 for no proposal related to that teacher
-  - return 400 for invalid teacher id
+  - return 404 for no proposal related to that teacher or cds
+  - return 400 for invalid teacher id or cds
   - return 500 for internal server error
   - example of return value
   ```
