@@ -66,6 +66,19 @@ const getProposalsByDegree = async (degree) => {
   return getJson(fetch(SERVER_URL + "/proposals?cds=" + degree));
 };
 
+function evaluateApplication(application){
+  return getJson(
+    fetch(SERVER_URL + "/applications/" + application.id, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(application), 
+      //{id:"id_incrementale",proposal_id:"proposal_id", student_id:"student_id", state"accepted/rejected"}
+    })
+  );
+}
+
 const API = {
   createProposal,
   getDegrees,
@@ -73,6 +86,7 @@ const API = {
   getTeachers,
   getProposalsByDegree,
   logIn,
+  evaluateApplication,
 };
 
 export default API;

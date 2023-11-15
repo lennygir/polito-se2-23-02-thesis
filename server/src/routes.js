@@ -11,6 +11,7 @@ const {
   getDegrees,
   insertProposal,
   getProposalsByDegree,
+  updateApplication,
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -212,6 +213,28 @@ router.get("/api/proposals", check("cds").isString(), async (req, res) => {
     const proposals = await getProposalsByDegree(cds);
     return res.status(200).json(proposals);
   } catch (err) {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.patch("api/proposals/:id",
+  check("state").isIn(["accepted","rejected"]), 
+  async(req,res) =>{
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ message: "Invalid proposal content" });
+    }
+    if (req.body.id !== Number(req.params.id)) {
+      return res.status(422).json({ error: 'URL and body id mismatch' });
+    }
+    try{
+      const id=req.body.id
+      const studentId = req.body.studentId;
+      const proposalId = req.body.proposalId;
+      const state = req.body.state;
+      await updateApplication(id,studentId,proposalId,state);
+      res.status(200).json({ message: "Application updated successfully" });
+    } catch (err) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });

@@ -150,6 +150,6 @@ test("getProposalsByDegree- should return correct data", async () => {
     json: () => Promise.resolve(mockApiResponse),
   });
   const result = await API.getProposalsByDegree("degreeValue");
-  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/degreeValue`);
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals?cds=degreeValue`);
   expect(result).toEqual(mockApiResponse);
 });
