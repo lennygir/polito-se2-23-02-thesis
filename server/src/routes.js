@@ -11,6 +11,7 @@ const {
   getDegrees,
   insertProposal,
   getProposalsByDegree,
+  getApplicationsOfTeacher,
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -197,7 +198,7 @@ router.get("/api/degrees", async (req, res) => {
     if (degrees.length === 0) {
       return res
         .status(404)
-        .send({ message: "No group found in the database" });
+        .send({ message: "No degree found in the database" });
     }
 
     return res.status(200).json(degrees);
@@ -215,6 +216,32 @@ router.get("/api/proposals", check("cds").isString(), async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
+router.get(
+  "/api/applications",
+  check("teacher").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  async (req, res) => {
+    try {
+      const teacher = await getTeacher(req.query.teacher);
+      if (teacher === false) {
+        return res.status(404).json({
+          message: `Teacher ${req.query.teacher} not found, cannot get the applications`,
+        });
+      } else {
+        const applications = await getApplicationsOfTeacher(teacher.id);
+        if (applications.length === 0) {
+          return res.status(404).json({
+            message: `No application found for teacher ${req.query.teacher}`,
+          });
+        } else {
+          return res.status(200).json(applications);
+        }
+      }
+    } catch (e) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
 
 // ==================================================
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS
