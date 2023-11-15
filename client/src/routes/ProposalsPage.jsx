@@ -15,6 +15,9 @@ import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
 import ProposalFilters from "../components/ProposalFilters";
 
+const TYPES = ["RESEARCH", "COMPANY", "EXPERIMENTAL", "ABROAD"];
+const LEVELS = ["BCS", "MSC"];
+
 function ProposalsPage(props) {
   const proposals = props.proposals;
   const user = useContext(UserContext);
@@ -69,16 +72,9 @@ function ProposalsPage(props) {
   const getUniqueValues = (array) => [...new Set(array)];
 
   const filterValues = {
-    type: getUniqueValues(
-      proposals
-        .map((p) => p.type.split(",").map((t) => t.replace(/ /g, "")))
-        .reduce((acc, val) => {
-          acc.push(...val);
-          return acc;
-        }, [])
-    ),
+    type: TYPES,
     groups: props.groups.map((d) => d.cod_group),
-    level: getUniqueValues(proposals.map((p) => p.level)),
+    level: LEVELS,
     cds: props.degrees.map((d) => d.cod_degree),
   };
 

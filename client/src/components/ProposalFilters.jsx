@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@mui/material";
+import Divider from "@mui/material/Divider";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
 import Drawer from "@mui/material/Drawer";
@@ -7,11 +7,11 @@ import Box from "@mui/material/Box";
 import FormControl from "@mui/material/FormControl";
 import Autocomplete from "@mui/material/Autocomplete";
 import Button from "@mui/material/Button";
-import Box from "@mui/material/Box";
-import Drawer from "@mui/material/Drawer";
-import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
-import FilterListIcon from "@mui/icons-material/FilterList";
+import Typography from "@mui/material/Typography";
+import Stack from "@mui/material/Stack";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
 
 function ProposalFilters(props) {
   const [isOpen, setIsOpen] = useState(false);
@@ -57,37 +57,55 @@ function ProposalFilters(props) {
           sx={{
             display: "flex",
             flexDirection: "column",
-            alignItems: "center",
+            height: "100vh",
           }}
         >
-          {filterValues &&
-            Object.keys(filterValues).map((filter) => (
-              <FormControl key={filter} fullWidth sx={{ my: 1 }}>
-                <Autocomplete
-                  multiple
-                  name={filter}
-                  options={filterValues[filter]}
-                  onChange={(event, value) => handleChange(filter, value)}
-                  value={values[filter]}
-                  filterSelectedOptions
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label={filter}
-                      placeholder={filter}
-                    />
-                  )}
-                />
-              </FormControl>
-            ))}
-          <Button
-            variant="contained"
-            sx={{ my: 1 }}
-            onClick={resetFilters}
-            endIcon={<FilterAltOffIcon />}
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
           >
-            Reset filters
-          </Button>
+            <Typography variant="h5" sx={{ py: 2 }}>
+              Filters
+            </Typography>
+            <IconButton onClick={() => setIsOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Stack>
+          <Divider />
+          <Box sx={{ mt: 2 }}>
+            {filterValues &&
+              Object.keys(filterValues).map((filter) => (
+                <FormControl key={filter} fullWidth sx={{ my: 1 }}>
+                  <Autocomplete
+                    multiple
+                    name={filter}
+                    options={filterValues[filter]}
+                    onChange={(event, value) => handleChange(filter, value)}
+                    value={values[filter]}
+                    filterSelectedOptions
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={filter}
+                        placeholder={filter}
+                      />
+                    )}
+                  />
+                </FormControl>
+              ))}
+          </Box>
+          <Box sx={{ mt: "auto" }}>
+            <Button
+              fullWidth
+              variant="contained"
+              sx={{ my: 1, height: "50px", borderRadius: 4 }}
+              onClick={resetFilters}
+              endIcon={<FilterAltOffIcon />}
+            >
+              Clear filters
+            </Button>
+          </Box>
         </Box>
       </Drawer>
     </>
