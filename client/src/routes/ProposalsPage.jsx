@@ -37,13 +37,13 @@ function ProposalsPage(props) {
       );
     });
 
-    for(let filter in filterValues){
+    for (let filter in filterValues) {
       filteredProposals = filteredProposals.filter((p) => {
-        if(filterValues[filter].length === 0) {
+        if (filterValues[filter].length === 0) {
           return true; // If no filter is selected, return all proposals
         }
-        for(let opt of filterValues[filter]) {
-          if(p[filter].includes(opt)){
+        for (let opt of filterValues[filter]) {
+          if (p[filter].includes(opt)) {
             return true;
           }
         }
@@ -54,20 +54,28 @@ function ProposalsPage(props) {
     setFilteredProposals(filteredProposals);
   };
 
-  const getUniqueValues = (array) => [... new Set(array)];
+  const getUniqueValues = (array) => [...new Set(array)];
 
   const filterValues = {
-    "type": getUniqueValues(proposals.map(p => p.type.split(',').map(t => t.replace(/ /g, ""))).reduce((acc, val) => {
-      acc.push(...val);
-      return acc;
-    }, [])),
-    "groups": getUniqueValues(proposals.map(p => p.groups.split(',').map(t => t.replace(/ /g, ""))).reduce((acc, val) => {
-      acc.push(...val);
-      return acc;
-    }, [])),
-    "level": getUniqueValues(proposals.map(p => p.level)),
-    "cds": getUniqueValues(proposals.map(p => p.cds)),
-  }
+    type: getUniqueValues(
+      proposals
+        .map((p) => p.type.split(",").map((t) => t.replace(/ /g, "")))
+        .reduce((acc, val) => {
+          acc.push(...val);
+          return acc;
+        }, [])
+    ),
+    groups: getUniqueValues(
+      proposals
+        .map((p) => p.groups.split(",").map((t) => t.replace(/ /g, "")))
+        .reduce((acc, val) => {
+          acc.push(...val);
+          return acc;
+        }, [])
+    ),
+    level: getUniqueValues(proposals.map((p) => p.level)),
+    cds: getUniqueValues(proposals.map((p) => p.cds)),
+  };
 
   const studentView = (
     <>
@@ -101,12 +109,15 @@ function ProposalsPage(props) {
         />
         <ProposalFilters filters={filterValues} onChange={filterProposals} />
       </Toolbar>
-      <ProposalTable data={filteredProposals} />
+      <ProposalTable
+        data={filterProposals()}
+        getTeacherById={props.getTeacherById}
+      />
       <Box height={5} marginTop={3} />
     </>
   );
 
-  const professorView = (
+  const teacherView = (
     <>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography
@@ -150,7 +161,7 @@ function ProposalsPage(props) {
 
   return (
     <div id="proposals-page">
-      {user?.role === "student" ? studentView : professorView}
+      {user?.role === "student" ? studentView : teacherView}
     </div>
   );
 }

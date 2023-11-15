@@ -192,18 +192,43 @@ describe("Proposal Retrieval Tests", () => {
       });
   });
 
+  test("Get all the proposals from a specific supervisor", () => {
+    const supervisor = "s123456";
+    return request(app)
+      .get(`/api/proposals?supervisor=${supervisor}`)
+      .set("Content-Type", "application/json")
+      .expect(200)
+      
+  });
+
+  test("Return 404 for a non-existing supervisor", () => {
+    const supervisor = "s000000";
+    return request(app)
+      .get(`/api/proposals?supervisor=${supervisor}`)
+      .set("Content-Type", "application/json")
+      .expect(404)
+      
+  });
+
+  test("Return 400 for a invalid format of supervisor", () => {
+    const supervisor = 0;
+    return request(app)
+      .get(`/api/proposals?supervisor=${supervisor}`)
+      .set("Content-Type", "application/json")
+      .expect(404)
+      
+  });
+  
+
   test("Get all the proposals from a field of study that doesn't exists", () => {
     const cds = "aaaaaaaaaaaaaaaaaaaaaaaaa";
     return request(app)
       .get(`/api/proposals?cds=${cds}`)
       .set("Content-Type", "application/json")
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toBeInstanceOf(Array);
-        expect(response.body.length).toBe(0);
-      });
+      .expect(404)
   });
 });
+
 
 describe("Get All Teachers Test", () => {
   test("Correct get of all teachers from db", () => {

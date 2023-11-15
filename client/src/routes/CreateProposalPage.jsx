@@ -28,7 +28,7 @@ function CreateProposalPage(props) {
   };
 
   return (
-    <div id="crete-proposal-page">
+    <div id="create-proposal-page">
       <Stack
         paddingTop={4}
         sx={{ pt: { md: 4, xs: 0 } }}

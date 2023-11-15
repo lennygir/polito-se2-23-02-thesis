@@ -46,6 +46,20 @@ exports.insertProposal = (
   });
 };
 
+exports.getProposalsBySupervisor = (id) => {
+  return new Promise((resolve, reject) => {
+    db.all("select * from PROPOSALS where supervisor = ?", id, (err, row) => {
+      if (err) {
+        reject(err);
+      } else if (row === undefined) {
+        resolve(false);
+      } else {
+        resolve(row);
+      }
+    });
+  });
+};
+
 exports.getTeacher = (id) => {
   return new Promise((resolve, reject) => {
     db.get("select * from TEACHER where id = ?", id, (err, row) => {
@@ -61,11 +75,9 @@ exports.getTeacher = (id) => {
 };
 
 exports.getTeachers = () => {
-
   return new Promise((resolve, reject) => {
     db.all("select id, surname, name, email from TEACHER", (err, row) => {
       if (err) {
-        console.log(err)
         reject(err);
       } else if (row === undefined) {
         resolve(false);
@@ -95,11 +107,9 @@ exports.getGroup = (cod_group) => {
 };
 
 exports.getGroups = () => {
-
   return new Promise((resolve, reject) => {
     db.all("select cod_group from GROUPS", (err, row) => {
       if (err) {
-        console.log(err)
         reject(err);
       } else if (row === undefined) {
         resolve(false);
@@ -111,11 +121,9 @@ exports.getGroups = () => {
 };
 
 exports.getDegrees = () => {
-
   return new Promise((resolve, reject) => {
     db.all("select cod_degree, title_degree from DEGREE", (err, row) => {
       if (err) {
-        console.log(err)
         reject(err);
       } else if (row === undefined) {
         resolve(false);
@@ -128,7 +136,8 @@ exports.getDegrees = () => {
 
 exports.getProposalsByDegree = (cds) => {
   return new Promise((resolve, reject) => {
-    db.all(`
+    db.all(
+      `
       SELECT *
       FROM PROPOSALS
       WHERE cds = ? AND id NOT IN (
@@ -136,15 +145,14 @@ exports.getProposalsByDegree = (cds) => {
         FROM APPLICATIONS
         WHERE state = 'accepted' AND proposal_id IS NOT NULL
       )`,
-        cds,
-        (err, rows) => {
-          if (err) {
-            reject(err);
-          }else{
-            resolve(rows);
-          }
+      cds,
+      (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
         }
-      );
-
+      },
+    );
   });
 };

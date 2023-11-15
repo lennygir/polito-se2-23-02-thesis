@@ -10,6 +10,7 @@ const {
   getGroups,
   getDegrees,
   insertProposal,
+  getProposalsBySupervisor,
   getProposalsByDegree,
 } = require("./theses-dao");
 const dayjs = require("dayjs");
@@ -154,7 +155,7 @@ router.post(
   },
 );
 
-// endpoint to get all teachers {id, surname, name}
+// endpoint to get all teachers {id, surname, name, email}
 router.get("/api/teachers", async (req, res) => {
   try {
     const teachers = await getTeachers();
@@ -197,7 +198,7 @@ router.get("/api/degrees", async (req, res) => {
     if (degrees.length === 0) {
       return res
         .status(404)
-        .send({ message: "No group found in the database" });
+        .send({ message: "No degree found in the database" });
     }
 
     return res.status(200).json(degrees);
@@ -206,15 +207,32 @@ router.get("/api/degrees", async (req, res) => {
   }
 });
 
-router.get("/api/proposals", check("cds").isString(), async (req, res) => {
-  try {
-    const cds = req.query.cds;
-    const proposals = await getProposalsByDegree(cds);
-    return res.status(200).json(proposals);
-  } catch (err) {
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+router.get(
+  "/api/proposals",
+  check("cds").isString(),
+  check("supervisor").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  async (req, res) => {
+    try {
+      const cds = req.query.cds;
+      const supervisor = req.query.supervisor;
+      let proposals;
+      if (cds !== undefined && supervisor === undefined) {
+        proposals = await getProposalsByDegree(cds);
+      }
+      if (supervisor !== undefined && cds === undefined) {
+        proposals = await getProposalsBySupervisor(supervisor);
+      }
+      if (proposals.length === 0) {
+        return res
+          .status(404)
+          .send({ message: "No proposal found in the database" });
+      }
+      return res.status(200).json(proposals);
+    } catch (err) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
 
 // ==================================================
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS
