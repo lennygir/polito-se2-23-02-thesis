@@ -4,9 +4,8 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import Drawer from "@mui/material/Drawer";
 import Box from "@mui/material/Box";
 import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import Select from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
+import Autocomplete from "@mui/material/Autocomplete";
+import TextField from "@mui/material/TextField";
 
 function ProposalFilters(props) {
 
@@ -18,13 +17,11 @@ function ProposalFilters(props) {
   Object.keys(filterValues).forEach(filter => initialValues[filter] = []);
   const [values, setValues] = useState(initialValues);
 
-  const handleChange = (filter) => {
-    return (event) => {
-      const newValue = {...values};
-      newValue[filter] = event.target.value;
-      setValues(newValue);
-      onChange(newValue);
-    };
+  const handleChange = (filter, value) => {
+    const newValue = {...values};
+    newValue[filter] = value;
+    setValues(newValue);
+    onChange(newValue);
   };
 
   const toggleDrawer = () => {
@@ -39,14 +36,18 @@ function ProposalFilters(props) {
       <Drawer anchor="right" PaperProps={{ sx: { width: "300px", padding: "20px" } }} open={isOpen} onClose={toggleDrawer}>
         <Box>
           { filterValues && Object.keys(filterValues).map((filter) => (
-            <FormControl key={filter} sx={{ my: 1 }} fullWidth>
-              <InputLabel id="demo-simple-select-label">{ filter }</InputLabel>
-              <Select value={values[filter]} label="Type" onChange={handleChange(filter)} multiple>
-                { filterValues && filterValues[filter].map((value) => (
-                    <MenuItem key={value} value={value}>{ value }</MenuItem>
-                  ))
-                }
-              </Select>
+            <FormControl key={filter} fullWidth sx={{ my: 1 }}>
+              <Autocomplete
+                multiple
+                name={filter}
+                options={filterValues[filter]}
+                onChange={(event, value) => handleChange(filter, value)}
+                value={values[filter]}
+                filterSelectedOptions
+                renderInput={(params) => (
+                  <TextField {...params} label={filter} placeholder={filter} />
+                )}
+              />
             </FormControl>
             ))
           }
