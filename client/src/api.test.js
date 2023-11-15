@@ -1,4 +1,3 @@
-
 import API from "./API";
 const SERVER_URL = "http://localhost:3000/api";
 
@@ -145,12 +144,12 @@ test("getGroups - should send correct data", async () => {
   expect(result).toEqual(mockApiResponse);
 });
 
-  test('getProposalsByDegree- should return correct data', async () => {
+test("getProposalsByDegree- should return correct data", async () => {
   fetch.mockResolvedValue({
     ok: true,
     json: () => Promise.resolve(mockApiResponse),
   });
-  const result = await API.getProposalsByDegree('degreeValue');
+  const result = await API.getProposalsByDegree("degreeValue");
   expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/degreeValue`);
   expect(result).toEqual(mockApiResponse);
 });
