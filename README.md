@@ -1,4 +1,4 @@
-# Office Queue Management System
+# Theses Management System
 
 ## React Client Application Routes
 
@@ -187,9 +187,24 @@
     "cds": "Computer Engineering"
   }
   ```
-- POST `/api/something`
-  - request parameters and request body content
-  - response body content
+- POST `/api/applications`
+  - notes
+    - the initial state is always `pending`
+  - request body content example
+  ```
+  {
+    "student": "s309618",
+    "proposal": 8
+  }
+  ```
+  - response body content example
+  ```
+  {
+    "proposal_id": 8,
+    "student_id": "s309618",
+    "state": "pending"
+  }
+  ```
 - ...
 
 ## Database Tables
@@ -205,10 +220,6 @@
 - ...
 
 (only _main_ components, minor ones may be skipped)
-
-## Screenshot
-
-![Screenshot](./img/screenshot.jpg)
 
 ## Users Credentials
 
