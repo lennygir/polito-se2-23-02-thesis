@@ -63,12 +63,12 @@ const createProposal = async (proposal) => {
   );
 };
 
-const getProposalsByDegree = async(degree) =>{
-  return getJson(fetch(SERVER_URL + "/proposals/" + degree))
-}
+const getProposalsByDegree = async (degree) => {
+  return getJson(fetch(SERVER_URL + "/proposals?cds=" + degree));
+};
 
 const getProposalsByTeacher = async(teacher_id) =>{
-  return getJson(fetch(SERVER_URL + "/proposals/" + teacher_id))
+  return getJson(fetch(SERVER_URL + "/proposals?supervisor=" + teacher_id))
 }
 
 

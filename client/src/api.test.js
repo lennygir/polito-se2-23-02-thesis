@@ -151,7 +151,7 @@ test('getProposalsByDegree- should return correct data', async () => {
     json: () => Promise.resolve(mockApiResponse),
   });
   const result = await API.getProposalsByDegree('degreeValue');
-  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/degreeValue`);
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals?cds=degreeValue`);
   expect(result).toEqual(mockApiResponse);
 });
 
@@ -161,7 +161,7 @@ test('getProposalsByTeacher- should return correct data', async () => {
     json: () => Promise.resolve(mockApiResponse),
   });
   const result = await API.getProposalsByTeacher('teacher_id');
-  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/teacher_id`);
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals?supervisor=teacher_id`);
   expect(result).toEqual(mockApiResponse);
 });
 
