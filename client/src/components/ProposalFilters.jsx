@@ -40,7 +40,7 @@ function ProposalFilters(props) {
         Filters&nbsp;
       </Button>
       <Drawer anchor="right" PaperProps={{ sx: { width: "300px", padding: "20px" } }} open={isOpen} onClose={toggleDrawer}>
-        <Box>
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
           { filterValues && Object.keys(filterValues).map((filter) => (
             <FormControl key={filter} fullWidth sx={{ my: 1 }}>
               <Autocomplete
@@ -57,7 +57,7 @@ function ProposalFilters(props) {
             </FormControl>
             ))
           }
-          <Button variant="contained" onClick={resetFilters} endIcon={<FilterAltOffIcon />}>
+          <Button variant="contained" sx={{ my: 1 }} onClick={resetFilters} endIcon={<FilterAltOffIcon />}>
             Reset filters
           </Button>
         </Box>
