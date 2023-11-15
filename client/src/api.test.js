@@ -1,4 +1,3 @@
-
 import API from "./API";
 const SERVER_URL = "http://localhost:3000/api";
 
@@ -145,7 +144,7 @@ test("getGroups - should send correct data", async () => {
   expect(result).toEqual(mockApiResponse);
 });
 
-test('getProposalsByDegree- should return correct data', async () => {
+test("getProposalsByDegree - should return correct data", async () => {
   fetch.mockResolvedValue({
     ok: true,
     json: () => Promise.resolve(mockApiResponse),
@@ -155,7 +154,7 @@ test('getProposalsByDegree- should return correct data', async () => {
   expect(result).toEqual(mockApiResponse);
 });
 
-test('getProposalsByTeacher- should return correct data', async () => {
+test('getProposalsByTeacher - should return correct data', async () => {
   fetch.mockResolvedValue({
     ok: true,
     json: () => Promise.resolve(mockApiResponse),
@@ -166,7 +165,7 @@ test('getProposalsByTeacher- should return correct data', async () => {
 });
 
 describe("Test the insert of an application", () => {
-  test("insertApplication- should send a correct application to the server", async () => {
+  test("insertApplication - should send a correct application to the server", async () => {
     const expectedResponse = { status: "success" };
     fetch.mockResolvedValue({
       ok: true,
@@ -212,12 +211,13 @@ describe("Test the insert of an application", () => {
   });
 });
 
-test('getApplications- should return correct data', async () => {
+test('getApplicationsByTeacher - should return correct data', async () => {
   fetch.mockResolvedValue({
     ok: true,
     json: () => Promise.resolve(mockApiResponse),
   });
-  const result = await API.getApplications('teacher_id');
+  const result = await API.getApplicationsByTeacher('teacher_id');
   expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications?teacher=teacher_id`);
+
   expect(result).toEqual(mockApiResponse);
 });

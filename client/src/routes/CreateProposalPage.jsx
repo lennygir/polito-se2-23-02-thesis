@@ -28,7 +28,7 @@ function CreateProposalPage(props) {
   };
 
   return (
-    <div id="crete-proposal-page">
+    <div id="create-proposal-page">
       <Stack
         paddingTop={4}
         sx={{ pt: { md: 4, xs: 0 } }}
@@ -60,7 +60,7 @@ function CreateProposalPage(props) {
           <ProposalForm
             teachers={props.teachers}
             groups={props.groups}
-            cds={props.cds}
+            degrees={props.degrees}
             createProposal={createProposal}
           />
         </Box>

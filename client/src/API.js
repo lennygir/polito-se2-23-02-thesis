@@ -38,7 +38,6 @@ const logIn = async (credentials) => {
   );
 };
 
-
 const getTeachers = async () => {
   return getJson(fetch(SERVER_URL + "/teachers"));
 };
@@ -67,10 +66,9 @@ const getProposalsByDegree = async (degree) => {
   return getJson(fetch(SERVER_URL + "/proposals?cds=" + degree));
 };
 
-const getProposalsByTeacher = async(teacher_id) =>{
+const getProposalsByTeacher = async (teacher_id) => {
   return getJson(fetch(SERVER_URL + "/proposals?supervisor=" + teacher_id))
 }
-
 
 const insertApplication = async (application) => {
   return getJson(
@@ -84,20 +82,21 @@ const insertApplication = async (application) => {
   );
 };
 
-const getApplications = async(teacher_id) => {
+const getApplicationsByTeacher = async (teacher_id) => {
   return getJson(fetch(SERVER_URL + "/applications?teacher=" + teacher_id));
 }
 
+
 const API = {
-  logIn,
-  getTeachers,
   createProposal,
   getDegrees,
   getGroups,
+  getTeachers,
   getProposalsByDegree,
   getProposalsByTeacher,
   insertApplication,
-  getApplications
+  getApplicationsByTeacher,
+  logIn,
 };
 
 export default API;

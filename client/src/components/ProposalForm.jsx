@@ -54,12 +54,31 @@ function ProposalForm(props) {
     cds: "",
   });
 
+  // Filter degrees based on the selected level
+  const getCdsOptions = () => {
+    if (formData.level === "Master Degree") {
+      return props.degrees.filter((degree) =>
+        degree.cod_degree.startsWith("LM")
+      );
+    } else if (formData.level === "Bachelor Degree") {
+      return props.degrees.filter(
+        (degree) => !degree.cod_degree.startsWith("LM")
+      );
+    } else {
+      return props.degrees;
+    }
+  };
+
   // Single input field
   const handleSingleInputChange = (event) => {
     const { name, value } = event.target;
+
+    const updatedFormData =
+      name === "level" ? { [name]: value, cds: "" } : { [name]: value };
+
     setFormData((prevFormData) => ({
       ...prevFormData,
-      [name]: value,
+      ...updatedFormData,
     }));
     setFormErrors((prevErrors) => ({
       ...prevErrors,
@@ -339,8 +358,8 @@ function ProposalForm(props) {
           <Autocomplete
             multiple
             name="groups"
-            options={props.groups}
-            getOptionLabel={(option) => option}
+            options={props.groups.map((group) => group.cod_group)}
+            getOptionLabel={(group) => group}
             value={formData.groups}
             onChange={(event, values, reason) =>
               handleAutocompleteChange("groups")(event, values, reason)
@@ -395,15 +414,25 @@ function ProposalForm(props) {
           name="cds"
           label="CDS/Programmes"
           margin="normal"
-          defaultValue={props.cds[0]}
           value={formData.cds}
           onChange={handleSingleInputChange}
           error={!!formErrors.cds}
           helperText={formErrors.cds}
+          disabled={formData.level === ""}
+          SelectProps={{
+            MenuProps: {
+              PaperProps: {
+                style: {
+                  maxWidth: "400px",
+                  whiteSpace: "nowrap",
+                },
+              },
+            },
+          }}
         >
-          {props.cds.map((level) => (
-            <MenuItem key={level} value={level}>
-              {level}
+          {getCdsOptions().map((degree) => (
+            <MenuItem key={degree.cod_degree} value={degree.cod_degree}>
+              {degree.cod_degree + " " + degree.title_degree}
             </MenuItem>
           ))}
         </TextField>
