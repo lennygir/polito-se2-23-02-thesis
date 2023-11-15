@@ -177,7 +177,7 @@ function Main() {
         <Routes>
           {/* prettier-ignore */}
           <Route path="/" element={user ? <RootPage currentDate={currentDate} logout={handleLogout} /> : <LoginPage login={handleLogin} />}>
-          <Route path="proposals" element={user ? <ProposalsPage proposals={proposals} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
+          <Route path="proposals" element={user ? <ProposalsPage proposals={proposals} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
           <Route path="proposals/:proposalId" element={user ? <ViewProposalPage getTeacherById={getTeacherById} getDegreeById={getDegreeById} /> : <Navigate replace to="/" />} />
           <Route path="add-proposal" element={user ? <CreateProposalPage teachers={teachers} groups={groups} degrees={degrees} setDirty={setDirty} setAlert={setAlert}/> : <Navigate replace to="/" />} />
           <Route path="applications" element={user ? <ApplicationsPage /> : <Navigate replace to="/" /> } />
