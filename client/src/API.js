@@ -84,6 +84,10 @@ const insertApplication = async (application) => {
   );
 };
 
+const getApplications = async(teacher_id) => {
+  return getJson(fetch(SERVER_URL + "/applications?teacher=" + teacher_id));
+}
+
 const API = {
   logIn,
   getTeachers,
@@ -93,6 +97,7 @@ const API = {
   getProposalsByDegree,
   getProposalsByTeacher,
   insertApplication,
+  getApplications
 };
 
 export default API;

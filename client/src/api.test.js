@@ -211,3 +211,13 @@ describe("Test the insert of an application", () => {
     }
   });
 });
+
+test('getApplications- should return correct data', async () => {
+  fetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve(mockApiResponse),
+  });
+  const result = await API.getApplications('teacher_id');
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications?teacher=teacher_id`);
+  expect(result).toEqual(mockApiResponse);
+});
