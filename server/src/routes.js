@@ -147,30 +147,6 @@ router.post(
 );
 
 // endpoint to get all proposal of a selected teacher
-router.get('/api/proposalsteacher',
-  [
-    check("supervisor").isAlphanumeric().isLength({ min: 7, max: 7 }),
-  ],
-  async (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      return res.status(400).send({ message: "Invalid proposal content" });
-    }
-    try {
-      const supervisor_id = req.body.supervisor;
-      const proposals = await getProposalsBySupervisior(supervisor_id);
-      
-      if (proposals.length === 0){
-        return res.status(404).send({ message: "No proposal found in the database"});
-      }
-      
-      return res.status(200).json(proposals);
-      
-    } catch (e) {
-      return res.status(500).send({ message: "Internal server error" });
-    }
-  }
-);
 
 // endpoint to get all teachers {id, surname, name, email}
 router.get(
