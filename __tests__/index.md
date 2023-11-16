@@ -15,6 +15,8 @@ and it is the most efficient way to test the application.
   - [Tests](#tests)
     - [\[1\] Proposals - usage of filters](#1-proposals---usage-of-filters)
     - [\[2\] Proposals - creation](#2-proposals---creation)
+    - [\[3\] Application - creation](#3-application---creation)
+    - [\[4\] Virtual clock - change date](#4-virtual-clock---change-date)
 
 
 ## Prerequisites
@@ -64,3 +66,34 @@ In this test we will check if the creation of a proposal is working properly.
 11. Enter a keyword without a non-ASCII character
 12. Click the "Create proposal" button
     - Verify that you are redirected to the proposal page and that you can see the proposal you just created
+
+### [3] Application - creation
+
+In this test we will check that the application is registered when a student applies for a proposal.
+
+1. Login as a student
+2. Click on a proposal for which you have already applied
+3. Click on the "Send application" button
+4. Click on the "Cancel" button
+   - Verify that nothing is created in the database
+5. Click on the "Send application" button
+6. Click on the "Submit" button
+   - Verify that a "aldready applied" message is displayed
+7. Click the "Back" button
+8. Click on a proposal for which you have not applied yet
+9. Click on the "Send application" button
+10. Click on the "Submit" button
+    - Verify that your application is saved in the database
+11. Click on the "Send application" button
+12. Click on the "Submit" button
+    - Verify that a "aldready applied" message is displayed
+
+### [4] Virtual clock - change date
+
+In this test we will check if the virtual clock is working properly.
+
+1. Login as a professor
+2. Click on the "Settings" button
+3. Change the date within the "current date" field
+4. Go back to the theses page
+   - Verify that the date displayed in the top right corner is the one you just entered
