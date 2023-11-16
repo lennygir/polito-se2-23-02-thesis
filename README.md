@@ -12,11 +12,14 @@ You can either retrieve the image from the docker hub either build it yourself.
 
 ```bash
 
+# Build the frontend 
+cd client && npm run build && cd ..
+
 # Build the docker image 
 docker build -t polito-thesis .
 
 # Retrieve the image from the docker hub
-docker pull <TODO>/polito-thesis
+docker pull s321503/polito-thesis
 
 ```
 
