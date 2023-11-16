@@ -144,12 +144,80 @@ test("getGroups - should send correct data", async () => {
   expect(result).toEqual(mockApiResponse);
 });
 
-test("getProposalsByDegree- should return correct data", async () => {
+test("getProposalsByDegree - should return correct data", async () => {
   fetch.mockResolvedValue({
     ok: true,
     json: () => Promise.resolve(mockApiResponse),
   });
-  const result = await API.getProposalsByDegree("degreeValue");
-  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/degreeValue`);
+  const result = await API.getProposalsByDegree('degreeValue');
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals?cds=degreeValue`);
+  expect(result).toEqual(mockApiResponse);
+});
+
+test('getProposalsByTeacher - should return correct data', async () => {
+  fetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve(mockApiResponse),
+  });
+  const result = await API.getProposalsByTeacher('teacher_id');
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals?supervisor=teacher_id`);
+  expect(result).toEqual(mockApiResponse);
+});
+
+describe("Test the insert of an application", () => {
+  test("insertApplication - should send a correct application to the server", async () => {
+    const expectedResponse = { status: "success" };
+    fetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(expectedResponse),
+    });
+    const application = {
+      proposal: "fake proposal",
+      student: "fake student"
+    };
+    const result = await API.insertApplication(application);
+    expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(application),
+    });
+    expect(result).toEqual({ status: "success" });
+  });
+
+  test("insertApplicatioon - should manage correctly errors", async () => {
+    try {
+      fetch.mockResolvedValue({
+        ok: false,
+        json: () =>
+          Promise.resolve({ error: "error on inserting the application" }),
+      });
+      const application = {
+        proposal: "not valid Proposal",
+        student: "fake student",
+      };
+      await API.insertApplication(application);
+      expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(application),
+      });
+    } catch (error) {
+      expect(error).toEqual({ error: "error on inserting the application" });
+    }
+  });
+});
+
+test('getApplicationsByTeacher - should return correct data', async () => {
+  fetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve(mockApiResponse),
+  });
+  const result = await API.getApplicationsByTeacher('teacher_id');
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications?teacher=teacher_id`);
+
   expect(result).toEqual(mockApiResponse);
 });

@@ -11,7 +11,11 @@ const {
   getGroups,
   getDegrees,
   insertProposal,
+  getProposalsBySupervisor,
   getProposalsByDegree,
+  getProposal,
+  insertApplication,
+  getApplication,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
 } = require("./theses-dao");
@@ -157,7 +161,7 @@ router.post(
   },
 );
 
-// endpoint to get all teachers {id, surname, name}
+// endpoint to get all teachers {id, surname, name, email}
 router.get("/api/teachers", async (req, res) => {
   try {
     const teachers = await getTeachers();
@@ -209,15 +213,63 @@ router.get("/api/degrees", async (req, res) => {
   }
 });
 
-router.get("/api/proposals", check("cds").isString(), async (req, res) => {
-  try {
-    const cds = req.query.cds;
-    const proposals = await getProposalsByDegree(cds);
-    return res.status(200).json(proposals);
-  } catch (err) {
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+router.get(
+  "/api/proposals",
+  check("cds").isString(),
+  check("supervisor").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  async (req, res) => {
+    try {
+      const cds = req.query.cds;
+      const supervisor = req.query.supervisor;
+      let proposals;
+      if (cds !== undefined && supervisor === undefined) {
+        proposals = await getProposalsByDegree(cds);
+      }
+      if (supervisor !== undefined && cds === undefined) {
+        proposals = await getProposalsBySupervisor(supervisor);
+      }
+      if (proposals.length === 0) {
+        return res
+          .status(404)
+          .send({ message: "No proposal found in the database" });
+      }
+      return res.status(200).json(proposals);
+    } catch (err) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+
+router.post(
+  "/api/applications",
+  check("student").isString().isLength({ min: 7, max: 7 }),
+  check("proposal").isInt({ gt: 0 }),
+  async (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).json({ message: "Invalid application content" });
+    }
+    try {
+      const { proposal, student } = req.body;
+      const db_student = await getStudent(student);
+      const db_proposal = await getProposal(proposal);
+      if (db_student === false || db_proposal === false) {
+        return res.status(400).json({ message: "Invalid application content" });
+      } else if (await getApplication(student, proposal)) {
+        return res.status(400).json({ message: "Application already present" });
+      } else {
+        const application = await insertApplication(
+          proposal,
+          student,
+          "pending",
+        );
+        return res.status(200).json(application);
+      }
+    } catch (e) {
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
 
 router.get(
   "/api/applications",
@@ -225,7 +277,7 @@ router.get(
   check("student").isAlphanumeric().isLength({ min: 7, max: 7 }),
   async (req, res) => {
     try {
-      
+
       if (req.query.teacher !== undefined && req.query.student === undefined) {
         const teacher = await getTeacher(req.query.teacher);
         if (teacher === false) {
@@ -245,7 +297,7 @@ router.get(
       }
       if (req.query.student !== undefined && req.query.teacher === undefined) {
         const student = await getStudent(req.query.student);
-        
+
         if (student === false) {
           return res.status(404).json({
             message: `Student ${req.query.student} not found, cannot get the applications`,

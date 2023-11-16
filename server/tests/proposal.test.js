@@ -18,7 +18,72 @@ beforeEach(() => {
   jest.resetAllMocks();
   jest.clearAllMocks();
 });
+const { deleteApplication } = require("../src/theses-dao");
 
+describe("Application Insertion Tests", () => {
+  const application = {
+    student: "s309618",
+    proposal: 8,
+  };
+  test("Insertion of a correct application", async () => {
+    await deleteApplication(application.student, application.proposal);
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          student_id: "s309618",
+          proposal_id: 8,
+          state: "pending",
+        });
+      });
+  });
+  test("Insertion of an application already existent", async () => {
+    await deleteApplication(application.student, application.proposal);
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application);
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: "Application already present",
+        });
+      });
+  });
+  test("Insertion of an application from a wrong student", () => {
+    application.student = "s000000";
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: "Invalid application content",
+        });
+      });
+  });
+  test("Insertion of an application with a wrong proposal", () => {
+    application.proposal = -5;
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: "Invalid application content",
+        });
+      });
+  });
+});
 describe("Proposal Insertion Tests", () => {
   test("Insertion of a correct proposal", () => {
     const proposal = {
@@ -192,16 +257,40 @@ describe("Proposal Retrieval Tests", () => {
       });
   });
 
+  test("Get all the proposals from a specific supervisor", () => {
+    const supervisor = "s123456";
+    return request(app)
+      .get(`/api/proposals?supervisor=${supervisor}`)
+      .set("Content-Type", "application/json")
+      .expect(200)
+
+  });
+
+  test("Return 404 for a non-existing supervisor", () => {
+    const supervisor = "s000000";
+    return request(app)
+      .get(`/api/proposals?supervisor=${supervisor}`)
+      .set("Content-Type", "application/json")
+      .expect(404)
+
+  });
+
+  test("Return 400 for a invalid format of supervisor", () => {
+    const supervisor = 0;
+    return request(app)
+      .get(`/api/proposals?supervisor=${supervisor}`)
+      .set("Content-Type", "application/json")
+      .expect(404)
+
+  });
+
+
   test("Get all the proposals from a field of study that doesn't exists", () => {
     const cds = "aaaaaaaaaaaaaaaaaaaaaaaaa";
     return request(app)
       .get(`/api/proposals?cds=${cds}`)
       .set("Content-Type", "application/json")
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toBeInstanceOf(Array);
-        expect(response.body.length).toBe(0);
-      });
+      .expect(404)
   });
 });
 
