@@ -2,7 +2,7 @@
 
 const request = require("supertest");
 const app = require("../src/server");
-const { getGroups, getTeachers, getDegrees } = require("../src/theses-dao");
+const { getGroups, getTeachers,getDegrees,getStudent,getProposal,getApplication,updateApplication,updateApplications,deleteApplications} = require("../src/theses-dao");
 
 jest.mock("../src/theses-dao.js", () => {
   const theses_dao = jest.requireActual("../src/theses-dao.js");
@@ -11,6 +11,12 @@ jest.mock("../src/theses-dao.js", () => {
     getTeachers: jest.fn(),
     getGroups: jest.fn(),
     getDegrees: jest.fn(),
+    getStudent: jest.fn(),
+    getProposal: jest.fn(),
+    getApplication: jest.fn(),
+    updateApplication: jest.fn(),
+    updateApplications: jest.fn(),
+    deleteApplications: jest.fn(),
   };
 });
 
@@ -301,5 +307,56 @@ describe("Get All Degrees Test", () => {
       .get("/api/degrees")
       .expect("Content-Type", /json/)
       .expect(500);
+  });
+});
+
+describe('PATCH /api/applications/:id', () => {
+ 
+  it('should return 422 if URL and body id mismatch', async () => {
+    const response = await request(app)
+      .patch('/api/applications/1')
+      .send({ id: 2, state: 'accepted' });
+    expect(response.status).toBe(422);
+    expect(response.body).toEqual({ error: 'URL and body id mismatch' });
+  });
+
+  it('should return 400 if student or proposal is invalid', async () => {
+    getStudent.mockResolvedValueOnce(false);
+    getProposal.mockResolvedValueOnce(false);
+
+    const response = await request(app)
+      .patch('/api/applications/1')
+      .send({ id: 1, studentId: 1, proposalId: 1, state: 'accepted' });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ message: 'Invalid application content' });
+  });
+
+  it('should return 400 if application already present', async () => {
+    getApplication.mockResolvedValueOnce(true);
+
+    const response = await request(app)
+      .patch('/api/applications/1')
+      .send({ id: 1, studentId: 1, proposalId: 1, state: 'accepted' });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ message: 'Application already present' });
+  });
+
+  it('should update application and return 200 if all conditions are met', async () => {
+    getStudent.mockResolvedValueOnce({/* mock student data */});
+    getProposal.mockResolvedValueOnce({/* mock proposal data */});
+    getApplication.mockResolvedValueOnce(false);
+
+    const response = await request(app)
+      .patch('/api/applications/1')
+      .send({ id: 1, studentId: 1, proposalId: 1, state: 'accepted' });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ message: 'Application accepted' });
+
+    expect(updateApplication).toHaveBeenCalledWith(1, 1, 'accepted');
+    expect(updateApplications).toHaveBeenCalledWith(1, 1);
+    expect(deleteApplications).toHaveBeenCalledWith(1, 1);
   });
 });

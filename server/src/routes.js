@@ -6,9 +6,11 @@ const { check, validationResult } = require("express-validator");
 const {
   getTeacher,
   getTeachers,
+  getStudent,
   getGroup,
   getGroups,
   getDegrees,
+  getProposal,
   insertProposal,
   getProposalsByDegree,
   updateApplication,
@@ -220,7 +222,7 @@ router.get("/api/proposals", check("cds").isString(), async (req, res) => {
   }
 });
 
-router.patch("api/proposals/:id",
+router.patch("/api/applications/:id",
   check("state").isIn(["accepted","rejected"]), 
   async(req,res) =>{
     const result = validationResult(req);
@@ -245,8 +247,11 @@ router.patch("api/proposals/:id",
         if(state === 'accepted'){
           await updateApplications(studentId,proposalId);
           await deleteApplications(studentId,proposalId);
+          res.status(200).json({ message: "Application accepted" });
+        } else {
+          res.status(200).json({ message: "Application rejected" });
         }
-        res.status(200).json({ message: "Application updated successfully" });
+        
       }
     } catch (err) {
     return res.status(500).json({ message: "Internal Server Error" });

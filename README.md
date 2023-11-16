@@ -152,6 +152,20 @@
     "cds": "Computer Engineering"
   }
   ```
+- PATCH `/api/applications/:id`
+  - accept or reject a specific application
+  - if the application is accepted
+   - all the pending applications of that student are removed
+   - all the pending applications for that thesisi are rejected
+  - request body content example
+  ```
+  {
+    "id":2
+    "proposal_id": 8,
+    "student_id": "s309618",
+    "state": "pending"
+  }
+  ```
 - POST `/api/something`
   - request parameters and request body content
   - response body content

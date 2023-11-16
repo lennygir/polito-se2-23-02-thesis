@@ -149,6 +149,34 @@ exports.getProposalsByDegree = (cds) => {
   });
 };
 
+exports.getStudent = (id) => {
+  return new Promise((resolve, reject) => {
+    db.get("select * from STUDENT where id = ?", id, (err, row) => {
+      if (err) {
+        reject(err);
+      } else if (row === undefined) {
+        resolve(false);
+      } else {
+        resolve(row);
+      }
+    });
+  });
+};
+
+exports.getProposal = (id) => {
+  return new Promise((resolve, reject) => {
+    db.get("select * from PROPOSALS where id = ?", id, (err, row) => {
+      if (err) {
+        reject(err);
+      } else if (row === undefined) {
+        resolve(false);
+      } else {
+        resolve(row);
+      }
+    });
+  });
+};
+
 exports.getApplication = (student_id,proposal_id) => {
   return new Promise((resolve, reject) => {
     db.get(
