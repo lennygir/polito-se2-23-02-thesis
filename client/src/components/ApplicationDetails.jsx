@@ -78,7 +78,7 @@ function ApplicationDetails(props) {
         )}
         {application.state === "pending" && user?.role === "student" && (
           <Button fullWidth disabled variant="outlined">
-            Application already sent
+            Pending Application
           </Button>
         )}
       </Box>

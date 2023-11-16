@@ -125,7 +125,7 @@ function Main() {
       if (user.role === "student") {
         // The student fetches the proposals for his degree
         const [proposals, applications] = await Promise.all([
-          API.getProposalsByDegree(user.cod_degree),
+          API.getProposals(),
           API.getApplicationsByStudent(user.id),
         ]);
         setProposals(proposals);
