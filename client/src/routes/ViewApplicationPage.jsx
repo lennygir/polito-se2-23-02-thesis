@@ -1,32 +1,15 @@
-import { useContext } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ProposalDetails from "../components/ProposalDetails";
-import ErrorContext from "../contexts/ErrorContext";
-import API from "../API";
+import { Link, useLocation } from "react-router-dom";
+import ApplicationDetails from "../components/ApplicationDetails";
 
-function ViewProposalPage(props) {
-  const navigate = useNavigate();
+function ViewApplicationPage(props) {
   const location = useLocation();
-  const { handleErrors } = useContext(ErrorContext);
 
   const proposal = location.state?.proposal;
 
-  const createApplication = (application) => {
-    API.insertApplication(application)
-      .then(() => {
-        // Re-fetch students applications
-      })
-      .catch((err) => handleErrors(err));
-  };
-
-  // TODO: Get applications of a student
-  // If a student has already applied to a proposal, then
-  // shouldn't be able to re-send an application
-
   return (
-    <div id="view-proposal-page">
+    <div id="view-application-page">
       <Stack
         paddingTop={4}
         sx={{ pt: { md: 4, xs: 0 } }}
@@ -35,7 +18,8 @@ function ViewProposalPage(props) {
         justifyContent="space-between"
       >
         <Button
-          onClick={() => navigate(-1)}
+          component={Link}
+          to="/applications"
           variant="outlined"
           startIcon={<ArrowBackIcon />}
           sx={{ ml: { md: 4, xs: 0 } }}
@@ -47,17 +31,15 @@ function ViewProposalPage(props) {
         variant="h4"
         sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}
       >
-        Thesis Proposal
+        Application Details
       </Typography>
       <Paper
         elevation={1}
         sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}
       >
-        {/* TODO: if applications.find(proposal.id === proposal.id) => disable button */}
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
-          <ProposalDetails
+          <ApplicationDetails
             proposal={proposal}
-            createApplication={createApplication}
             getTeacherById={props.getTeacherById}
             getDegreeById={props.getDegreeById}
           />
@@ -68,4 +50,4 @@ function ViewProposalPage(props) {
   );
 }
 
-export default ViewProposalPage;
+export default ViewApplicationPage;

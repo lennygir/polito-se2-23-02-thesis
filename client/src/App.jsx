@@ -22,6 +22,7 @@ import UserContext from "./contexts/UserContext";
 import LoginPage from "./routes/LoginPage";
 import API from "./API";
 import ViewProposalPage from "./routes/ViewProposalPage";
+import ViewApplicationPage from "./routes/ViewApplicationPage";
 
 function App() {
   const { theme } = useThemeContext();
@@ -180,7 +181,8 @@ function Main() {
           <Route path="proposals" element={user ? <ProposalsPage proposals={proposals} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
           <Route path="proposals/:proposalId" element={user ? <ViewProposalPage getTeacherById={getTeacherById} getDegreeById={getDegreeById} /> : <Navigate replace to="/" />} />
           <Route path="add-proposal" element={user ? <CreateProposalPage teachers={teachers} groups={groups} degrees={degrees} setDirty={setDirty} setAlert={setAlert}/> : <Navigate replace to="/" />} />
-          <Route path="applications" element={user ? <ApplicationsPage /> : <Navigate replace to="/" /> } />
+          <Route path="applications" element={user ? <ApplicationsPage proposals={proposals} getTeacherById={getTeacherById}/> : <Navigate replace to="/" /> } />
+          <Route path="applications/:applicationId" element={user ? <ViewApplicationPage getTeacherById={getTeacherById} getDegreeById={getDegreeById} /> : <Navigate replace to="/" />} />
           <Route path="notifications" element={user ? <NotificationsPage /> : <Navigate replace to="/" />} />
           <Route path="settings" element={user ? <SettingsPage currentDate={currentDate} setCurrentDate={setCurrentDate}/> : <Navigate replace to="/" />} />
         </Route>
