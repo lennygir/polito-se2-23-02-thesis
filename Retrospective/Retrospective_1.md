@@ -81,15 +81,19 @@ sections:
 
 ## ASSESSMENT
 
-- What caused your errors in estimation (if any)?
-
+- What caused your errors in estimation (if any)? 
+  - (backend) often a story required more endpoints than expected
 - What lessons did you learn (both positive and negative) in this sprint?
-
+  - bug fixing is painful in terms of respecting the time estimations. Often you estimate a certain time for a task, then you spend countless hours in fixing bugs in the code and you go out of time, falling to an underestimation.
 - Which improvement goals set in the previous retrospective were you able to achieve?
+  - I was able to be more informed about what my teammates did. The definition of the data structure and of the endpoint went better than in the previous project. I also had been able to keep more synchronized with my teammates' work.
 - Which ones you were not able to achieve? Why?
+  - The synchronization with the teammates is not high enough though. Despite being better than the last sprint, it still has to be improved.
 
 - Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
+  - we need more team coordination, we need to make sure that everyone's work is independent of the others and at the same time that everyone's work is well integrated with the others'.
+  - I want to see other's code more easily. The process of seeing other's code integrated in the main code is too long, and so I do not see the big picture.
 
-  > Propose one or two
+  >   Propose one or two
 
 - One thing you are proud of as a Team!!
