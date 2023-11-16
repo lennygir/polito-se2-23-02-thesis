@@ -6,7 +6,7 @@ const app = new express();
 
 // --- Console requests
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: ["http://localhost:5173", "http://localhost", "http://localhost:80"],
 };
 app.use(cors(corsOptions));
 
