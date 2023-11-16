@@ -310,3 +310,20 @@ exports.getApplicationsOfStudent = (student_id) => {
     );
   });
 };
+
+exports.getProposals = () => {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `
+      SELECT *
+      FROM PROPOSALS`,
+      (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      },
+    );
+  });
+};

@@ -18,6 +18,7 @@ const {
   getApplication,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
+  getProposals,
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -228,6 +229,9 @@ router.get(
       if (supervisor !== undefined && cds === undefined) {
         proposals = await getProposalsBySupervisor(supervisor);
       }
+      if (cds === undefined && supervisor === undefined) {
+        proposals = await getProposals();
+      }
       if (proposals.length === 0) {
         return res
           .status(404)
@@ -277,7 +281,6 @@ router.get(
   check("student").isAlphanumeric().isLength({ min: 7, max: 7 }),
   async (req, res) => {
     try {
-
       if (req.query.teacher !== undefined && req.query.student === undefined) {
         const teacher = await getTeacher(req.query.teacher);
         if (teacher === false) {
