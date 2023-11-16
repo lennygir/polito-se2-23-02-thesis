@@ -83,10 +83,11 @@ CREATE TABLE IF NOT EXISTS PROPOSALS (
 );
 
 CREATE TABLE IF NOT EXISTS APPLICATIONS (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   proposal_id INTEGER,
-  student_id INTEGER,
+  student_id TEXT,
   state TEXT,
-  PRIMARY KEY (proposal_id, student_id),
+--PRIMARY KEY (proposal_id, student_id),
   FOREIGN KEY (proposal_id) REFERENCES PROPOSALS (id),
   FOREIGN KEY (student_id) REFERENCES STUDENT (id)
 );
