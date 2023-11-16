@@ -124,16 +124,20 @@ function Main() {
     try {
       if (user.role === "student") {
         // The student fetches the proposals for his degree
-        const [proposals] = await Promise.all([
+        const [proposals, applications] = await Promise.all([
           API.getProposalsByDegree(user.cod_degree),
+          API.getApplicationsByStudent(user.id),
         ]);
         setProposals(proposals);
+        setApplications(applications);
       } else if (user.role === "teacher") {
         // The teacher fetches the proposals that he created
-        const [proposals] = await Promise.all([
+        const [proposals, applications] = await Promise.all([
           API.getProposalsByTeacher(user.id),
+          API.getApplicationsByTeacher(user.id),
         ]);
         setProposals(proposals);
+        setApplications(applications);
       }
     } catch (err) {
       return handleErrors(err);
@@ -179,9 +183,9 @@ function Main() {
           {/* prettier-ignore */}
           <Route path="/" element={user ? <RootPage currentDate={currentDate} logout={handleLogout} /> : <LoginPage login={handleLogin} />}>
           <Route path="proposals" element={user ? <ProposalsPage proposals={proposals} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
-          <Route path="proposals/:proposalId" element={user ? <ViewProposalPage getTeacherById={getTeacherById} getDegreeById={getDegreeById} /> : <Navigate replace to="/" />} />
+          <Route path="proposals/:proposalId" element={user ? <ViewProposalPage getTeacherById={getTeacherById} getDegreeById={getDegreeById} setDirty={setDirty} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
           <Route path="add-proposal" element={user ? <CreateProposalPage teachers={teachers} groups={groups} degrees={degrees} setDirty={setDirty} setAlert={setAlert}/> : <Navigate replace to="/" />} />
-          <Route path="applications" element={user ? <ApplicationsPage proposals={proposals} getTeacherById={getTeacherById}/> : <Navigate replace to="/" /> } />
+          <Route path="applications" element={user ? <ApplicationsPage applications={applications} proposals={proposals} /> : <Navigate replace to="/" /> } />
           <Route path="applications/:applicationId" element={user ? <ViewApplicationPage getTeacherById={getTeacherById} getDegreeById={getDegreeById} /> : <Navigate replace to="/" />} />
           <Route path="notifications" element={user ? <NotificationsPage /> : <Navigate replace to="/" />} />
           <Route path="settings" element={user ? <SettingsPage currentDate={currentDate} setCurrentDate={setCurrentDate}/> : <Navigate replace to="/" />} />

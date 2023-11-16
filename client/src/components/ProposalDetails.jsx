@@ -12,7 +12,7 @@ import Typography from "@mui/material/Typography";
 import UserContext from "../contexts/UserContext";
 
 function ProposalDetails(props) {
-  const { proposal, getTeacherById, getDegreeById } = props;
+  const { proposal, applications, getTeacherById, getDegreeById } = props;
   const supervisorTeacher = getTeacherById(proposal.supervisor);
   const degree = getDegreeById(proposal.cds);
   const user = useContext(UserContext);
@@ -34,6 +34,12 @@ function ProposalDetails(props) {
       student: user.id,
     };
     props.createApplication(application);
+  };
+
+  const isApplicationSent = () => {
+    return applications.some(
+      (application) => application.proposal_id === proposal.id
+    );
   };
 
   return (
@@ -129,13 +135,24 @@ function ProposalDetails(props) {
             justifyContent: "center",
           }}
         >
-          <Button
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-            onClick={handleOpenDialog}
-          >
-            Send Application
-          </Button>
+          {!isApplicationSent() ? (
+            <Button
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              onClick={handleOpenDialog}
+            >
+              Send Application
+            </Button>
+          ) : (
+            <Button
+              disabled
+              variant="outlined"
+              sx={{ mt: 3, mb: 2 }}
+              onClick={handleOpenDialog}
+            >
+              Application Sent
+            </Button>
+          )}
         </Box>
       )}
     </>

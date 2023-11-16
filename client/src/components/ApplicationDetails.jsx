@@ -1,14 +1,17 @@
+import { useContext } from "react";
+import { NavLink } from "react-router-dom";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
-import dayjs from "dayjs";
-import { Box, Button, Link, Paper, Stack, Typography } from "@mui/material";
-import { NavLink, useLocation } from "react-router-dom";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import Link from "@mui/material/Link";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import UserContext from "../contexts/UserContext";
 
 function ApplicationDetails(props) {
-  const { proposal, getTeacherById, getDegreeById } = props;
-  const supervisorTeacher = getTeacherById(proposal.supervisor);
-  const degree = getDegreeById(proposal.cds);
+  const user = useContext(UserContext);
+  const { application, proposal } = props;
 
   return (
     <>
@@ -18,30 +21,30 @@ function ApplicationDetails(props) {
       <Divider />
       <Typography variant="subtitle1" gutterBottom paddingTop={2}>
         <span style={{ fontWeight: "bold" }}>Student ID: </span>
-        {supervisorTeacher.id}
+        {application.student_id}
       </Typography>
       <Typography variant="subtitle1" gutterBottom paddingTop={1}>
         <span style={{ fontWeight: "bold" }}>Full Name: </span>
-        {supervisorTeacher.name + " " + supervisorTeacher.surname}
+        {application.student_surname + " " + application.student_name}
       </Typography>
       <Typography variant="subtitle1" gutterBottom paddingTop={1}>
         <span style={{ fontWeight: "bold" }}>Email: </span>
-        {supervisorTeacher.email}
+        {application.student_id + "@studenti.polito.it"}
       </Typography>
-      <Stack direction="row" spacing={5} alignItems="center">
-        <Typography variant="subtitle1" gutterBottom paddingTop={1}>
+      <Stack direction="row" spacing={5} alignItems="center" marginY={3}>
+        <Typography variant="subtitle1">
           <span style={{ fontWeight: "bold" }}>View CV: </span>
         </Typography>
         <Button variant="outlined" startIcon={<AttachFileIcon />}>
           Student CV
         </Button>
       </Stack>
-      <Typography variant="h5" gutterBottom paddingTop={2}>
+      <Typography variant="h5" gutterBottom paddingTop={1}>
         Thesis Proposal
       </Typography>
       <Divider />
       <Typography variant="subtitle1" gutterBottom paddingTop={2}>
-        <span style={{ fontWeight: "bold" }}>Link: </span>
+        <span style={{ fontWeight: "bold" }}>Link to proposal: </span>
         <Link
           color="inherit"
           underline="always"
@@ -53,14 +56,31 @@ function ApplicationDetails(props) {
         </Link>
       </Typography>
       <Box paddingTop={5}>
-        <Stack direction="row" spacing={3}>
-          <Button variant="outlined" fullWidth sx={{ mt: 3, mb: 2 }}>
-            Reject
+        {application.state === "accepted" && (
+          <Button fullWidth disabled variant="outlined">
+            Application Accepted
           </Button>
-          <Button variant="contained" fullWidth sx={{ mt: 3, mb: 2 }}>
-            Accept
+        )}
+        {application.state === "rejected" && (
+          <Button fullWidth disabled variant="outlined">
+            Application Rejected
           </Button>
-        </Stack>
+        )}
+        {application.state === "pending" && user?.role === "teacher" && (
+          <Stack direction="row" spacing={3}>
+            <Button variant="outlined" fullWidth sx={{ mt: 3, mb: 2 }}>
+              Reject
+            </Button>
+            <Button variant="contained" fullWidth sx={{ mt: 3, mb: 2 }}>
+              Accept
+            </Button>
+          </Stack>
+        )}
+        {application.state === "pending" && user?.role === "student" && (
+          <Button fullWidth disabled variant="outlined">
+            Application already sent
+          </Button>
+        )}
       </Box>
     </>
   );

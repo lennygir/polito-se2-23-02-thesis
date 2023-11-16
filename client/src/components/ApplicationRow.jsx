@@ -6,18 +6,36 @@ import { NavLink } from "react-router-dom";
 import FileOpenIcon from "@mui/icons-material/FileOpen";
 
 function ApplicationRow(props) {
+  const { application, proposal } = props;
   const user = useContext(UserContext);
-  const proposal = props.proposal;
-  const teacher =
-    user?.role === "student" ? props.getTeacherById(proposal.supervisor) : null;
 
   return (
     <>
-      <TableRow key={proposal.id}>
-        {user?.role === "teacher" && <TableCell>{proposal.id}</TableCell>}
-        {user?.role === "student" && teacher && (
+      <TableRow>
+        <TableCell>
+          <Tooltip title="View application">
+            <IconButton
+              component={NavLink}
+              to={
+                "/applications/" +
+                application.student_id +
+                "-" +
+                application.proposal_id
+              } // To be changed
+              state={{ application: application, proposal: proposal }}
+            >
+              <FileOpenIcon />
+            </IconButton>
+          </Tooltip>
+        </TableCell>
+        {user?.role === "teacher" && (
+          <TableCell>{application.student_id}</TableCell>
+        )}
+        {user?.role === "student" && (
           <TableCell>
-            {`${teacher.name.charAt(0)}. ${teacher.surname}`}
+            {`${application.teacher_name.charAt(0)}. ${
+              application.teacher_surname
+            }`}
           </TableCell>
         )}
         <TableCell
@@ -28,23 +46,18 @@ function ApplicationRow(props) {
             textOverflow: "ellipsis",
           }}
         >
-          {proposal.title}
+          {proposal?.title}
         </TableCell>
         <TableCell align="center">
-          {/*<Chip label="Accepted" size="small" color="success" />*/}
-          <Chip label="Rejected" size="small" color="error" />
-          {/*<Chip label="Pending" size="small" />*/}
-        </TableCell>
-        <TableCell>
-          <Tooltip title="View application">
-            <IconButton
-              component={NavLink}
-              to={"/applications/" + proposal.id} // To be changed
-              state={{ proposal: proposal }}
-            >
-              <FileOpenIcon />
-            </IconButton>
-          </Tooltip>
+          {application.state === "rejected" && (
+            <Chip label="Rejected" size="small" color="error" />
+          )}
+          {application.state === "accepted" && (
+            <Chip label="Accepted" size="small" color="success" />
+          )}
+          {application.state === "pending" && (
+            <Chip label="Pending" size="small" />
+          )}
         </TableCell>
       </TableRow>
     </>

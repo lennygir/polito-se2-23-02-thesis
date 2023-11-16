@@ -4,8 +4,10 @@
 
 - Route `/`: login page
 - Route `/proposals`: students see the list of proposals for their cds, teachers see the list of their proposals
-- Route `/add-propsal`: teachers can create a new proposal
+- Route `/proposals/:proposalId`: students see the the details of a proposal and can apply to it, teachers can only see the proposal details
+- Route `/add-proposal`: teachers can create a new proposal
 - Route `/applications`: students see the list of their applications, teachers see the list of applications to their proposals
+- Route `/applications/:applicationId`: students see the check the details of an applications, teachers can also accept or reject an application
 - Route `/notifications`: students and teachers see the list of notifications related to the proposals/applications
 - Route `/settings`: users can change the theme and the current date
 - Route `*`: non-existing routes view
@@ -21,7 +23,9 @@
   }
   ```
 - POST `/api/proposals`
+
   - request body content example
+
   ```
   {
     "title": "Proposta di tesi fighissima",
@@ -50,18 +54,24 @@
     "cds": "LM-32 (DM270)"
   }
 
+  ```
+
 - GET `/api/proposals`
+
   - params in query ()
-  ``` one of this two
+
+  ```one of this two
     supevisor: s123456
     cds: Computer Engineering
   ```
+
   - return the list of proposal related to a teacher id or cds
   - return 200 for correct behavior
   - return 404 for no proposal related to that teacher or cds
   - return 400 for invalid teacher id or cds
   - return 500 for internal server error
   - example of return value
+
   ```
    [
       {
@@ -83,12 +93,14 @@
   ```
 
 - GET `/api/teachers`
+
   - no body request
   - return the list of all teachers
   - return 200 for correct behavior
   - return 404 for empty teachers table
   - return 500 for internal server error
   - example of return value
+
   ```
   [
     {
@@ -113,6 +125,7 @@
   - return 404 for empty groups table
   - return 500 for internal server error
   - example of return value
+
   ```
   [
     {
@@ -123,6 +136,7 @@
     }
   ]
   ```
+
 - GET `/api/degrees`
   - no body request
   - return the list of all degrees
@@ -136,13 +150,12 @@
       cod_degree :"LM-32 (DM270)",
       title_degree: "Computer Engineering"
     },
-    { 
+    {
       cod_degree: "LM-23 (DM270)",
       title_degree: "Civil Engineering"
     }
   ]
   ```
-  
 - GET `/api/proposals?cds=LM-32 (DM270)`
   - returned json
   ```
@@ -207,7 +220,7 @@
   ```
 - GET `/api/applications`
   - params in query ()
-  ``` one of this two
+  ```one of this two
     teacher: s345678
     student: s317743
   ```
@@ -217,7 +230,7 @@
   - return 400 for invalid teacher id or cds
   - return 500 for internal server error
   - example of return value
-  ``` 
+  ```
     [
       {
         proposal_id: 1,
@@ -262,21 +275,7 @@
   - response body content
 - ...
 
-## Database Tables
-
-- Table `users` - contains [email, password]
-- Table `something` - contains ww qq ss
-- ...
-
-## Main React Components
-
-- `ListOfSomething` (in `List.js`): component purpose and main functionality
-- `GreatButton` (in `GreatButton.js`): component purpose and main functionality
-- ...
-
-(only _main_ components, minor ones may be skipped)
-
 ## Users Credentials
 
-- username, password (plus any other requested info)
-- username, password (plus any other requested info)
+- TEACHER ACCOUNT: email: marco.torchiano@polito.it, password: s123456
+- STUDENT ACCOUNT: email: s309618@studenti.polito.it, password: s309618

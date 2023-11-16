@@ -67,8 +67,8 @@ const getProposalsByDegree = async (degree) => {
 };
 
 const getProposalsByTeacher = async (teacher_id) => {
-  return getJson(fetch(SERVER_URL + "/proposals?supervisor=" + teacher_id))
-}
+  return getJson(fetch(SERVER_URL + "/proposals?supervisor=" + teacher_id));
+};
 
 const insertApplication = async (application) => {
   return getJson(
@@ -84,8 +84,11 @@ const insertApplication = async (application) => {
 
 const getApplicationsByTeacher = async (teacher_id) => {
   return getJson(fetch(SERVER_URL + "/applications?teacher=" + teacher_id));
-}
+};
 
+const getApplicationsByStudent = async (student_id) => {
+  return getJson(fetch(SERVER_URL + "/applications?student=" + student_id));
+};
 
 const API = {
   createProposal,
@@ -96,6 +99,7 @@ const API = {
   getProposalsByTeacher,
   insertApplication,
   getApplicationsByTeacher,
+  getApplicationsByStudent,
   logIn,
 };
 

@@ -9,11 +9,16 @@ import TableRow from "@mui/material/TableRow";
 import ApplicationRow from "./ApplicationRow";
 import UserContext from "../contexts/UserContext";
 
-const TEACHER_HEADERS = ["Student", "Proposal", "Status", ""];
-const STUDENT_HEADERS = ["Teacher", "Proposal", "Status", ""];
+const TEACHER_HEADERS = ["Open", "Student", "Proposal", "Status"];
+const STUDENT_HEADERS = ["Open", "Teacher", "Proposal", "Status"];
 
 function ApplicationTable(props) {
+  const { applications, proposals } = props;
   const user = useContext(UserContext);
+
+  const getProposalById = (proposalId) => {
+    return proposals.find((proposal) => proposal.id === proposalId);
+  };
 
   return (
     <Card
@@ -50,13 +55,17 @@ function ApplicationTable(props) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {props.data.map((proposal) => (
-              <ApplicationRow
-                key={proposal.id}
-                proposal={proposal}
-                getTeacherById={props.getTeacherById}
-              />
-            ))}
+            {applications.map((application, index) => {
+              // Get the proposal object for the current application
+              const proposal = getProposalById(application.proposal_id);
+              return (
+                <ApplicationRow
+                  key={index}
+                  application={application}
+                  proposal={proposal}
+                />
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>

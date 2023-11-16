@@ -12,11 +12,16 @@ function ViewProposalPage(props) {
   const { handleErrors } = useContext(ErrorContext);
 
   const proposal = location.state?.proposal;
+  const applications = props.applications;
 
   const createApplication = (application) => {
     API.insertApplication(application)
       .then(() => {
-        // Re-fetch students applications
+        props.setAlert({
+          message: "Application sent successfully",
+          severity: "success",
+        });
+        props.setDirty(true);
       })
       .catch((err) => handleErrors(err));
   };
@@ -57,6 +62,7 @@ function ViewProposalPage(props) {
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
           <ProposalDetails
             proposal={proposal}
+            applications={applications}
             createApplication={createApplication}
             getTeacherById={props.getTeacherById}
             getDegreeById={props.getDegreeById}
