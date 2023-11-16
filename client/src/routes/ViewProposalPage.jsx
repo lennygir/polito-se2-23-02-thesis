@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ProposalDetails from "../components/ProposalDetails";
@@ -7,15 +7,21 @@ import ErrorContext from "../contexts/ErrorContext";
 import API from "../API";
 
 function ViewProposalPage(props) {
+  const navigate = useNavigate();
   const location = useLocation();
   const { handleErrors } = useContext(ErrorContext);
 
   const proposal = location.state?.proposal;
+  const applications = props.applications;
 
   const createApplication = (application) => {
     API.insertApplication(application)
       .then(() => {
-        // Re-fetch students applications
+        props.setAlert({
+          message: "Application sent successfully",
+          severity: "success",
+        });
+        props.setDirty(true);
       })
       .catch((err) => handleErrors(err));
   };
@@ -34,8 +40,7 @@ function ViewProposalPage(props) {
         justifyContent="space-between"
       >
         <Button
-          component={Link}
-          to="/proposals"
+          onClick={() => navigate(-1)}
           variant="outlined"
           startIcon={<ArrowBackIcon />}
           sx={{ ml: { md: 4, xs: 0 } }}
@@ -57,6 +62,7 @@ function ViewProposalPage(props) {
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
           <ProposalDetails
             proposal={proposal}
+            applications={applications}
             createApplication={createApplication}
             getTeacherById={props.getTeacherById}
             getDegreeById={props.getDegreeById}
