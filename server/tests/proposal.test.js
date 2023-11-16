@@ -231,6 +231,39 @@ describe("Get Application From Teacher", () => {
       .expect(200)
   });
 
+  test("Return 200 correct get of all application of a selected teacher", () => {
+    const teacher = "s123456";
+    return request(app)
+      .get(`/api/applications?teacher=${teacher}`)
+      .set("Content-Type", "application/json")
+      .expect(200)
+  });
+
+  test("Return 404 for emply list of application of that student", () => {
+    const student = "s319823";
+    return request(app)
+      .get(`/api/applications?student=${student}`)
+      .set("Content-Type", "application/json")
+      .expect(404)
+  });
+
+  test("Return 404 for no student found", () => {
+    const student = "s999999";
+    return request(app)
+      .get(`/api/applications?student=${student}`)
+      .set("Content-Type", "application/json")
+      .expect(404)
+  });
+
+  test("Return 200 correct get of all application of a selected student", () => {
+    const student = "s317743";
+    return request(app)
+      .get(`/api/applications?student=${student}`)
+      .set("Content-Type", "application/json")
+      .expect(200)
+  });
+
+
 });
 describe("Get All Teachers Test", () => {
   test("Correct get of all teachers from db", () => {

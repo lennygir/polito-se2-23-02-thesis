@@ -156,10 +156,11 @@
   - params in query ()
   ``` one of this two
     teacher: s345678
+    student: s317743
   ```
-  - return the list of proposal related to a teacher id or cds
+  - return the list of proposal related to a teacher id or student
   - return 200 for correct behavior
-  - return 404 for no proposal related to that teacher or cds
+  - return 404 for no proposal related to that teacher or student
   - return 400 for invalid teacher id or cds
   - return 500 for internal server error
   - example of return value

@@ -225,6 +225,7 @@ router.get(
   check("student").isAlphanumeric().isLength({ min: 7, max: 7 }),
   async (req, res) => {
     try {
+      
       if (req.query.teacher !== undefined && req.query.student === undefined) {
         const teacher = await getTeacher(req.query.teacher);
         if (teacher === false) {
@@ -244,6 +245,7 @@ router.get(
       }
       if (req.query.student !== undefined && req.query.teacher === undefined) {
         const student = await getStudent(req.query.student);
+        
         if (student === false) {
           return res.status(404).json({
             message: `Student ${req.query.student} not found, cannot get the applications`,
