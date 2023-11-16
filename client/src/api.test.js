@@ -153,3 +153,23 @@ test("getProposalsByDegree- should return correct data", async () => {
   expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals?cds=degreeValue`);
   expect(result).toEqual(mockApiResponse);
 });
+
+test("evaluateApplication- should return correct update message", async () => {
+  fetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve({message: "success update"}),
+  });
+  const application = {
+    id: 4,
+    otherFields: "otherFields",
+  }
+  const result = await API.evaluateApplication(application);
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications/${application.id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(application),
+  });
+  expect(result).toEqual({message: "success update"});
+});

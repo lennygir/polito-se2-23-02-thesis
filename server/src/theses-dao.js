@@ -149,50 +149,65 @@ exports.getProposalsByDegree = (cds) => {
   });
 };
 
-exports.updateApplication = (id,student_id,proposal_id,state) => {
+exports.getApplication = (student_id,proposal_id) => {
   return new Promise((resolve, reject) => {
     db.get(
-      "select * from APPLICATIONS where id = ? and student_id = ? and proposal_id = ?",
-      [id,student_id,proposal_id],
+      "select * from APPLICATIONS where student_id = ? and proposal_id = ?",
+      student_id,
+      proposal_id,
       (err, row) => {
         if (err) {
           reject(err);
-        } else if (!row) {
+        } else if (row === undefined) {
           resolve(false);
         } else {
-          db.run(
-            "update APPLICATIONS set state = ? where student_id = ? AND proposal_id = ?",
-            [state, student_id, proposal_id],
-            (err) =>{
-              if (err) {
-                reject(err);
-              }
-              if(state === 'accepted'){
-                db.run("delete from APPLICATIONS where student_id = ? AND proposal_id != ? AND state = 'pending'",
-                  [student_id, proposal_id],
-                  (err) => {
-                    if (err) {
-                      reject(err);
-                    }
-                    db.run(
-                      "update APPLICATIONS set state = 'rejected' where proposal_id = ? AND state = 'pending' AND student_id != ?",
-                      [proposal_id, student_id],
-                      (err) => {
-                        if (err){
-                          reject(err);
-                        }
-                        resolve(true);
-                      }
-                    );
-                  }
-                );
-              }else{
-                resolve(true);
-              }
-            }
-          );
+          resolve(row);
         }
+      },
+    );
+  });
+};
+
+exports.updateApplications = (student_id,proposal_id) => {
+  return new Promise((resolve, reject) => {
+    db.run(
+      "update APPLICATIONS set state = 'rejected' where proposal_id = ? AND state = 'pending' AND student_id != ?",
+      [proposal_id, student_id],
+      (err) => {
+        if (err){
+          reject(err);
+        }
+        resolve(true);
       }
     );
+  });
+};
+
+exports.deleteApplications = (student_id,proposal_id) => {
+  return new Promise((resolve, reject) => {
+    db.run("delete from APPLICATIONS where student_id = ? AND proposal_id != ? AND state = 'pending'",
+      [student_id, proposal_id],
+      (err) => {
+        if (err) {
+          reject(err);
+        }
+          resolve(true);
+      }
+    );
+  });
+};
+
+exports.updateApplication = (student_id,proposal_id,state) => {
+  return new Promise((resolve, reject) => {
+    db.run(
+      "update APPLICATIONS set state = ? where student_id = ? AND proposal_id = ?",
+      [state, student_id, proposal_id],
+      (err) =>{
+        if (err) {
+          reject(err);
+        }
+          resolve(true);              
+      }
+    );     
   });
 };

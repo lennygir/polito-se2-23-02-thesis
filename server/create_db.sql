@@ -83,10 +83,11 @@ CREATE TABLE IF NOT EXISTS PROPOSALS (
 );
 
 CREATE TABLE IF NOT EXISTS APPLICATIONS (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   proposal_id INTEGER,
-  student_id INTEGER,
+  student_id TEXT,
   state TEXT,
-  PRIMARY KEY (proposal_id, student_id),
+--PRIMARY KEY (proposal_id, student_id),
   FOREIGN KEY (proposal_id) REFERENCES PROPOSALS (id),
   FOREIGN KEY (student_id) REFERENCES STUDENT (id)
 );
@@ -246,10 +247,10 @@ VALUES ('marco.torchiano@polito.it', 's123456'),
        ('s319837@studenti.polito.it', 's319837');
 
 INSERT INTO APPLICATIONS (proposal_id,student_id,state)
-VALUES (1,'s317743','rejected'),
-       (2,'s317743','pending'),
-       (3,'s317743','pending'),
-       (4,'s317743','pending'),
-       (1,'s309618','rejected'),
-       (6,'s309618','rejected'),
-       (8,'s309618','accepted');
+VALUES (1,1,'s317743','rejected'),
+       (2,2,'s317743','pending'),
+       (3,3,'s317743','pending'),
+       (4,4,'s317743','pending'),
+       (5,1,'s309618','rejected'),
+       (6,6,'s309618','rejected'),
+       (7,8,'s309618','accepted');

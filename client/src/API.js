@@ -66,7 +66,7 @@ const getProposalsByDegree = async (degree) => {
   return getJson(fetch(SERVER_URL + "/proposals?cds=" + degree));
 };
 
-function evaluateApplication(application){
+const evaluateApplication = async (application) => {
   return getJson(
     fetch(SERVER_URL + "/applications/" + application.id, {
       method: "PATCH",
