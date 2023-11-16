@@ -85,6 +85,7 @@ sections:
   - (backend) often a story required more endpoints than expected
   - the database had many errors in the beginning so we wasted a lot of time trying to fix it
   - missunderstandings : when i took the ticket "proposals filter interface" i understood wrongly how it should be implemented so i had to modify it again after my push
+  - in the start phase of the project we haven't a clrea view of the application, so that have cause many problems
 - What lessons did you learn (both positive and negative) in this sprint?
   - bug fixing is painful in terms of respecting the time estimations. Often you estimate a certain time for a task, then you spend countless hours in fixing bugs in the code and you go out of time, falling to an underestimation.
   - How to use containers
@@ -93,6 +94,7 @@ sections:
   - We were more consistent with notations to adopt and we balanced task distribution among the team so overall better organization
   - YouTrack updates and SCRUM meetings were more frequent
   - add more time for learning parts, youtrack regurarly updated, data structure defined by multiple people and validated
+  - Visible improvment in writing code 
 - Which ones you were not able to achieve? Why?
 
   - The synchronization with the teammates is not high enough though. Despite being better than the last sprint, it still has to be improved.
@@ -105,6 +107,7 @@ sections:
   - I want to see other's code more easily. The process of seeing other's code integrated in the main code is too long, and so I do not see the big picture.
   - Add more detailed documentations (both frontend and backend)
   - Improve the database with more data
+  - Improve the definition of tasks and at the start of the sprint we must see the long term objective and not the short term
 
   > Propose one or two
 
