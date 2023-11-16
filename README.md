@@ -10,6 +10,7 @@
 
 You can either retrieve the image from the docker hub either build it yourself.
 
+If you want to build it execute the following commands:
 ```bash
 
 # Build the frontend 
@@ -18,16 +19,13 @@ cd client && npm run build && cd ..
 # Build the docker image 
 docker build -t s321503/polito-thesis .
 
-# Retrieve the image from the docker hub
-docker pull s321503/polito-thesis
-
 ```
 
-Once you have the image locally you can run it with the following command:
+You can run the application by executing with the following command:
 
 ```bash
 
-docker run -p 80:80 --name polito-thesis s321503/polito-thesis
+docker run -p 80:80 -p 3000:3000 --name polito-thesis s321503/polito-thesis
 
 ```
 
