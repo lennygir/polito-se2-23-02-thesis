@@ -235,3 +235,78 @@ exports.getProposalsByDegree = (cds) => {
     );
   });
 };
+
+/**
+ * todo: I think it's ugly to return student's info and teacher's info
+ * @param teacher_id
+ * @returns {Promise<[
+ *   {
+ *     proposal_id,
+ *     teacher_id,
+ *     state,
+ *     student_name,
+ *     student_surname,
+ *     teacher_name,
+ *     teacher_surname
+ *   }
+ * ]>}
+ */
+exports.getApplicationsOfTeacher = (teacher_id) => {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `select APPLICATIONS.proposal_id, 
+                  APPLICATIONS.student_id, 
+                  APPLICATIONS.state, 
+                  STUDENT.name as student_name, 
+                  STUDENT.surname as student_surname, 
+                  TEACHER.name as teacher_name, 
+                  TEACHER.surname as teacher_surname
+       from APPLICATIONS,
+            PROPOSALS,
+            STUDENT,
+            TEACHER
+       where APPLICATIONS.proposal_id = PROPOSALS.id
+         and PROPOSALS.supervisor = TEACHER.id
+         and APPLICATIONS.student_id = STUDENT.id
+         and PROPOSALS.supervisor = ?`,
+      teacher_id,
+      (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      },
+    );
+  });
+};
+
+exports.getApplicationsOfStudent = (student_id) => {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `select APPLICATIONS.proposal_id, 
+                  APPLICATIONS.student_id, 
+                  APPLICATIONS.state, 
+                  STUDENT.name as student_name, 
+                  STUDENT.surname as student_surname, 
+                  TEACHER.name as teacher_name, 
+                  TEACHER.surname as teacher_surname
+       from APPLICATIONS,
+            PROPOSALS,
+            STUDENT,
+            TEACHER
+       where APPLICATIONS.proposal_id = PROPOSALS.id
+         and PROPOSALS.supervisor = TEACHER.id
+         and APPLICATIONS.student_id = STUDENT.id
+         and APPLICATIONS.student_id = ?`,
+      student_id,
+      (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      },
+    );
+  });
+};

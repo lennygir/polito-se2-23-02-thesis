@@ -295,6 +295,65 @@ describe("Proposal Retrieval Tests", () => {
 });
 
 
+describe("Get Application From Teacher", () => {
+  test("Return 404 for a teacher that doesn't exist", () => {
+    const teacher = 0;
+    return request(app)
+      .get(`/api/applications?teacher=${teacher}`)
+      .set("Content-Type", "application/json")
+      .expect(404)
+  });
+
+  test("Return 404 for emply list of application of that teacher", () => {
+    const teacher = "s789012";
+    return request(app)
+      .get(`/api/applications?teacher=${teacher}`)
+      .set("Content-Type", "application/json")
+      .expect(404)
+  });
+
+  test("Return 200 correct get of all application of a selected teacher", () => {
+    const teacher = "s123456";
+    return request(app)
+      .get(`/api/applications?teacher=${teacher}`)
+      .set("Content-Type", "application/json")
+      .expect(200)
+  });
+
+  test("Return 200 correct get of all application of a selected teacher", () => {
+    const teacher = "s123456";
+    return request(app)
+      .get(`/api/applications?teacher=${teacher}`)
+      .set("Content-Type", "application/json")
+      .expect(200)
+  });
+
+  test("Return 404 for emply list of application of that student", () => {
+    const student = "s319823";
+    return request(app)
+      .get(`/api/applications?student=${student}`)
+      .set("Content-Type", "application/json")
+      .expect(404)
+  });
+
+  test("Return 404 for no student found", () => {
+    const student = "s999999";
+    return request(app)
+      .get(`/api/applications?student=${student}`)
+      .set("Content-Type", "application/json")
+      .expect(404)
+  });
+
+  test("Return 200 correct get of all application of a selected student", () => {
+    const student = "s317743";
+    return request(app)
+      .get(`/api/applications?student=${student}`)
+      .set("Content-Type", "application/json")
+      .expect(200)
+  });
+
+
+});
 describe("Get All Teachers Test", () => {
   test("Correct get of all teachers from db", () => {
     getTeachers.mockResolvedValue([
@@ -364,7 +423,7 @@ describe("Get All Groups Test", () => {
 
 describe("Get All Degrees Test", () => {
   test("Correct get of all degrees from db", () => {
-
+    
     getDegrees.mockResolvedValue([
       { cod_degree: "LM-32 (DM270)", title_degree: "Computer Engineering" },
       { cod_degree: "LM-23 (DM270)", title_degree: "Civil Engineering" },
