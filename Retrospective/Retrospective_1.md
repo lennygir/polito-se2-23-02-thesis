@@ -1,0 +1,95 @@
+# RETROSPECTIVE 1 (Team #2)
+
+The retrospective should include _at least_ the following
+sections:
+
+- [process measures](#process-measures)
+- [quality measures](#quality-measures)
+- [general assessment](#assessment)
+
+## PROCESS MEASURES
+
+### Macro statistics
+
+- Number of stories committed vs. done: 5 committed, 5 done (#1, #2, #3, #4, #17 by mistake, #5 not done)
+- Total points committed vs. done: 13 / 15
+- Nr of hours planned vs. spent (as a team): 96h / 91h 2m
+
+**Remember** a story is done ONLY if it fits the Definition of Done:
+
+- Unit Tests passing
+- Code review completed
+- Code present on VCS
+- End-to-End tests performed
+
+> Please refine your DoD if required (you cannot remove items!)
+
+### Detailed statistics
+
+| Story | # Tasks | Points | Hours Est. | Hours Actual |
+| ----- | ------- | ------ | ---------- | ------------ |
+| #0    | 13      | -      | 39h 15m    | 40h 37m      |
+| #1    | 7       | 5      | 16h 30m    | 20h 45m      |
+| #2    | 5       | 3      | 8h         | 9h 40m       |
+| #3    | 3       | 3      | 5h         | 3h 25m       |
+| #4    | 3       | 2      | 6h 40m     | 8h 30m       |
+| #5    | 3       | 2      | 6h         | 7h 35m       |
+
+- Hours per task average, standard deviation (estimate and actual):
+
+  - Hours estimate per task average: 2.27, standard deviation: 1.29
+  - Hours actual per task average: 2.61, standard deviation: 1.90
+
+- Total task estimation error ratio: sum of total hours estimation / sum of total hours spent - 1: **-0.13**
+
+## QUALITY MEASURES
+
+### Unit Testing
+
+- Total hours estimated: 14h 40m
+- Total hours spent: 14h 40m
+- Nr of automated unit test cases: 44
+
+### Server coverage
+
+| File            | % Stmts   | % Branch   | % Funcs   | % Lines   | Uncovered Line #s                 |
+| --------------- | --------- | ---------- | --------- | --------- | --------------------------------- |
+| All files       | 67.4      | 58.87      | 65.21     | 67.65     |
+| db.js           | 75        | 50         | 100       | 100       | 6                                 |
+| routes.js       | 79.46     | 83.33      | 70        | 79.46     | ...,141,160,233,242,273,320,329   |
+| server.js       | 100       | 100        | 100       | 100       |
+| theses-dao.js   | 65.21     | 44         | 75        | 65.21     | ...,203-210,230,275,305,315-324   |
+| user-dao.js     | 14.28     | 0          | 0         | 14.28     | 9-19,26-35,42-51                  |
+| --------------- | --------- | ---------- | --------- | --------- | --------------------------------- |
+
+### Client coverage
+
+| File   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s |
+| ------ | ------- | -------- | ------- | ------- | ----------------- |
+| ...les | 85.29   | 100      | 73.68   | 85.29   |
+| ...js  | 85.29   | 100      | 73.68   | 85.29   | 16,22-25,66,94    |
+
+### E2E testing
+
+- Total hours estimated: 3h
+- Total hours spent: 3h 30m
+
+### Code review
+
+- Total hours estimated: 6h 5m
+- Total hours spent: 6h 5m
+
+## ASSESSMENT
+
+- What caused your errors in estimation (if any)?
+
+- What lessons did you learn (both positive and negative) in this sprint?
+
+- Which improvement goals set in the previous retrospective were you able to achieve?
+- Which ones you were not able to achieve? Why?
+
+- Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
+
+  > Propose one or two
+
+- One thing you are proud of as a Team!!
