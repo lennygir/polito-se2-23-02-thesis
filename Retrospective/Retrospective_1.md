@@ -88,13 +88,15 @@ sections:
   - in the start phase of the project we haven't a clrea view of the application, so that have cause many problems
 - What lessons did you learn (both positive and negative) in this sprint?
   - bug fixing is painful in terms of respecting the time estimations. Often you estimate a certain time for a task, then you spend countless hours in fixing bugs in the code and you go out of time, falling to an underestimation.
+  - In this sprint I learnt a great deal about designing more complicated web applications.
   - How to use containers
 - Which improvement goals set in the previous retrospective were you able to achieve?
   - I was able to be more informed about what my teammates did. The definition of the data structure and of the endpoint went better than in the previous project. I also had been able to keep more synchronized with my teammates' work.
   - We were more consistent with notations to adopt and we balanced task distribution among the team so overall better organization
   - YouTrack updates and SCRUM meetings were more frequent
   - add more time for learning parts, youtrack regurarly updated, data structure defined by multiple people and validated
-  - Visible improvment in writing code 
+  - Visible improvment in writing code
+  - We were able to define stories better than last sprint. Everything was crystal clear thanks to good detailing.
 - Which ones you were not able to achieve? Why?
 
   - The synchronization with the teammates is not high enough though. Despite being better than the last sprint, it still has to be improved.
