@@ -82,32 +82,32 @@ sections:
 ## ASSESSMENT
 
 - What caused your errors in estimation (if any)?
-  - (backend) often a story required more endpoints than expected
-  - the database had many errors in the beginning so we wasted a lot of time trying to fix it
-  - missunderstandings : when i took the ticket "proposals filter interface" i understood wrongly how it should be implemented so i had to modify it again after my push
-  - in the start phase of the project we haven't a clrea view of the application, so that have cause many problems
+  - (backend) often a story required **more endpoints than expected**
+  - the **database** had many **errors** in the beginning, so we wasted a lot of time trying to fix it
+  - misunderstandings : when I took the ticket "proposals filter interface" I understood wrongly how it should be implemented, so I had to **modify it again after my push**
+  - in the start phase of the project **we haven't had a clear view of the application**, so that has caused many problems
 - What lessons did you learn (both positive and negative) in this sprint?
-  - bug fixing is painful in terms of respecting the time estimations. Often you estimate a certain time for a task, then you spend countless hours in fixing bugs in the code and you go out of time, falling to an underestimation.
-  - In this sprint I learnt a great deal about designing more complicated web applications.
-  - How to use containers
+  - **bug fixing is painful in terms of respecting the time estimations**. Often you estimate a certain time for a task, then you spend countless hours in fixing bugs in the code, and you go out of time, falling to an underestimation.
+  - In this sprint I **learnt** a great deal about **designing** more complicated **web applications**.
+  - How to use **containers**
 - Which improvement goals set in the previous retrospective were you able to achieve?
-  - I was able to be more informed about what my teammates did. The definition of the data structure and of the endpoint went better than in the previous project. I also had been able to keep more synchronized with my teammates' work.
-  - We were more consistent with notations to adopt and we balanced task distribution among the team so overall better organization
-  - YouTrack updates and SCRUM meetings were more frequent
-  - add more time for learning parts, youtrack regurarly updated, data structure defined by multiple people and validated
-  - Visible improvment in writing code
-  - We were able to define stories better than last sprint. Everything was crystal clear thanks to good detailing.
+  - I was able to be **more informed about what my teammates did**. The definition of the data structure and of the endpoint went better than in the previous project. I also had been able to keep more synchronized with my teammates' work.
+  - We were **more consistent with notations** to adopt, and we balanced task distribution among the team so overall better organization
+  - **YouTrack's updates and SCRUM meetings were more frequent**
+  - add more time for learning parts, youtrack regularly updated, data structure defined by multiple people and validated
+  - Visible **improvement in writing code**
+  - We were able to **define tasks better** than last sprint. Everything was crystal clear thanks to good detailing.
 - Which ones you were not able to achieve? Why?
 
-  - The synchronization with the teammates is not high enough though. Despite being better than the last sprint, it still has to be improved.
-  - We didn't really find the time to do synchronous code reviews. Instead we were able to do only asynchronous ones.
-  - better definition of tasks, the stories were split in a better way so we knew what was the main subject but the implementation was not obvious for everyone so i did a mistake in one of my tickets
+  - The **synchronization** with the teammates is not high enough though. Despite being better than the last sprint, it still has to be **improved**.
+  - We didn't really find the time to do synchronous **code reviews**. Instead, we were able to do **only asynchronous** ones.
+  - better definition of tasks, the stories were split in a better way, so we knew what was the main subject but the implementation was not obvious to everyone, so I made a mistake in one of my tickets
 
 - Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
 
-  - we need more team coordination, we need to make sure that everyone's work is independent of the others and at the same time that everyone's work is well integrated with the others'.
-  - I want to see other's code more easily. The process of seeing other's code integrated in the main code is too long, and so I do not see the big picture.
-  - Add more detailed documentations (both frontend and backend)
+  - we need **more team coordination**, we need to make sure that everyone's work is independent of the others and at the same time that everyone's work is well integrated with the others'.
+  - I want to **see other's code more easily**. The process of seeing other's code integrated in the main code is too long, and so I do not see the big picture.
+  - Add **more detailed documentations** (both frontend and backend)
   - Improve the database with more data
   - Improve the definition of tasks and at the start of the sprint we must see the long term objective and not the short term
 
