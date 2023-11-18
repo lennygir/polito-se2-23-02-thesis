@@ -6,6 +6,13 @@ const { db } = require("./db");
 
 // todo: FAKE AUTHENTICATION. MUST BE SUBSTITUTED BY SAML2.0
 exports.checkUser = (email, password) => {
+  const user = db.prepare("select * from users where email = ?").get(email);
+  if (user === undefined) {
+    return false;
+  } else {
+    return user.password === password;
+  }
+  /*
   return new Promise((resolve, reject) => {
     const sql = "SELECT * FROM users WHERE email = ?";
     db.get(sql, [email], (err, row) => {
@@ -20,25 +27,29 @@ exports.checkUser = (email, password) => {
       }
     });
   });
+  */
 };
 
 exports.getTeacher = (id) => {
-  return new Promise((resolve, reject) => {
-    const sql = "SELECT * FROM teacher WHERE email = ?";
-    db.get(sql, [id], (err, row) => {
-      if (err) {
-        reject(err);
-      } else if (row === undefined) {
-        // the id is not a teacherID
-        resolve(false);
-      } else {
-        resolve(row);
-      }
-    });
-  });
+  return db.prepare("select * from TEACHER where email = ?").get(id);
+  //  return new Promise((resolve, reject) => {
+  //    const sql = "SELECT * FROM teacher WHERE email = ?";
+  //    db.get(sql, [id], (err, row) => {
+  //      if (err) {
+  //        reject(err);
+  //      } else if (row === undefined) {
+  //        // the id is not a teacherID
+  //        resolve(false);
+  //      } else {
+  //        resolve(row);
+  //      }
+  //    });
+  //  });
 };
 
 exports.getStudent = (id) => {
+  return db.prepare("select * from STUDENT where email = ?").get(id);
+  /*
   return new Promise((resolve, reject) => {
     const sql = "SELECT * FROM student WHERE email = ?";
     db.get(sql, [id], (err, row) => {
@@ -52,4 +63,5 @@ exports.getStudent = (id) => {
       }
     });
   });
+   */
 };

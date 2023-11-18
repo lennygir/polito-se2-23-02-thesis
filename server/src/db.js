@@ -1,7 +1,6 @@
 "use strict";
 
-const sqlite = require("sqlite3");
+const Database = require("better-sqlite3");
+const db = new Database("theses_management.db", { fileMustExist: true });
 
-exports.db = new sqlite.Database("theses_management.db", (err) => {
-  if (err) throw err;
-});
+exports.db = db;
