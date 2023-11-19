@@ -25,7 +25,7 @@ describe("Application Insertion Tests", () => {
     student: "s309618",
     proposal: 8,
   };
-  test("Insertion of a correct application", async () => {
+  it("Insertion of a correct application", async () => {
     await deleteApplication(application.student, application.proposal);
     return request(app)
       .post("/api/applications")
@@ -40,7 +40,7 @@ describe("Application Insertion Tests", () => {
         });
       });
   });
-  test("Insertion of an application already existent", async () => {
+  it("Insertion of an application already existent", async () => {
     await deleteApplication(application.student, application.proposal);
     await request(app)
       .post("/api/applications")
@@ -57,7 +57,7 @@ describe("Application Insertion Tests", () => {
         });
       });
   });
-  test("Insertion of an application from a wrong student", () => {
+  it("Insertion of an application from a wrong student", () => {
     application.student = "s000000";
     return request(app)
       .post("/api/applications")
@@ -70,7 +70,7 @@ describe("Application Insertion Tests", () => {
         });
       });
   });
-  test("Insertion of an application with a wrong proposal", () => {
+  it("Insertion of an application with a wrong proposal", () => {
     application.proposal = -5;
     return request(app)
       .post("/api/applications")
@@ -85,7 +85,7 @@ describe("Application Insertion Tests", () => {
   });
 });
 describe("Proposal Insertion Tests", () => {
-  test("Insertion of a correct proposal", () => {
+  it("Insertion of a correct proposal", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
       supervisor: "s345678",
@@ -106,7 +106,7 @@ describe("Proposal Insertion Tests", () => {
       .send(proposal)
       .expect(200);
   });
-  test("Insertion of a proposal with no notes", () => {
+  it("Insertion of a proposal with no notes", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
       supervisor: "s345678",
@@ -126,7 +126,7 @@ describe("Proposal Insertion Tests", () => {
       .send(proposal)
       .expect(200);
   });
-  test("Insertion of a proposal with a non existent supervisor", () => {
+  it("Insertion of a proposal with a non existent supervisor", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
       supervisor: "s000000",
@@ -149,7 +149,7 @@ describe("Proposal Insertion Tests", () => {
         expect(response.body.message).toBe("Invalid proposal content");
       });
   });
-  test("Insertion with an invalid date", () => {
+  it("Insertion with an invalid date", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
       supervisor: "s345678",
@@ -172,7 +172,7 @@ describe("Proposal Insertion Tests", () => {
         expect(response.body.message).toBe("Invalid proposal content");
       });
   });
-  test("Insertion of a proposal with wrong level format", () => {
+  it("Insertion of a proposal with wrong level format", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
       supervisor: "s345678",
@@ -195,7 +195,7 @@ describe("Proposal Insertion Tests", () => {
         expect(response.body.message).toBe("Invalid proposal content");
       });
   });
-  test("Insertion of a proposal with an invalid group", () => {
+  it("Insertion of a proposal with an invalid group", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
       supervisor: "s345678",
@@ -218,7 +218,7 @@ describe("Proposal Insertion Tests", () => {
         expect(response.body.message).toBe("Invalid proposal content");
       });
   });
-  test("Insertion of a proposal with a single keyword (no array)", () => {
+  it("Insertion of a proposal with a single keyword (no array)", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
       supervisor: "s345678",
@@ -262,8 +262,7 @@ describe("Proposal Retrieval Tests", () => {
     return request(app)
       .get(`/api/proposals?supervisor=${supervisor}`)
       .set("Content-Type", "application/json")
-      .expect(200)
-
+      .expect(200);
   });
 
   test("Return 404 for a non-existing supervisor", () => {
@@ -271,8 +270,7 @@ describe("Proposal Retrieval Tests", () => {
     return request(app)
       .get(`/api/proposals?supervisor=${supervisor}`)
       .set("Content-Type", "application/json")
-      .expect(404)
-
+      .expect(404);
   });
 
   test("Return 400 for a invalid format of supervisor", () => {
@@ -280,20 +278,17 @@ describe("Proposal Retrieval Tests", () => {
     return request(app)
       .get(`/api/proposals?supervisor=${supervisor}`)
       .set("Content-Type", "application/json")
-      .expect(404)
-
+      .expect(404);
   });
-
 
   test("Get all the proposals from a field of study that doesn't exists", () => {
     const cds = "aaaaaaaaaaaaaaaaaaaaaaaaa";
     return request(app)
       .get(`/api/proposals?cds=${cds}`)
       .set("Content-Type", "application/json")
-      .expect(404)
+      .expect(404);
   });
 });
-
 
 describe("Get Application From Teacher", () => {
   test("Return 404 for a teacher that doesn't exist", () => {
@@ -301,7 +296,7 @@ describe("Get Application From Teacher", () => {
     return request(app)
       .get(`/api/applications?teacher=${teacher}`)
       .set("Content-Type", "application/json")
-      .expect(404)
+      .expect(404);
   });
 
   test("Return 404 for emply list of application of that teacher", () => {
@@ -309,7 +304,7 @@ describe("Get Application From Teacher", () => {
     return request(app)
       .get(`/api/applications?teacher=${teacher}`)
       .set("Content-Type", "application/json")
-      .expect(404)
+      .expect(404);
   });
 
   test("Return 200 correct get of all application of a selected teacher", () => {
@@ -317,7 +312,7 @@ describe("Get Application From Teacher", () => {
     return request(app)
       .get(`/api/applications?teacher=${teacher}`)
       .set("Content-Type", "application/json")
-      .expect(200)
+      .expect(200);
   });
 
   test("Return 200 correct get of all application of a selected teacher", () => {
@@ -325,7 +320,7 @@ describe("Get Application From Teacher", () => {
     return request(app)
       .get(`/api/applications?teacher=${teacher}`)
       .set("Content-Type", "application/json")
-      .expect(200)
+      .expect(200);
   });
 
   test("Return 404 for emply list of application of that student", () => {
@@ -333,7 +328,7 @@ describe("Get Application From Teacher", () => {
     return request(app)
       .get(`/api/applications?student=${student}`)
       .set("Content-Type", "application/json")
-      .expect(404)
+      .expect(404);
   });
 
   test("Return 404 for no student found", () => {
@@ -341,7 +336,7 @@ describe("Get Application From Teacher", () => {
     return request(app)
       .get(`/api/applications?student=${student}`)
       .set("Content-Type", "application/json")
-      .expect(404)
+      .expect(404);
   });
 
   test("Return 200 correct get of all application of a selected student", () => {
@@ -349,16 +344,24 @@ describe("Get Application From Teacher", () => {
     return request(app)
       .get(`/api/applications?student=${student}`)
       .set("Content-Type", "application/json")
-      .expect(200)
+      .expect(200);
   });
-
-
 });
 describe("Get All Teachers Test", () => {
   test("Correct get of all teachers from db", () => {
-    getTeachers.mockResolvedValue([
-      { id: "s123456", surname: "Torchiano", name: "Marco", email: "marco.torchiano@polito.it" },
-      { id: "s234567", surname: "Morisio", name: "Maurizio", email: "maurizio.morisio@polito.it" },
+    getTeachers.mockReturnValue([
+      {
+        id: "s123456",
+        surname: "Torchiano",
+        name: "Marco",
+        email: "marco.torchiano@polito.it",
+      },
+      {
+        id: "s234567",
+        surname: "Morisio",
+        name: "Maurizio",
+        email: "maurizio.morisio@polito.it",
+      },
     ]);
     return request(app)
       .get("/api/teachers")
@@ -366,13 +369,14 @@ describe("Get All Teachers Test", () => {
       .expect(200)
       .then((response) => {
         // Assuming the response body is an array
+        console.log(response.body);
         expect(Array.isArray(response.body)).toBe(true);
         // todo: Add more specific checks on the response body if needed
       });
   });
 
   test("Get 404 for an empty group table db", () => {
-    getTeachers.mockResolvedValue([]);
+    getTeachers.mockReturnValue([]);
     return request(app)
       .get("/api/teachers")
       .expect("Content-Type", /json/)
@@ -392,7 +396,7 @@ describe("Get All Teachers Test", () => {
 
 describe("Get All Groups Test", () => {
   test("Correct get of all groups from db", () => {
-    getGroups.mockResolvedValue([
+    getGroups.mockReturnValue([
       { cod_group: "SOFTENG" },
       { cod_group: "ELITE" },
     ]);
@@ -403,7 +407,7 @@ describe("Get All Groups Test", () => {
   });
 
   test("Get 404 for an empty group table db", () => {
-    getGroups.mockResolvedValue([]);
+    getGroups.mockReturnValue([]);
     return request(app)
       .get("/api/groups")
       .expect("Content-Type", /json/)
@@ -423,8 +427,7 @@ describe("Get All Groups Test", () => {
 
 describe("Get All Degrees Test", () => {
   test("Correct get of all degrees from db", () => {
-    
-    getDegrees.mockResolvedValue([
+    getDegrees.mockReturnValue([
       { cod_degree: "LM-32 (DM270)", title_degree: "Computer Engineering" },
       { cod_degree: "LM-23 (DM270)", title_degree: "Civil Engineering" },
     ]);
@@ -435,7 +438,7 @@ describe("Get All Degrees Test", () => {
   });
 
   test("Get 404 for an empty degree table db", () => {
-    getDegrees.mockResolvedValue([]);
+    getDegrees.mockReturnValue([]);
     return request(app)
       .get("/api/degrees")
       .expect("Content-Type", /json/)
