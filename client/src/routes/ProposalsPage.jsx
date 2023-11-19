@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
@@ -15,22 +15,67 @@ import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
 import ProposalFilters from "../components/ProposalFilters";
 
+const TYPES = ["RESEARCH", "COMPANY", "EXPERIMENTAL", "ABROAD"];
+const LEVELS = ["BCS", "MSC"];
+
 function ProposalsPage(props) {
   const proposals = props.proposals;
   const user = useContext(UserContext);
   const [searchValue, setSearchValue] = useState("");
+  const [filteredProposals, setFilteredProposals] = useState([]);
+
+  useEffect(() => {
+    setFilteredProposals(proposals);
+  }, [proposals]);
+
+  useEffect(() => {
+    filterProposals();
+  }, [searchValue]);
 
   const handleSearch = (e) => {
     setSearchValue(e.target.value);
   };
 
-  const filterProposals = () => {
-    return proposals.filter((p) => {
+  const filterProposals = (filterValues = {}) => {
+    let filteredProposals = proposals.filter((p) => {
       return (
-        p.title.toLowerCase().includes(searchValue.toLowerCase()) ||
-        p.supervisor.toLowerCase().includes(searchValue.toLowerCase())
+        (p.title &&
+          p.title.toLowerCase().includes(searchValue.toLowerCase())) ||
+        (p.supervisor &&
+          p.supervisor.toLowerCase().includes(searchValue.toLowerCase())) ||
+        (p.required_knowledge &&
+          p.required_knowledge
+            .toLowerCase()
+            .includes(searchValue.toLowerCase())) ||
+        (p.keywords &&
+          p.keywords.toLowerCase().includes(searchValue.toLowerCase()))
       );
     });
+
+    for (let filter in filterValues) {
+      filteredProposals = filteredProposals.filter((p) => {
+        if (filterValues[filter].length === 0) {
+          return true; // If no filter is selected, return all proposals
+        }
+        for (let opt of filterValues[filter]) {
+          if (p[filter].includes(opt)) {
+            return true;
+          }
+        }
+        return false;
+      });
+    }
+
+    setFilteredProposals(filteredProposals);
+  };
+
+  const getUniqueValues = (array) => [...new Set(array)];
+
+  const filterValues = {
+    type: TYPES,
+    groups: props.groups.map((d) => d.cod_group),
+    level: LEVELS,
+    cds: props.degrees.map((d) => d.cod_degree),
   };
 
   const studentView = (
@@ -63,14 +108,17 @@ function ProposalsPage(props) {
             </InputAdornment>
           }
         />
-        <ProposalFilters />
+        <ProposalFilters filters={filterValues} onChange={filterProposals} />
       </Toolbar>
-      <ProposalTable data={filterProposals()} />
+      <ProposalTable
+        data={filteredProposals}
+        getTeacherById={props.getTeacherById}
+      />
       <Box height={5} marginTop={3} />
     </>
   );
 
-  const professorView = (
+  const teacherView = (
     <>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography
@@ -114,7 +162,7 @@ function ProposalsPage(props) {
 
   return (
     <div id="proposals-page">
-      {user?.role === "student" ? studentView : professorView}
+      {user?.role === "student" ? studentView : teacherView}
     </div>
   );
 }

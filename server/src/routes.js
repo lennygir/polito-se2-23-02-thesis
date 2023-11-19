@@ -5,6 +5,7 @@ const userDao = require("./user-dao");
 const { check, validationResult } = require("express-validator");
 const {
   getTeacher,
+  getStudent,
   getTeachers,
   getStudent,
   getGroup,
@@ -12,11 +13,21 @@ const {
   getDegrees,
   getProposal,
   insertProposal,
+  getProposalsBySupervisor,
   getProposalsByDegree,
+<<<<<<< HEAD
   updateApplication,
   deleteApplications,
   updateApplications,
   getApplication,
+=======
+  getProposal,
+  insertApplication,
+  getApplication,
+  getApplicationsOfTeacher,
+  getApplicationsOfStudent,
+  getProposals,
+>>>>>>> main
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -61,13 +72,13 @@ router.post(
   "/api/sessions",
   check("email").isEmail(),
   check("password").isLength({ min: 7, max: 7 }),
-  async (req, res) => {
+  (req, res) => {
     try {
       const { email, password } = req.body;
-      const valid = await userDao.checkUser(email, password);
+      const valid = userDao.checkUser(email, password);
       if (valid) {
-        const teacher = await userDao.getTeacher(email);
-        const student = await userDao.getStudent(email);
+        const teacher = userDao.getTeacher(email);
+        const student = userDao.getStudent(email);
         if (teacher) {
           teacher.role = "teacher";
           return res.status(200).send(teacher);
@@ -104,7 +115,7 @@ router.post(
   check("expiration_date").isISO8601().toDate(),
   check("level").isString().isLength({ min: 3, max: 3 }),
   check("cds").isString(),
-  async (req, res) => {
+  (req, res) => {
     const result = validationResult(req);
     if (!result.isEmpty()) {
       return res.status(400).send({ message: "Invalid proposal content" });
@@ -124,12 +135,12 @@ router.post(
         level,
         cds,
       } = req.body;
-      const teacher = await getTeacher(supervisor);
-      if (teacher === false) {
+      const teacher = getTeacher(supervisor);
+      if (teacher === undefined) {
         return res.status(400).send({ message: "Invalid proposal content" });
       } else {
         for (const group of groups) {
-          if ((await getGroup(group)) === false) {
+          if (getGroup(group) === undefined) {
             return res
               .status(400)
               .send({ message: "Invalid proposal content" });
@@ -138,7 +149,7 @@ router.post(
         if (level !== "MSC" && level !== "BSC") {
           return res.status(400).send({ message: "Invalid proposal content" });
         }
-        const teacher = await insertProposal(
+        const teacher = insertProposal(
           title,
           supervisor,
           co_supervisors.join(", "),
@@ -160,10 +171,10 @@ router.post(
   },
 );
 
-// endpoint to get all teachers {id, surname, name}
-router.get("/api/teachers", async (req, res) => {
+// endpoint to get all teachers {id, surname, name, email}
+router.get("/api/teachers", (req, res) => {
   try {
-    const teachers = await getTeachers();
+    const teachers = getTeachers();
 
     if (teachers.length === 0) {
       return res
@@ -178,10 +189,10 @@ router.get("/api/teachers", async (req, res) => {
 });
 
 // endpoint to get all groups {cod_group}
-router.get("/api/groups", async (req, res) => {
+router.get("/api/groups", (req, res) => {
   try {
     //get the groups from db
-    const groups = await getGroups();
+    const groups = getGroups();
 
     if (groups.length === 0) {
       return res
@@ -196,14 +207,14 @@ router.get("/api/groups", async (req, res) => {
 });
 
 // endpoint to get all degrees {cod_degree, title_degree}
-router.get("/api/degrees", async (req, res) => {
+router.get("/api/degrees", (req, res) => {
   try {
-    const degrees = await getDegrees();
+    const degrees = getDegrees();
 
     if (degrees.length === 0) {
       return res
         .status(404)
-        .send({ message: "No group found in the database" });
+        .send({ message: "No degree found in the database" });
     }
 
     return res.status(200).json(degrees);
@@ -212,15 +223,109 @@ router.get("/api/degrees", async (req, res) => {
   }
 });
 
-router.get("/api/proposals", check("cds").isString(), async (req, res) => {
-  try {
-    const cds = req.query.cds;
-    const proposals = await getProposalsByDegree(cds);
-    return res.status(200).json(proposals);
-  } catch (err) {
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+router.get(
+  "/api/proposals",
+  check("cds").isString(),
+  check("supervisor").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  (req, res) => {
+    try {
+      const cds = req.query.cds;
+      const supervisor = req.query.supervisor;
+      let proposals;
+      if (cds !== undefined && supervisor === undefined) {
+        proposals = getProposalsByDegree(cds);
+      }
+      if (supervisor !== undefined && cds === undefined) {
+        proposals = getProposalsBySupervisor(supervisor);
+      }
+      if (cds === undefined && supervisor === undefined) {
+        proposals = getProposals();
+      }
+      if (proposals.length === 0) {
+        return res
+          .status(404)
+          .send({ message: "No proposal found in the database" });
+      }
+      return res.status(200).json(proposals);
+    } catch (err) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+
+router.post(
+  "/api/applications",
+  check("student").isString().isLength({ min: 7, max: 7 }),
+  check("proposal").isInt({ gt: 0 }),
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).json({ message: "Invalid application content" });
+    }
+    try {
+      const { proposal, student } = req.body;
+      const db_student = getStudent(student);
+      const db_proposal = getProposal(proposal);
+      if (db_student === undefined || db_proposal === undefined) {
+        return res.status(400).json({ message: "Invalid application content" });
+      } else if (getApplication(student, proposal)) {
+        return res.status(400).json({ message: "Application already present" });
+      } else {
+        const application = insertApplication(proposal, student, "pending");
+        return res.status(200).json(application);
+      }
+    } catch (e) {
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
+
+router.get(
+  "/api/applications",
+  check("teacher").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  check("student").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  (req, res) => {
+    try {
+      if (req.query.teacher !== undefined && req.query.student === undefined) {
+        const teacher = getTeacher(req.query.teacher);
+        if (teacher === undefined) {
+          return res.status(404).json({
+            message: `Teacher ${req.query.teacher} not found, cannot get the applications`,
+          });
+        } else {
+          const applications = getApplicationsOfTeacher(teacher.id);
+          if (applications.length === 0) {
+            return res.status(404).json({
+              message: `No application found for teacher ${req.query.teacher}`,
+            });
+          } else {
+            return res.status(200).json(applications);
+          }
+        }
+      }
+      if (req.query.student !== undefined && req.query.teacher === undefined) {
+        const student = getStudent(req.query.student);
+
+        if (student === undefined) {
+          return res.status(404).json({
+            message: `Student ${req.query.student} not found, cannot get the applications`,
+          });
+        } else {
+          const applications = getApplicationsOfStudent(student.id);
+          if (applications.length === 0) {
+            return res.status(404).json({
+              message: `No application found for student ${req.query.student}`,
+            });
+          } else {
+            return res.status(200).json(applications);
+          }
+        }
+      }
+    } catch (e) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
 
 router.patch("/api/applications/:id",
   check("state").isIn(["accepted","rejected"]), 

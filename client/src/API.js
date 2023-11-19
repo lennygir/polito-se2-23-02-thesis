@@ -62,6 +62,10 @@ const createProposal = async (proposal) => {
   );
 };
 
+const getProposals = async () => {
+  return getJson(fetch(SERVER_URL + "/proposals"));
+};
+
 const getProposalsByDegree = async (degree) => {
   return getJson(fetch(SERVER_URL + "/proposals?cds=" + degree));
 };
@@ -73,18 +77,47 @@ const evaluateApplication = async (application) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(application), 
+      body: JSON.stringify(application),
       //{id:"id_incrementale",proposal_id:"proposal_id", student_id:"student_id", state"accepted/rejected"}
     })
   );
-}
+};
+
+const getProposalsByTeacher = async (teacher_id) => {
+  return getJson(fetch(SERVER_URL + "/proposals?supervisor=" + teacher_id));
+};
+
+const insertApplication = async (application) => {
+  return getJson(
+    fetch(SERVER_URL + "/applications", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(application), //request body: {proposal: "proposal_id",student:"student_id"}
+    })
+  );
+};
+
+const getApplicationsByTeacher = async (teacher_id) => {
+  return getJson(fetch(SERVER_URL + "/applications?teacher=" + teacher_id));
+};
+
+const getApplicationsByStudent = async (student_id) => {
+  return getJson(fetch(SERVER_URL + "/applications?student=" + student_id));
+};
 
 const API = {
   createProposal,
   getDegrees,
   getGroups,
   getTeachers,
+  getProposals,
   getProposalsByDegree,
+  getProposalsByTeacher,
+  insertApplication,
+  getApplicationsByTeacher,
+  getApplicationsByStudent,
   logIn,
   evaluateApplication,
 };
