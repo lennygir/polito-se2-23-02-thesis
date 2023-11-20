@@ -7,27 +7,22 @@ const {
   getTeacher,
   getStudent,
   getTeachers,
-  getStudent,
   getGroup,
   getGroups,
   getDegrees,
-  getProposal,
   insertProposal,
   getProposalsBySupervisor,
   getProposalsByDegree,
-<<<<<<< HEAD
   updateApplication,
-  deleteApplications,
-  updateApplications,
-  getApplication,
-=======
   getProposal,
   insertApplication,
   getApplication,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   getProposals,
->>>>>>> main
+  getApplicationById,
+  rejectPendingApplications,
+  deletePendingApplications,
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -327,41 +322,49 @@ router.get(
   },
 );
 
-router.patch("/api/applications/:id",
-  check("state").isIn(["accepted","rejected"]), 
-  async(req,res) =>{
+router.patch(
+  "/api/applications/:id",
+  check("state").isIn(["accepted", "rejected"]),
+  check("id").isInt({ min: 1 }),
+  (req, res) => {
     const result = validationResult(req);
     if (!result.isEmpty()) {
       return res.status(400).send({ message: "Invalid proposal content" });
     }
-    if (req.body.id !== Number(req.params.id)) {
-      return res.status(422).json({ error: 'URL and body id mismatch' });
-    }
-    try{
-      const studentId = req.body.studentId;
-      const proposalId = req.body.proposalId;
+    try {
       const state = req.body.state;
-      const db_student = await getStudent(studentId);
-      const db_proposal = await getProposal(proposalId);
-      if (db_student === false || db_proposal === false) {
-        return res.status(400).json({ message: "Invalid application content" });
-      } else if (await getApplication(studentId, proposalId)) {
-        return res.status(400).json({ message: "Application already present" });
+      const application = getApplicationById(req.params.id);
+      if (application === undefined) {
+        return res.status(400).json({ message: "Application not existent" });
       } else {
-        await updateApplication(studentId,proposalId,state);
-        if(state === 'accepted'){
-          await updateApplications(studentId,proposalId);
-          await deleteApplications(studentId,proposalId);
+        if (application.state !== "pending") {
+          return res
+            .status(400)
+            .json({
+              message:
+                "You cannot modify an application already accepted or rejected",
+            });
+        }
+        updateApplication(application.id, state);
+        if (state === "accepted") {
+          rejectPendingApplications(
+            application.proposal_id,
+            application.student_id,
+          );
+          deletePendingApplications(
+            application.student_id,
+            application.proposal_id,
+          );
           res.status(200).json({ message: "Application accepted" });
         } else {
           res.status(200).json({ message: "Application rejected" });
         }
-        
       }
     } catch (err) {
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
 
 // ==================================================
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS

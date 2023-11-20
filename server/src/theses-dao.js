@@ -84,6 +84,10 @@ exports.insertProposal = (
   //  });
 };
 
+exports.getApplicationById = (id) => {
+  return db.prepare("select * from APPLICATIONS where id = ?").get(id);
+};
+
 exports.getApplication = (student_id, proposal_id) => {
   return db
     .prepare(
@@ -185,23 +189,6 @@ exports.getStudent = (id) => {
 };
 
 exports.getGroup = (cod_group) => {
-<<<<<<< HEAD
-  return new Promise((resolve, reject) => {
-    db.get( 
-      "select * from GROUPS where cod_group = ?",
-      cod_group,
-      (err, row) => {
-        if (err) {
-          reject(err);
-        } else if (row === undefined) {
-          resolve(false);
-        } else {
-          resolve(row);
-        }
-      },
-    );
-  });
-=======
   return db.prepare("select * from GROUPS where cod_group = ?").get(cod_group);
   //  return new Promise((resolve, reject) => {
   //    db.get(
@@ -237,7 +224,6 @@ exports.deleteApplication = (student_id, proposal_id) => {
   //    },
   //  );
   //});
->>>>>>> main
 };
 
 exports.getGroups = () => {
@@ -305,101 +291,56 @@ exports.getProposalsByDegree = (cds) => {
   //});
 };
 
-<<<<<<< HEAD
-  });
+exports.rejectPendingApplications = (of_proposal, except_for_student) => {
+  db.prepare(
+    "update APPLICATIONS set state = 'rejected' where proposal_id = ? AND state = 'pending' AND student_id != ?",
+  ).run(of_proposal, except_for_student);
+  //  return new Promise((resolve, reject) => {
+  //    db.run(
+  //      "update APPLICATIONS set state = 'rejected' where proposal_id = ? AND state = 'pending' AND student_id != ?",
+  //      [proposal_id, student_id],
+  //      (err) => {
+  //        if (err){
+  //          reject(err);
+  //        }
+  //        resolve(true);
+  //      }
+  //    );
+  //  });
 };
 
-exports.getStudent = (id) => {
-  return new Promise((resolve, reject) => {
-    db.get("select * from STUDENT where id = ?", id, (err, row) => {
-      if (err) {
-        reject(err);
-      } else if (row === undefined) {
-        resolve(false);
-      } else {
-        resolve(row);
-      }
-    });
-  });
+exports.deletePendingApplications = (of_student, except_proposal) => {
+  db.prepare(
+    "delete from APPLICATIONS where student_id = ? and proposal_id != ? and state = 'pending'",
+  ).run(of_student, except_proposal);
+  //return new Promise((resolve, reject) => {
+  //  db.run("delete from APPLICATIONS where student_id = ? AND proposal_id != ? AND state = 'pending'",
+  //    [student_id, proposal_id],
+  //    (err) => {
+  //      if (err) {
+  //        reject(err);
+  //      }
+  //        resolve(true);
+  //    }
+  //  );
+  //});
 };
 
-exports.getProposal = (id) => {
-  return new Promise((resolve, reject) => {
-    db.get("select * from PROPOSALS where id = ?", id, (err, row) => {
-      if (err) {
-        reject(err);
-      } else if (row === undefined) {
-        resolve(false);
-      } else {
-        resolve(row);
-      }
-    });
-  });
+exports.updateApplication = (id, state) => {
+  db.prepare("update APPLICATIONS set state = ? where id = ?").run(state, id);
+  //return new Promise((resolve, reject) => {
+  //  db.run(
+  //    "update APPLICATIONS set state = ? where student_id = ? AND proposal_id = ?",
+  //    [state, student_id, proposal_id],
+  //    (err) =>{
+  //      if (err) {
+  //        reject(err);
+  //      }
+  //        resolve(true);
+  //    }
+  //  );
+  //});
 };
-
-exports.getApplication = (student_id,proposal_id) => {
-  return new Promise((resolve, reject) => {
-    db.get(
-      "select * from APPLICATIONS where student_id = ? and proposal_id = ?",
-      student_id,
-      proposal_id,
-      (err, row) => {
-        if (err) {
-          reject(err);
-        } else if (row === undefined) {
-          resolve(false);
-        } else {
-          resolve(row);
-        }
-      },
-    );
-  });
-};
-
-exports.updateApplications = (student_id,proposal_id) => {
-  return new Promise((resolve, reject) => {
-    db.run(
-      "update APPLICATIONS set state = 'rejected' where proposal_id = ? AND state = 'pending' AND student_id != ?",
-      [proposal_id, student_id],
-      (err) => {
-        if (err){
-          reject(err);
-        }
-        resolve(true);
-      }
-    );
-  });
-};
-
-exports.deleteApplications = (student_id,proposal_id) => {
-  return new Promise((resolve, reject) => {
-    db.run("delete from APPLICATIONS where student_id = ? AND proposal_id != ? AND state = 'pending'",
-      [student_id, proposal_id],
-      (err) => {
-        if (err) {
-          reject(err);
-        }
-          resolve(true);
-      }
-    );
-  });
-};
-
-exports.updateApplication = (student_id,proposal_id,state) => {
-  return new Promise((resolve, reject) => {
-    db.run(
-      "update APPLICATIONS set state = ? where student_id = ? AND proposal_id = ?",
-      [state, student_id, proposal_id],
-      (err) =>{
-        if (err) {
-          reject(err);
-        }
-          resolve(true);              
-      }
-    );     
-  });
-};
-=======
 /**
  * todo: I think it's ugly to return student's info and teacher's info
  * @param teacher_id
@@ -530,4 +471,3 @@ exports.getProposals = () => {
   //  );
   //});
 };
->>>>>>> main

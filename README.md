@@ -4,7 +4,7 @@
 
 - Route `/`: login page
 - Route `/proposals`: students see the list of proposals for their cds, teachers see the list of their proposals
-- Route `/proposals/:proposalId`: students see the the details of a proposal and can apply to it, teachers can only see the proposal details
+- Route `/proposals/:proposalId`: students see the details of a proposal and can apply to it, teachers can only see the proposal details
 - Route `/add-proposal`: teachers can create a new proposal
 - Route `/applications`: students see the list of their applications, teachers see the list of applications to their proposals
 - Route `/applications/:applicationId`: students see the check the details of an applications, teachers can also accept or reject an application
@@ -65,7 +65,7 @@
     cds: Computer Engineering
   ```
 
-  - return the list of proposal related to a teacher id or cds
+  - return the list of proposals related to a teacher id or cds
   - return 200 for correct behavior
   - return 404 for no proposal related to that teacher or cds
   - return 400 for invalid teacher id or cds
@@ -193,7 +193,7 @@
   ]
   ```
 - GET `/api/proposals/:cds`
-  - return the list of active proposals for a specific cds
+  - return the list of active proposals for specific cds
   - request body content example
   ```
   {
@@ -201,16 +201,10 @@
   }
   ```
 - PATCH `/api/applications/:id`
-  - accept or reject a specific application
-  - if the application is accepted
-  - all the pending applications of that student are removed
-  - all the pending applications for that thesisi are rejected
+  - accept or reject a specific application. If the application is accepted, all the pending applications of that student are removed, and all the pending applications for that proposal are rejected
   - request body content example
   ```
   {
-    "id":2
-    "proposal_id": 8,
-    "student_id": "s309618",
     "state": "pending"
   }
   ```
@@ -238,7 +232,7 @@
     teacher: s345678
     student: s317743
   ```
-  - return the list of proposal related to a teacher id or student
+  - return the list of proposals related to a teacher id or student
   - return 200 for correct behavior
   - return 404 for no proposal related to that teacher or student
   - return 400 for invalid teacher id or cds
