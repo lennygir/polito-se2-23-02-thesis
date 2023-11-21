@@ -346,6 +346,7 @@ exports.updateApplication = (id, state) => {
  * @param teacher_id
  * @returns {[
  *   {
+ *     application_id,
  *     proposal_id,
  *     teacher_id,
  *     state,
@@ -359,7 +360,8 @@ exports.updateApplication = (id, state) => {
 exports.getApplicationsOfTeacher = (teacher_id) => {
   return db
     .prepare(
-      `select APPLICATIONS.proposal_id, 
+      `select APPLICATIONS.id, 
+                  APPLICATIONS.proposal_id, 
                   APPLICATIONS.student_id, 
                   APPLICATIONS.state, 
                   STUDENT.name as student_name, 
@@ -408,7 +410,8 @@ exports.getApplicationsOfTeacher = (teacher_id) => {
 exports.getApplicationsOfStudent = (student_id) => {
   return db
     .prepare(
-      `select APPLICATIONS.proposal_id, 
+      `select APPLICATIONS.id, 
+                  APPLICATIONS.proposal_id, 
                   APPLICATIONS.student_id, 
                   APPLICATIONS.state, 
                   STUDENT.name as student_name, 

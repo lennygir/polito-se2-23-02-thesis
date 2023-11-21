@@ -241,6 +241,7 @@
   ```
     [
       {
+        id: 5,
         proposal_id: 1,
         student_id: 's309618',
         state: 'rejected',
@@ -250,6 +251,7 @@
         teacher_surname: 'Torchiano'
       },
       {
+        id: 6,
         proposal_id: 1,
         student_id: 's317743',
         state: 'rejected',
@@ -259,6 +261,7 @@
         teacher_surname: 'Torchiano'
       },
       {
+        id: 7,
         proposal_id: 2,
         student_id: 's317743',
         state: 'pending',
@@ -268,6 +271,7 @@
         teacher_surname: 'Torchiano'
       },
       {
+        id: 8,
         proposal_id: 3,
         student_id: 's317743',
         state: 'pending',
