@@ -3,6 +3,7 @@ import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import Box from "@mui/material/Box";
+import LoadingPage from "./LoadingPage";
 
 const drawerWidth = 240;
 const logoHeight = 70;
@@ -22,6 +23,11 @@ function RootPage(props) {
 
   const handleTabSelection = (tabId) => {
     setSelectedTab(tabId);
+    if (tabId === "proposals") {
+      props.fetchProposals();
+    } else if (tabId === "applications") {
+      props.fetchApplications();
+    }
   };
 
   return (
@@ -54,7 +60,7 @@ function RootPage(props) {
             marginTop: 8,
           }}
         >
-          <Outlet />
+          {props.loading ? <LoadingPage loading={props.loading} /> : <Outlet />}
         </Box>
       </Box>
     </div>

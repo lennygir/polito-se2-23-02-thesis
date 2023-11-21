@@ -43,6 +43,9 @@ function Main() {
   // Flag to re-fetch data
   const [dirty, setDirty] = useState(false);
 
+  // Flag to indicate API fetch loading status
+  const [loading, setLoading] = useState(false);
+
   // Current logged in user data
   const [user, setUser] = useState(undefined);
 
@@ -122,21 +125,34 @@ function Main() {
 
   const fetchDynamicData = async () => {
     try {
+      await fetchProposals();
+      await fetchApplications();
+    } catch (err) {
+      return handleErrors(err);
+    }
+  };
+
+  const fetchProposals = async () => {
+    try {
       if (user.role === "student") {
-        // The student fetches the proposals for his degree
-        const [proposals, applications] = await Promise.all([
-          API.getProposals(),
-          API.getApplicationsByStudent(user.id),
-        ]);
+        const proposals = await API.getProposalsByDegree(user.cod_degree);
         setProposals(proposals);
+      } else if (user.role === "teacher") {
+        const proposals = await API.getProposalsByTeacher(user.id);
+        setProposals(proposals);
+      }
+    } catch (err) {
+      return handleErrors(err);
+    }
+  };
+
+  const fetchApplications = async () => {
+    try {
+      if (user.role === "student") {
+        const applications = await API.getApplicationsByStudent(user.id);
         setApplications(applications);
       } else if (user.role === "teacher") {
-        // The teacher fetches the proposals that he created
-        const [proposals, applications] = await Promise.all([
-          API.getProposalsByTeacher(user.id),
-          API.getApplicationsByTeacher(user.id),
-        ]);
-        setProposals(proposals);
+        const applications = await API.getApplicationsByTeacher(user.id);
         setApplications(applications);
       }
     } catch (err) {
@@ -147,8 +163,10 @@ function Main() {
   // Re-fetch dynamic data when needed
   useEffect(() => {
     if (dirty) {
+      setLoading(true);
       fetchDynamicData();
       setDirty(false);
+      setLoading(false);
     }
   }, [dirty]);
 
@@ -167,11 +185,12 @@ function Main() {
     return () => clearInterval(intervalId);
   }, [currentDate]);
 
-  // Utility function to retrieve the teacher given its id
+  // Utility function to retrieve a teacher given its id
   const getTeacherById = (teacherId) => {
     return teachers.find((teacher) => teacher.id === teacherId);
   };
 
+  // Utility function to retrieve a degree given its id
   const getDegreeById = (codDegree) => {
     return degrees.find((degree) => degree.cod_degree === codDegree);
   };
@@ -181,12 +200,12 @@ function Main() {
       <ErrorContext.Provider value={{ handleErrors }}>
         <Routes>
           {/* prettier-ignore */}
-          <Route path="/" element={user ? <RootPage currentDate={currentDate} logout={handleLogout} /> : <LoginPage login={handleLogin} />}>
+          <Route path="/" element={user ? <RootPage loading={loading} currentDate={currentDate} logout={handleLogout} fetchProposals={fetchProposals} fetchApplications={fetchApplications} /> : <LoginPage login={handleLogin} />}>
           <Route path="proposals" element={user ? <ProposalsPage proposals={proposals} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
-          <Route path="proposals/:proposalId" element={user ? <ViewProposalPage getTeacherById={getTeacherById} getDegreeById={getDegreeById} setDirty={setDirty} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
-          <Route path="add-proposal" element={user ? <CreateProposalPage teachers={teachers} groups={groups} degrees={degrees} setDirty={setDirty} setAlert={setAlert}/> : <Navigate replace to="/" />} />
+          <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} getTeacherById={getTeacherById} getDegreeById={getDegreeById} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
+          <Route path="add-proposal" element={user ? <CreateProposalPage fetchProposals={fetchProposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
           <Route path="applications" element={user ? <ApplicationsPage applications={applications} proposals={proposals} /> : <Navigate replace to="/" /> } />
-          <Route path="applications/:applicationId" element={user ? <ViewApplicationPage getTeacherById={getTeacherById} getDegreeById={getDegreeById} /> : <Navigate replace to="/" />} />
+          <Route path="applications/:applicationId" element={user ? <ViewApplicationPage fetchApplications={fetchApplications} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
           <Route path="notifications" element={user ? <NotificationsPage /> : <Navigate replace to="/" />} />
           <Route path="settings" element={user ? <SettingsPage currentDate={currentDate} setCurrentDate={setCurrentDate}/> : <Navigate replace to="/" />} />
         </Route>
