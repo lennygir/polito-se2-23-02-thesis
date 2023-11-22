@@ -1,10 +1,18 @@
 const request = require("supertest");
 const app = require("../src/server");
-it("Insertion of a correct proposal", () => {
-  const proposal = {
+const { deleteApplication } = require("../src/theses-dao");
+
+let proposal;
+let application;
+beforeEach(() => {
+  proposal = {
     title: "Proposta di tesi fighissima",
     supervisor: "s345678",
-    co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
+    co_supervisors: [
+      "marco.torchiano@polito.it",
+      "s122349@gmail.com",
+      "s298399@outlook.com",
+    ],
     groups: ["ELITE"],
     keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
     types: ["EXPERIMENTAL", "RESEARCH"],
@@ -15,6 +23,12 @@ it("Insertion of a correct proposal", () => {
     level: "MSC",
     cds: "LM-32 (DM270)",
   };
+  application = {
+    student: "s309618",
+    proposal: 8,
+  };
+});
+it("Insertion of a correct proposal", () => {
   return request(app)
     .post("/api/proposals")
     .set("Content-Type", "application/json")
@@ -22,19 +36,7 @@ it("Insertion of a correct proposal", () => {
     .expect(200);
 });
 it("Insertion of a proposal with no notes", () => {
-  const proposal = {
-    title: "Proposta di tesi fighissima",
-    supervisor: "s345678",
-    co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
-    groups: ["ELITE"],
-    keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
-    types: ["EXPERIMENTAL", "RESEARCH"],
-    description: "Accetta questa tesi che e' una bomba",
-    required_knowledge: "non devi sapere nulla",
-    expiration_date: "2019-01-25T02:00:00.000Z",
-    level: "MSC",
-    cds: "LM-32 (DM270)",
-  };
+  proposal.notes = null;
   return request(app)
     .post("/api/proposals")
     .set("Content-Type", "application/json")
@@ -42,19 +44,7 @@ it("Insertion of a proposal with no notes", () => {
     .expect(200);
 });
 it("Insertion of a proposal with a non existent supervisor", () => {
-  const proposal = {
-    title: "Proposta di tesi fighissima",
-    supervisor: "s000000",
-    co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
-    groups: ["ELITE", "SOFTENG"],
-    keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
-    types: ["EXPERIMENTAL", "RESEARCH"],
-    description: "Accetta questa tesi che e' una bomba",
-    required_knowledge: "non devi sapere nulla",
-    expiration_date: "2019-01-25T02:00:00.000Z",
-    level: "MSC",
-    cds: "LM-32 (DM270)",
-  };
+  proposal.supervisor = "s000000";
   return request(app)
     .post("/api/proposals")
     .set("Content-Type", "application/json")
@@ -65,19 +55,7 @@ it("Insertion of a proposal with a non existent supervisor", () => {
     });
 });
 it("Insertion with an invalid date", () => {
-  const proposal = {
-    title: "Proposta di tesi fighissima",
-    supervisor: "s345678",
-    co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
-    groups: ["ELITE"],
-    keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
-    types: ["EXPERIMENTAL", "RESEARCH"],
-    description: "Accetta questa tesi che e' una bomba",
-    required_knowledge: "non devi sapere nulla",
-    expiration_date: "0",
-    level: "MSC",
-    cds: "LM-32 (DM270)",
-  };
+  proposal.expiration_date = "0";
   return request(app)
     .post("/api/proposals")
     .set("Content-Type", "application/json")
@@ -88,19 +66,7 @@ it("Insertion with an invalid date", () => {
     });
 });
 it("Insertion of a proposal with wrong level format", () => {
-  const proposal = {
-    title: "Proposta di tesi fighissima",
-    supervisor: "s345678",
-    co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
-    groups: ["ELITE"],
-    keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
-    types: ["EXPERIMENTAL", "RESEARCH"],
-    description: "Accetta questa tesi che e' una bomba",
-    required_knowledge: "non devi sapere nulla",
-    expiration_date: "2019-01-25",
-    level: "wrong-level",
-    cds: "LM-32 (DM270)",
-  };
+  proposal.level = "wrong-level";
   return request(app)
     .post("/api/proposals")
     .set("Content-Type", "application/json")
@@ -111,19 +77,7 @@ it("Insertion of a proposal with wrong level format", () => {
     });
 });
 it("Insertion of a proposal with an invalid group", () => {
-  const proposal = {
-    title: "Proposta di tesi fighissima",
-    supervisor: "s345678",
-    co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
-    groups: ["ELITE", "WRONG GROUP"],
-    keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
-    types: ["EXPERIMENTAL", "RESEARCH"],
-    description: "Accetta questa tesi che e' una bomba",
-    required_knowledge: "non devi sapere nulla",
-    expiration_date: "2019-01-25",
-    level: "MSC",
-    cds: "LM-32 (DM270)",
-  };
+  proposal.groups.push("WRONG GROUP");
   return request(app)
     .post("/api/proposals")
     .set("Content-Type", "application/json")
@@ -134,19 +88,7 @@ it("Insertion of a proposal with an invalid group", () => {
     });
 });
 it("Insertion of a proposal with a single keyword (no array)", () => {
-  const proposal = {
-    title: "Proposta di tesi fighissima",
-    supervisor: "s345678",
-    co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
-    groups: ["ELITE"],
-    keywords: "SOFTWARE ENGINEERING",
-    types: ["EXPERIMENTAL", "RESEARCH"],
-    description: "Accetta questa tesi che e' una bomba",
-    required_knowledge: "non devi sapere nulla",
-    expiration_date: "2019-01-25",
-    level: "MSC",
-    cds: "LM-32 (DM270)",
-  };
+  proposal.keywords = "SOFTWARE ENGINEERING";
   return request(app)
     .post("/api/proposals")
     .set("Content-Type", "application/json")
@@ -170,4 +112,140 @@ it("Return 200 correct get of all application of a selected teacher", () => {
     .get(`/api/applications?teacher=${teacher}`)
     .set("Content-Type", "application/json")
     .expect(200);
+});
+
+describe("Get Application From Teacher", () => {
+  it("Return 404 for a teacher that doesn't exist", () => {
+    const teacher = 0;
+    return request(app)
+      .get(`/api/applications?teacher=${teacher}`)
+      .set("Content-Type", "application/json")
+      .expect(404);
+  });
+
+  it("Return 404 for emply list of application of that teacher", () => {
+    const teacher = "s789012";
+    return request(app)
+      .get(`/api/applications?teacher=${teacher}`)
+      .set("Content-Type", "application/json")
+      .expect(404);
+  });
+
+  it("Return 404 for emply list of application of that student", () => {
+    const student = "s319823";
+    return request(app)
+      .get(`/api/applications?student=${student}`)
+      .set("Content-Type", "application/json")
+      .expect(404);
+  });
+
+  it("Return 404 for no student found", () => {
+    const student = "s999999";
+    return request(app)
+      .get(`/api/applications?student=${student}`)
+      .set("Content-Type", "application/json")
+      .expect(404);
+  });
+
+  it("Return 200 correct get of all application of a selected student", () => {
+    const student = "s317743";
+    return request(app)
+      .get(`/api/applications?student=${student}`)
+      .set("Content-Type", "application/json")
+      .expect(200);
+  });
+});
+
+describe("Proposal Retrieval Tests", () => {
+  it("Get all the proposals from a specific field of study", () => {
+    const cds = "LM-32 (DM270)";
+    return request(app)
+      .get(`/api/proposals?cds=${cds}`)
+      .set("Content-Type", "application/json")
+      .expect(200)
+      .then((response) => {
+        response.body.forEach((proposal) => {
+          expect(proposal.cds).toBe(cds);
+        });
+      });
+  });
+
+  it("Get all the proposals from a specific supervisor", () => {
+    const supervisor = "s123456";
+    return request(app)
+      .get(`/api/proposals?supervisor=${supervisor}`)
+      .set("Content-Type", "application/json")
+      .expect(200);
+  });
+
+  it("Return 404 for a non-existing supervisor", () => {
+    const supervisor = "s000000";
+    return request(app)
+      .get(`/api/proposals?supervisor=${supervisor}`)
+      .set("Content-Type", "application/json")
+      .expect(404);
+  });
+
+  it("Return 400 for a invalid format of supervisor", () => {
+    const supervisor = 0;
+    return request(app)
+      .get(`/api/proposals?supervisor=${supervisor}`)
+      .set("Content-Type", "application/json")
+      .expect(404);
+  });
+
+  it("Get all the proposals from a field of study that doesn't exists", () => {
+    const cds = "aaaaaaaaaaaaaaaaaaaaaaaaa";
+    return request(app)
+      .get(`/api/proposals?cds=${cds}`)
+      .set("Content-Type", "application/json")
+      .expect(404);
+  });
+});
+describe("Application Insertion Tests", () => {
+  it("Insertion of an application from a wrong student", () => {
+    application.student = "s000000";
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: "Invalid application content",
+        });
+      });
+  });
+  it("Insertion of a correct application", async () => {
+    await deleteApplication(application.student, application.proposal);
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          student_id: "s309618",
+          proposal_id: 8,
+          state: "pending",
+        });
+      });
+  });
+  it("Insertion of an application already existent", async () => {
+    await deleteApplication(application.student, application.proposal);
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application);
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: "Application already present",
+        });
+      });
+  });
 });

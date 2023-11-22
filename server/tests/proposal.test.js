@@ -15,80 +15,18 @@ const {
   getGroup,
 } = require("../src/theses-dao");
 
-jest.mock("../src/theses-dao.js", () => {
-  const theses_dao = jest.requireActual("../src/theses-dao.js");
-  return {
-    ...theses_dao,
-    getTeachers: jest.fn(),
-    getTeacher: jest.fn(),
-    getGroups: jest.fn(),
-    getGroup: jest.fn(),
-    getDegrees: jest.fn(),
-    getApplicationById: jest.fn(),
-    updateApplication: jest.fn(),
-    rejectPendingApplications: jest.fn(),
-    deletePendingApplications: jest.fn(),
-    getTeacherByEmail: jest.fn(),
-  };
-});
+jest.mock("../src/theses-dao");
 
 beforeEach(() => {
-  jest.resetAllMocks();
   jest.clearAllMocks();
 });
-const { deleteApplication } = require("../src/theses-dao");
 
 describe("Application Insertion Tests", () => {
   const application = {
     student: "s309618",
     proposal: 8,
   };
-  it("Insertion of a correct application", async () => {
-    await deleteApplication(application.student, application.proposal);
-    return request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send(application)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          student_id: "s309618",
-          proposal_id: 8,
-          state: "pending",
-        });
-      });
-  });
-  it("Insertion of an application already existent", async () => {
-    await deleteApplication(application.student, application.proposal);
-    await request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send(application);
-    return request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send(application)
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          message: "Application already present",
-        });
-      });
-  });
-  it("Insertion of an application from a wrong student", () => {
-    application.student = "s000000";
-    return request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send(application)
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          message: "Invalid application content",
-        });
-      });
-  });
-  it("Insertion of an application with a wrong proposal", () => {
+  test("Insertion of an application with a wrong proposal", () => {
     application.proposal = -5;
     return request(app)
       .post("/api/applications")
@@ -164,94 +102,6 @@ describe("Proposal Insertion Tests", () => {
   });
 });
 
-describe("Proposal Retrieval Tests", () => {
-  test("Get all the proposals from a specific field of study", () => {
-    const cds = "LM-32 (DM270)";
-    return request(app)
-      .get(`/api/proposals?cds=${cds}`)
-      .set("Content-Type", "application/json")
-      .expect(200)
-      .then((response) => {
-        response.body.forEach((proposal) => {
-          expect(proposal.cds).toBe(cds);
-        });
-      });
-  });
-
-  test("Get all the proposals from a specific supervisor", () => {
-    const supervisor = "s123456";
-    return request(app)
-      .get(`/api/proposals?supervisor=${supervisor}`)
-      .set("Content-Type", "application/json")
-      .expect(200);
-  });
-
-  test("Return 404 for a non-existing supervisor", () => {
-    const supervisor = "s000000";
-    return request(app)
-      .get(`/api/proposals?supervisor=${supervisor}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  test("Return 400 for a invalid format of supervisor", () => {
-    const supervisor = 0;
-    return request(app)
-      .get(`/api/proposals?supervisor=${supervisor}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  test("Get all the proposals from a field of study that doesn't exists", () => {
-    const cds = "aaaaaaaaaaaaaaaaaaaaaaaaa";
-    return request(app)
-      .get(`/api/proposals?cds=${cds}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-});
-
-describe("Get Application From Teacher", () => {
-  test("Return 404 for a teacher that doesn't exist", () => {
-    const teacher = 0;
-    return request(app)
-      .get(`/api/applications?teacher=${teacher}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  test("Return 404 for emply list of application of that teacher", () => {
-    const teacher = "s789012";
-    return request(app)
-      .get(`/api/applications?teacher=${teacher}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  test("Return 404 for emply list of application of that student", () => {
-    const student = "s319823";
-    return request(app)
-      .get(`/api/applications?student=${student}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  test("Return 404 for no student found", () => {
-    const student = "s999999";
-    return request(app)
-      .get(`/api/applications?student=${student}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  test("Return 200 correct get of all application of a selected student", () => {
-    const student = "s317743";
-    return request(app)
-      .get(`/api/applications?student=${student}`)
-      .set("Content-Type", "application/json")
-      .expect(200);
-  });
-});
 describe("Get All Teachers Test", () => {
   test("Correct get of all teachers from db", () => {
     getTeachers.mockReturnValue([
@@ -279,7 +129,6 @@ describe("Get All Teachers Test", () => {
         // todo: Add more specific checks on the response body if needed
       });
   });
-
   test("Get 404 for an empty group table db", () => {
     getTeachers.mockReturnValue([]);
     return request(app)
@@ -287,7 +136,6 @@ describe("Get All Teachers Test", () => {
       .expect("Content-Type", /json/)
       .expect(404);
   });
-
   test("Get 500 for an internal server error", () => {
     getTeachers.mockImplementation(() => {
       throw "SQLITE_ERROR_SOMETHING";
@@ -310,7 +158,6 @@ describe("Get All Groups Test", () => {
       .expect("Content-Type", /json/)
       .expect(200);
   });
-
   test("Get 404 for an empty group table db", () => {
     getGroups.mockReturnValue([]);
     return request(app)
@@ -318,7 +165,6 @@ describe("Get All Groups Test", () => {
       .expect("Content-Type", /json/)
       .expect(404);
   });
-
   test("Get 500 for an internal server error", () => {
     getGroups.mockImplementation(() => {
       throw "SQLITE_ERROR_SOMETHING";
@@ -341,7 +187,6 @@ describe("Get All Degrees Test", () => {
       .expect("Content-Type", /json/)
       .expect(200);
   });
-
   test("Get 404 for an empty degree table db", () => {
     getDegrees.mockReturnValue([]);
     return request(app)
@@ -349,7 +194,6 @@ describe("Get All Degrees Test", () => {
       .expect("Content-Type", /json/)
       .expect(404);
   });
-
   test("Get 500 for an internal server error", () => {
     getDegrees.mockImplementation(() => {
       throw "SQLITE_ERROR_SOMETHING";
@@ -372,7 +216,6 @@ describe("PATCH /api/applications/:id", () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual({ message: "Application not existent" });
   });
-
   test("should return 400 if the state value is not correct", async () => {
     const response = await request(app)
       .patch("/api/applications/1")
@@ -381,7 +224,6 @@ describe("PATCH /api/applications/:id", () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual({ message: "Invalid proposal content" });
   });
-
   test("Should return 200 if the state is accepted for an existent application", async () => {
     getApplicationById.mockReturnValue({
       id: 1,
