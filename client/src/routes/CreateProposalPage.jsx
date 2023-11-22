@@ -21,7 +21,7 @@ function CreateProposalPage(props) {
           message: "Proposal created successfully",
           severity: "success",
         });
-        props.setDirty(true);
+        props.fetchProposals();
         navigate("/proposals");
       })
       .catch((err) => handleErrors(err));

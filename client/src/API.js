@@ -70,19 +70,6 @@ const getProposalsByDegree = async (degree) => {
   return getJson(fetch(SERVER_URL + "/proposals?cds=" + degree));
 };
 
-const evaluateApplication = async (application) => {
-  return getJson(
-    fetch(SERVER_URL + "/applications/" + application.id, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(application),
-      //{id:"id_incrementale",proposal_id:"proposal_id", student_id:"student_id", state"accepted/rejected"}
-    })
-  );
-};
-
 const getProposalsByTeacher = async (teacher_id) => {
   return getJson(fetch(SERVER_URL + "/proposals?supervisor=" + teacher_id));
 };
@@ -94,7 +81,19 @@ const insertApplication = async (application) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(application), //request body: {proposal: "proposal_id",student:"student_id"}
+      body: JSON.stringify(application),
+    })
+  );
+};
+
+const evaluateApplication = async (application) => {
+  return getJson(
+    fetch(SERVER_URL + "/applications/" + application.id, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ state: application.state }),
     })
   );
 };
@@ -103,9 +102,16 @@ const getApplicationsByTeacher = async (teacher_id) => {
   return getJson(fetch(SERVER_URL + "/applications?teacher=" + teacher_id));
 };
 
+/**
+ *
+ * @param student_id the id of a student
+ * @returns the list of all applications for that student
+ */
 const getApplicationsByStudent = async (student_id) => {
   return getJson(fetch(SERVER_URL + "/applications?student=" + student_id));
 };
+
+// TODO: Add documentation comments to all functions in this file
 
 const API = {
   createProposal,
@@ -118,8 +124,8 @@ const API = {
   insertApplication,
   getApplicationsByTeacher,
   getApplicationsByStudent,
-  logIn,
   evaluateApplication,
+  logIn,
 };
 
 export default API;

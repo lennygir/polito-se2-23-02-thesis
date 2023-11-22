@@ -1,9 +1,12 @@
 import { useContext } from "react";
-import { Chip, IconButton, TableCell, TableRow, Tooltip } from "@mui/material";
-import dayjs from "dayjs";
-import UserContext from "../contexts/UserContext";
 import { NavLink } from "react-router-dom";
+import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
+import TableCell from "@mui/material/TableCell";
+import TableRow from "@mui/material/TableRow";
+import Tooltip from "@mui/material/Tooltip";
 import FileOpenIcon from "@mui/icons-material/FileOpen";
+import UserContext from "../contexts/UserContext";
 
 function ApplicationRow(props) {
   const { application, proposal } = props;
@@ -12,22 +15,6 @@ function ApplicationRow(props) {
   return (
     <>
       <TableRow>
-        <TableCell>
-          <Tooltip title="View application">
-            <IconButton
-              component={NavLink}
-              to={
-                "/applications/" +
-                application.student_id +
-                "-" +
-                application.proposal_id
-              } // To be changed
-              state={{ application: application, proposal: proposal }}
-            >
-              <FileOpenIcon />
-            </IconButton>
-          </Tooltip>
-        </TableCell>
         {user?.role === "teacher" && (
           <TableCell>{application.student_id}</TableCell>
         )}
@@ -58,6 +45,17 @@ function ApplicationRow(props) {
           {application.state === "pending" && (
             <Chip label="Pending" size="small" />
           )}
+        </TableCell>
+        <TableCell>
+          <Tooltip title="View application">
+            <IconButton
+              component={NavLink}
+              to={"/applications/" + application.id}
+              state={{ application: application, proposal: proposal }}
+            >
+              <FileOpenIcon />
+            </IconButton>
+          </Tooltip>
         </TableCell>
       </TableRow>
     </>
