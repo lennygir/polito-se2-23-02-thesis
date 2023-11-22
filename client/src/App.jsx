@@ -201,7 +201,7 @@ function Main() {
         <Routes>
           {/* prettier-ignore */}
           <Route path="/" element={user ? <RootPage loading={loading} currentDate={currentDate} logout={handleLogout} fetchProposals={fetchProposals} fetchApplications={fetchApplications} /> : <LoginPage login={handleLogin} />}>
-          <Route path="proposals" element={user ? <ProposalsPage proposals={proposals} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
+          <Route path="proposals" element={user ? <ProposalsPage proposals={proposals} teachers={teachers} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
           <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} getTeacherById={getTeacherById} getDegreeById={getDegreeById} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
           <Route path="add-proposal" element={user ? <CreateProposalPage fetchProposals={fetchProposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
           <Route path="applications" element={user ? <ApplicationsPage applications={applications} proposals={proposals} /> : <Navigate replace to="/" /> } />

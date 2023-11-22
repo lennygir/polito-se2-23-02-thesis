@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
@@ -21,62 +21,44 @@ const LEVELS = ["BCS", "MSC"];
 function ProposalsPage(props) {
   const proposals = props.proposals;
   const user = useContext(UserContext);
-  const [searchValue, setSearchValue] = useState("");
-  const [filteredProposals, setFilteredProposals] = useState([]);
+  const [searchInput, setSearchInput] = useState("");
 
-  useEffect(() => {
-    setFilteredProposals(proposals);
-  }, [proposals]);
+  const filteredProposals = proposals.filter((proposal) => {
+    const {
+      title,
+      co_supervisors,
+      keywords,
+      description,
+      required_knowledge,
+      notes,
+    } = proposal;
 
-  useEffect(() => {
-    filterProposals();
-  }, [searchValue]);
+    // Convert supervisor ID to name
+    const supervisor = props.teachers.find(
+      (teacher) => teacher.id === proposal.supervisor
+    );
+    const supervisorName = supervisor?.name || "";
+    const supervisorSurname = supervisor?.surname || "";
 
-  const handleSearch = (e) => {
-    setSearchValue(e.target.value);
-  };
+    // Check if any field contains the search input
+    const searchFields = [
+      title,
+      supervisorName,
+      supervisorSurname,
+      co_supervisors,
+      keywords,
+      description,
+      required_knowledge,
+      notes || "", // Handle the case where notes might be null
+    ];
 
-  const filterProposals = (filterValues = {}) => {
-    let filteredProposals = proposals.filter((p) => {
-      return (
-        (p.title &&
-          p.title.toLowerCase().includes(searchValue.toLowerCase())) ||
-        (p.supervisor &&
-          p.supervisor.toLowerCase().includes(searchValue.toLowerCase())) ||
-        (p.required_knowledge &&
-          p.required_knowledge
-            .toLowerCase()
-            .includes(searchValue.toLowerCase())) ||
-        (p.keywords &&
-          p.keywords.toLowerCase().includes(searchValue.toLowerCase()))
-      );
+    return searchFields.some((field) => {
+      if (field !== null && field !== undefined) {
+        return field.toLowerCase().includes(searchInput.toLowerCase());
+      }
+      return false;
     });
-
-    for (let filter in filterValues) {
-      filteredProposals = filteredProposals.filter((p) => {
-        if (filterValues[filter].length === 0) {
-          return true; // If no filter is selected, return all proposals
-        }
-        for (let opt of filterValues[filter]) {
-          if (p[filter].includes(opt)) {
-            return true;
-          }
-        }
-        return false;
-      });
-    }
-
-    setFilteredProposals(filteredProposals);
-  };
-
-  const getUniqueValues = (array) => [...new Set(array)];
-
-  const filterValues = {
-    type: TYPES,
-    groups: props.groups.map((d) => d.cod_group),
-    level: LEVELS,
-    cds: props.degrees.map((d) => d.cod_degree),
-  };
+  });
 
   const studentView = (
     <>
@@ -99,7 +81,8 @@ function ProposalsPage(props) {
         <OutlinedInput
           sx={{ borderRadius: 4, width: { md: "300px", xs: "200px" } }}
           placeholder="Search proposal..."
-          onChange={handleSearch}
+          onChange={(e) => setSearchInput(e.target.value)}
+          value={searchInput}
           startAdornment={
             <InputAdornment position="start">
               <SearchIcon
@@ -108,7 +91,7 @@ function ProposalsPage(props) {
             </InputAdornment>
           }
         />
-        <ProposalFilters filters={filterValues} onChange={filterProposals} />
+        {/*<ProposalFilters filters={filterValues} onChange={filterProposals} />*/}
       </Toolbar>
       <ProposalTable
         data={filteredProposals}
