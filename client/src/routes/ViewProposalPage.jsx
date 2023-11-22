@@ -26,10 +26,6 @@ function ViewProposalPage(props) {
       .catch((err) => handleErrors(err));
   };
 
-  // TODO: Get applications of a student
-  // If a student has already applied to a proposal, then
-  // shouldn't be able to re-send an application
-
   return (
     <div id="view-proposal-page">
       <Stack

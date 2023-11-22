@@ -13,12 +13,16 @@ const {
   insertProposal,
   getProposalsBySupervisor,
   getProposalsByDegree,
+  updateApplication,
   getProposal,
   insertApplication,
   getApplication,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   getProposals,
+  getApplicationById,
+  rejectPendingApplications,
+  deletePendingApplications,
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -313,6 +317,50 @@ router.get(
         }
       }
     } catch (e) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+
+router.patch(
+  "/api/applications/:id",
+  check("state").isIn(["accepted", "rejected"]),
+  check("id").isInt({ min: 1 }),
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ message: "Invalid proposal content" });
+    }
+    try {
+      const state = req.body.state;
+      const application = getApplicationById(req.params.id);
+      if (application === undefined) {
+        return res.status(400).json({ message: "Application not existent" });
+      } else {
+        if (application.state !== "pending") {
+          return res
+            .status(400)
+            .json({
+              message:
+                "You cannot modify an application already accepted or rejected",
+            });
+        }
+        updateApplication(application.id, state);
+        if (state === "accepted") {
+          rejectPendingApplications(
+            application.proposal_id,
+            application.student_id,
+          );
+          deletePendingApplications(
+            application.student_id,
+            application.proposal_id,
+          );
+          res.status(200).json({ message: "Application accepted" });
+        } else {
+          res.status(200).json({ message: "Application rejected" });
+        }
+      }
+    } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   },

@@ -149,18 +149,20 @@ test("getProposalsByDegree - should return correct data", async () => {
     ok: true,
     json: () => Promise.resolve(mockApiResponse),
   });
-  const result = await API.getProposalsByDegree('degreeValue');
+  const result = await API.getProposalsByDegree("degreeValue");
   expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals?cds=degreeValue`);
   expect(result).toEqual(mockApiResponse);
 });
 
-test('getProposalsByTeacher - should return correct data', async () => {
+test("getProposalsByTeacher - should return correct data", async () => {
   fetch.mockResolvedValue({
     ok: true,
     json: () => Promise.resolve(mockApiResponse),
   });
-  const result = await API.getProposalsByTeacher('teacher_id');
-  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals?supervisor=teacher_id`);
+  const result = await API.getProposalsByTeacher("teacher_id");
+  expect(fetch).toHaveBeenCalledWith(
+    `${SERVER_URL}/proposals?supervisor=teacher_id`
+  );
   expect(result).toEqual(mockApiResponse);
 });
 
@@ -173,7 +175,7 @@ describe("Test the insert of an application", () => {
     });
     const application = {
       proposal: "fake proposal",
-      student: "fake student"
+      student: "fake student",
     };
     const result = await API.insertApplication(application);
     expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications`, {
@@ -211,13 +213,37 @@ describe("Test the insert of an application", () => {
   });
 });
 
-test('getApplicationsByTeacher - should return correct data', async () => {
+test("getApplicationsByTeacher - should return correct data", async () => {
   fetch.mockResolvedValue({
     ok: true,
     json: () => Promise.resolve(mockApiResponse),
   });
-  const result = await API.getApplicationsByTeacher('teacher_id');
-  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications?teacher=teacher_id`);
-
+  const result = await API.getApplicationsByTeacher("teacher_id");
+  expect(fetch).toHaveBeenCalledWith(
+    `${SERVER_URL}/applications?teacher=teacher_id`
+  );
   expect(result).toEqual(mockApiResponse);
+});
+
+test("evaluateApplication- should return correct update message", async () => {
+  fetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve({ message: "success update" }),
+  });
+  const application = {
+    id: 4,
+    otherFields: "otherFields",
+  };
+  const result = await API.evaluateApplication(application);
+  expect(fetch).toHaveBeenCalledWith(
+    `${SERVER_URL}/applications/${application.id}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(application),
+    }
+  );
+  expect(result).toEqual({ message: "success update" });
 });

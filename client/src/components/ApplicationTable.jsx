@@ -9,8 +9,8 @@ import TableRow from "@mui/material/TableRow";
 import ApplicationRow from "./ApplicationRow";
 import UserContext from "../contexts/UserContext";
 
-const TEACHER_HEADERS = ["Open", "Student", "Proposal", "Status"];
-const STUDENT_HEADERS = ["Open", "Teacher", "Proposal", "Status"];
+const TEACHER_HEADERS = ["Student", "Proposal", "Status", "Open"];
+const STUDENT_HEADERS = ["Teacher", "Proposal", "Status", "Open"];
 
 function ApplicationTable(props) {
   const { applications, proposals } = props;
@@ -55,12 +55,12 @@ function ApplicationTable(props) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {applications.map((application, index) => {
+            {applications.map((application) => {
               // Get the proposal object for the current application
               const proposal = getProposalById(application.proposal_id);
               return (
                 <ApplicationRow
-                  key={index}
+                  key={application.id}
                   application={application}
                   proposal={proposal}
                 />

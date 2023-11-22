@@ -2,7 +2,15 @@
 
 const request = require("supertest");
 const app = require("../src/server");
-const { getGroups, getTeachers, getDegrees } = require("../src/theses-dao");
+const {
+  getGroups,
+  getTeachers,
+  getDegrees,
+  updateApplication,
+  getApplicationById,
+  rejectPendingApplications,
+  deletePendingApplications,
+} = require("../src/theses-dao");
 
 jest.mock("../src/theses-dao.js", () => {
   const theses_dao = jest.requireActual("../src/theses-dao.js");
@@ -11,6 +19,10 @@ jest.mock("../src/theses-dao.js", () => {
     getTeachers: jest.fn(),
     getGroups: jest.fn(),
     getDegrees: jest.fn(),
+    getApplicationById: jest.fn(),
+    updateApplication: jest.fn(),
+    rejectPendingApplications: jest.fn(),
+    deletePendingApplications: jest.fn(),
   };
 });
 
@@ -453,5 +465,96 @@ describe("Get All Degrees Test", () => {
       .get("/api/degrees")
       .expect("Content-Type", /json/)
       .expect(500);
+  });
+});
+
+describe("PATCH /api/applications/:id", () => {
+  test("Should return 400 if the application does not exist", async () => {
+    getApplicationById.mockReturnValue(undefined);
+
+    const response = await request(app)
+      .patch("/api/applications/1")
+      .send({ state: "accepted" });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ message: "Application not existent" });
+  });
+
+  test("should return 400 if the state value is not correct", async () => {
+    const response = await request(app)
+      .patch("/api/applications/1")
+      .send({ state: "wrong" });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ message: "Invalid proposal content" });
+  });
+
+  test("Should return 200 if the state is accepted for an existent application", async () => {
+    getApplicationById.mockReturnValue({
+      id: 1,
+      proposal_id: 2,
+      student_id: "s123456",
+      state: "pending",
+    });
+    const response = await request(app)
+      .patch("/api/applications/1")
+      .send({ state: "accepted" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ message: "Application accepted" });
+
+    expect(updateApplication).toHaveBeenCalledWith(1, "accepted");
+    expect(rejectPendingApplications).toHaveBeenCalledWith(2, "s123456");
+    expect(deletePendingApplications).toHaveBeenCalledWith("s123456", 2);
+  });
+  test("Should return 200 if the state is rejected for an existent application", async () => {
+    getApplicationById.mockReturnValue({
+      id: 1,
+      proposal_id: 2,
+      student_id: "s123456",
+      state: "pending",
+    });
+    const response = await request(app)
+      .patch("/api/applications/1")
+      .send({ state: "rejected" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ message: "Application rejected" });
+
+    expect(updateApplication).toHaveBeenCalledWith(1, "rejected");
+    expect(rejectPendingApplications).toHaveBeenCalledTimes(0);
+    expect(deletePendingApplications).toHaveBeenCalledTimes(0);
+  });
+  test("It should return 500 in case of database error", () => {
+    getApplicationById.mockImplementation(() => {
+      throw "SQLITE_ERROR_SOMETHING";
+    });
+    return request(app)
+      .patch("/api/applications/1")
+      .send({ state: "accepted" })
+      .expect(500)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: "Internal Server Error",
+        });
+      });
+  });
+  test("It should not modify an application not pending", () => {
+    getApplicationById.mockReturnValue({
+      id: 1,
+      student_id: "s309618",
+      proposal_id: 3,
+      state: "accepted",
+    });
+    return request(app)
+      .patch("/api/applications/1")
+      .send({ state: "rejected" })
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message:
+            "You cannot modify an application already accepted or rejected",
+        });
+      });
   });
 });

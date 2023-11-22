@@ -125,7 +125,7 @@ function ProposalsPage(props) {
           variant="h4"
           sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}
         >
-          My Proposals
+          My Theses Proposals
         </Typography>
         <Hidden smDown>
           <Button
