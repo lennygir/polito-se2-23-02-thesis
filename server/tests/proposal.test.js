@@ -10,6 +10,9 @@ const {
   getApplicationById,
   rejectPendingApplications,
   deletePendingApplications,
+  getTeacherByEmail,
+  getTeacher,
+  getGroup,
 } = require("../src/theses-dao");
 
 jest.mock("../src/theses-dao.js", () => {
@@ -17,12 +20,15 @@ jest.mock("../src/theses-dao.js", () => {
   return {
     ...theses_dao,
     getTeachers: jest.fn(),
+    getTeacher: jest.fn(),
     getGroups: jest.fn(),
+    getGroup: jest.fn(),
     getDegrees: jest.fn(),
     getApplicationById: jest.fn(),
     updateApplication: jest.fn(),
     rejectPendingApplications: jest.fn(),
     deletePendingApplications: jest.fn(),
+    getTeacherByEmail: jest.fn(),
   };
 });
 
@@ -97,6 +103,65 @@ describe("Application Insertion Tests", () => {
   });
 });
 describe("Proposal Insertion Tests", () => {
+  test("Insertion of a proposal with groups that are not related to any (co)supervisor", () => {
+    const proposal = {
+      title: "Proposta di tesi fighissima",
+      supervisor: "s345678",
+      co_supervisors: [
+        "maurizio.morisio@polito.it",
+        "s122349@gmail.com",
+        "s298399@outlook.com",
+      ],
+      groups: ["ELITE", "SOFTENG", "FUNDIT"],
+      keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
+      types: ["EXPERIMENTAL", "RESEARCH"],
+      description: "Accetta questa tesi che e' una bomba",
+      required_knowledge: "non devi sapere nulla",
+      notes: "Bella raga",
+      expiration_date: "2019-01-25T02:00:00.000Z",
+      level: "MSC",
+      cds: "LM-32 (DM270)",
+    };
+    getTeacher.mockReturnValue({
+      id: "s345678",
+      name: "Luigi",
+      surname: "De Russis",
+      email: "luigi.derussis@polito.it",
+      cod_group: "ELITE",
+      cod_department: "DAUIN",
+    });
+    getGroup.mockReturnValueOnce({
+      cod_group: "ELITE",
+      name_group: "Intelligent and Interactive Systems",
+      cod_department: "DAUIN",
+    });
+    getGroup.mockReturnValueOnce({
+      cod_group: "SOFTENG",
+      name_group: "Software Engineering Group",
+      cod_department: "DAUIN",
+    });
+    getGroup.mockReturnValueOnce({
+      cod_group: "FUNDIT",
+      name_group: "Physics of Fundamental Interactions",
+      cod_department: "DISAT",
+    });
+    getTeacherByEmail.mockReturnValueOnce({
+      id: "s234567",
+      surname: "Morisio",
+      name: "Maurizio",
+      email: "maurizio.morisio@polito.it",
+      cod_group: "SOFTENG",
+      cod_department: "DAUIN",
+    });
+    return request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Invalid groups");
+      });
+  });
   it("Insertion of a correct proposal", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
@@ -319,7 +384,7 @@ describe("Get Application From Teacher", () => {
       .expect(404);
   });
 
-  test("Return 200 correct get of all application of a selected teacher", () => {
+  it("Return 200 correct get of all application of a selected teacher", () => {
     const teacher = "s123456";
     return request(app)
       .get(`/api/applications?teacher=${teacher}`)
@@ -327,7 +392,7 @@ describe("Get Application From Teacher", () => {
       .expect(200);
   });
 
-  test("Return 200 correct get of all application of a selected teacher", () => {
+  it("Return 200 correct get of all application of a selected teacher", () => {
     const teacher = "s123456";
     return request(app)
       .get(`/api/applications?teacher=${teacher}`)

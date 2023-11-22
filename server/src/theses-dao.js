@@ -104,6 +104,10 @@ exports.getTeacher = (id) => {
   return db.prepare("select * from TEACHER where id = ?").get(id);
 };
 
+exports.getTeacherByEmail = (email) => {
+  return db.prepare("select * from TEACHER where email = ?").get(email);
+};
+
 exports.getTeachers = () => {
   return db.prepare("select id, surname, name, email from TEACHER").all();
 };
