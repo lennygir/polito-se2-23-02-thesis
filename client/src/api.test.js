@@ -232,7 +232,7 @@ test("evaluateApplication- should return correct update message", async () => {
   });
   const application = {
     id: 4,
-    otherFields: "otherFields",
+    state: "state",
   };
   const result = await API.evaluateApplication(application);
   expect(fetch).toHaveBeenCalledWith(
@@ -242,7 +242,7 @@ test("evaluateApplication- should return correct update message", async () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(application),
+      body: JSON.stringify({state:application.state}),
     }
   );
   expect(result).toEqual({ message: "success update" });

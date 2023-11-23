@@ -17,6 +17,7 @@ const {
   getProposal,
   insertApplication,
   getApplication,
+  searchAcceptedApplication,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   getProposals,
@@ -265,7 +266,9 @@ router.post(
         return res.status(400).json({ message: "Invalid application content" });
       } else if (getApplication(student, proposal)) {
         return res.status(400).json({ message: "Application already present" });
-      } else {
+      } else if (searchAcceptedApplication(student)) {
+        return res.status(400).json({ message: "Student already assigned to a proposal" });
+      } else{
         const application = insertApplication(proposal, student, "pending");
         return res.status(200).json(application);
       }

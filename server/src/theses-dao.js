@@ -24,6 +24,12 @@ exports.insertApplication = (proposal, student, state) => {
   //  });
 };
 
+exports.searchAcceptedApplication = (student_id) => {
+  db.prepare(
+    "select * from APPLICATIONS where student_id = ? and state = 'accepted'",
+  ).get(student_id);
+}
+
 exports.insertProposal = (
   title,
   supervisor,

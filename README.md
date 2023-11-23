@@ -287,6 +287,69 @@
   - response body content
 - ...
 
+## API Client
+
+- `getJson`
+  - A utility function for parsing the HTTP response
+  - receive, as a parameter, a Promise that will resolve once the load operation finishes
+    - resolve to the response object
+    ```
+    {
+      "ok": "true",
+      "data": "example data"
+    }
+    ```
+    - the promise is rejected only in case of network errors
+    ```
+    {
+      "ok": "false",
+      "error": "error"
+    }
+    ```
+- `createProposal`
+  - make asynchronnus HTTP request for POST `/api/proposals`
+  - receive, as a parameter, a proposal with all the fields and puts it in the request body 
+- `getDegrees`
+  - make asynchronous HTTP request for GET `/api/degrees`
+  - no param
+  - return the list of degrees
+- `getGroups`
+  - make asynchronous HTTP request for GET `/api/groups`
+  - no param
+  - return the list of groups
+- `getTeachers`
+  - make asynchronous HTTP request for GET `/api/teachers`
+  - no param
+  - return the list of teachers
+- `getProposals`
+  - make asynchronous HTTP request for GET `/api/proposals`
+  - no param
+  - return the list of proposals
+- `getProposalsByDegree`
+  - make asynchronous HTTP request for GET `/api/proposals/:cds`
+  - receive, as a parameter, a degree id and puts it in the URL of the resource
+  - return the list of the proposals given a cds 
+- `getProposalsByTeacher`
+  - make asynchronous HTTP request for GET `/api/proposals/:supervisor`
+  - receive, as a parameter, the teacher id and puts it in the URL of the resource
+  - return the list of the proposals given a supervisor
+- `insertApplication`
+  - make asynchronous HTTP request for POST `/api/applications`
+  - receive, as parameter, a new application and puts it in the request body
+  - return a message for correct or incorrect insertion of the application
+- `getApplicationsByTeacher`
+  - make asynchronous HTTP request for GET `/api/applications/:teacher`
+  - receive, as a parameter, the teacher id and puts it in the URL of the resource
+  - return the list of the applications given a teacher
+- `getApplicationsByStudent`
+  - make asynchronous HTTP request for GET `/api/applications/:student`
+  - receive, as a parameter, the student id and puts it in the URL of the resource
+  - return the list of the applications given a student
+- `evaluateApplication`
+  - make asynchronous HTTP request for PATCH `/api/applications/:id`
+  - receive, as parameters, the id of an application (that is put in the URL of the resource) and the decision took on it
+  - return a message that confirms the update of the application
+
 ## Users Credentials
 
 - TEACHER ACCOUNT: email: marco.torchiano@polito.it, password: s123456
