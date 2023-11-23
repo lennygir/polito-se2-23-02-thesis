@@ -8,7 +8,7 @@ import Typography from "@mui/material/Typography";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ApplicationDetails from "../components/ApplicationDetails";
 import ErrorContext from "../contexts/ErrorContext";
-import API from "../API";
+import API from "../utils/API";
 
 function ViewApplicationPage(props) {
   const location = useLocation();

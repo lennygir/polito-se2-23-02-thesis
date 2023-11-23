@@ -1,4 +1,4 @@
-const SERVER_URL = "http://localhost:3000/api";
+import { SERVER_URL } from "./constants";
 
 /**
  * A utility function for parsing the HTTP response.
