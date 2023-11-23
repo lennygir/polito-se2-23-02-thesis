@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
@@ -15,50 +16,113 @@ import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
 import ProposalFilters from "../components/ProposalFilters";
 
-const TYPES = ["RESEARCH", "COMPANY", "EXPERIMENTAL", "ABROAD"];
-const LEVELS = ["BCS", "MSC"];
-
 function ProposalsPage(props) {
   const proposals = props.proposals;
   const user = useContext(UserContext);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
-
-  const filteredProposals = proposals.filter((proposal) => {
-    const {
-      title,
-      co_supervisors,
-      keywords,
-      description,
-      required_knowledge,
-      notes,
-    } = proposal;
-
-    // Convert supervisor ID to name
-    const supervisor = props.teachers.find(
-      (teacher) => teacher.id === proposal.supervisor
-    );
-    const supervisorName = supervisor?.name || "";
-    const supervisorSurname = supervisor?.surname || "";
-
-    // Check if any field contains the search input
-    const searchFields = [
-      title,
-      supervisorName,
-      supervisorSurname,
-      co_supervisors,
-      keywords,
-      description,
-      required_knowledge,
-      notes || "", // Handle the case where notes might be null
-    ];
-
-    return searchFields.some((field) => {
-      if (field !== null && field !== undefined) {
-        return field.toLowerCase().includes(searchInput.toLowerCase());
-      }
-      return false;
-    });
+  const [filterValues, setFilterValues] = useState({
+    type: [],
+    groups: [],
+    level: "",
+    cds: "",
+    startDate: null,
+    endDate: null,
   });
+
+  const toggleDrawer = () => {
+    setIsDrawerOpen(!isDrawerOpen);
+  };
+
+  const handleSearchInputChange = (value) => {
+    setSearchInput(value);
+  };
+
+  const handleMenuInputChange = (filter, value) => {
+    const newFilters =
+      filter === "level" ? { [filter]: value, cds: "" } : { [filter]: value };
+    setFilterValues((prevValues) => ({
+      ...prevValues,
+      ...newFilters,
+    }));
+  };
+
+  const resetMenuFilters = () => {
+    setFilterValues({
+      type: [],
+      groups: [],
+      level: "",
+      cds: "",
+      startDate: null,
+      endDate: null,
+    });
+  };
+
+  const filteredProposals = proposals
+    .filter((proposal) => {
+      const {
+        title,
+        co_supervisors,
+        keywords,
+        description,
+        required_knowledge,
+        notes,
+      } = proposal;
+
+      // Convert supervisor ID to name
+      const supervisor = props.teachers.find(
+        (teacher) => teacher.id === proposal.supervisor
+      );
+      const supervisorName = supervisor?.name || "";
+      const supervisorSurname = supervisor?.surname || "";
+
+      // Check if any field contains the search input
+      const searchFields = [
+        title,
+        supervisorName,
+        supervisorSurname,
+        co_supervisors,
+        keywords,
+        description,
+        required_knowledge,
+        notes || "",
+      ];
+
+      return searchFields.some((field) => {
+        if (field !== null && field !== undefined) {
+          return field.toLowerCase().includes(searchInput.toLowerCase());
+        }
+        return false;
+      });
+    })
+    .filter((proposal) => {
+      // Apply additional filters based on filterValues
+      const { type, groups, level, cds, startDate, endDate } = filterValues;
+
+      // Check if proposal matches the filter values
+      const typeMatch = type.length === 0 || type.includes(proposal.type);
+      const groupsMatch =
+        groups.length === 0 || groups.includes(proposal.groups);
+      const levelMatch = level === "" || proposal.level === level;
+      const cdsMatch = cds === "" || proposal.cds === cds;
+
+      const expirationDate = dayjs(proposal.expiration_date);
+      let isExpirationDateInRange = true;
+      if (startDate !== null && endDate !== null) {
+        isExpirationDateInRange =
+          (expirationDate.isAfter(dayjs(startDate)) ||
+            expirationDate.isSame(dayjs(startDate))) &&
+          (expirationDate.isBefore(dayjs(endDate)) ||
+            expirationDate.isSame(dayjs(endDate)));
+      }
+      return (
+        typeMatch &&
+        groupsMatch &&
+        levelMatch &&
+        cdsMatch &&
+        isExpirationDateInRange
+      );
+    });
 
   const studentView = (
     <>
@@ -81,7 +145,7 @@ function ProposalsPage(props) {
         <OutlinedInput
           sx={{ borderRadius: 4, width: { md: "300px", xs: "200px" } }}
           placeholder="Search proposal..."
-          onChange={(e) => setSearchInput(e.target.value)}
+          onChange={(e) => handleSearchInputChange(e.target.value)}
           value={searchInput}
           startAdornment={
             <InputAdornment position="start">
@@ -91,7 +155,15 @@ function ProposalsPage(props) {
             </InputAdornment>
           }
         />
-        {/*<ProposalFilters filters={filterValues} onChange={filterProposals} />*/}
+        <ProposalFilters
+          groups={props.groups}
+          degrees={props.degrees}
+          isDrawerOpen={isDrawerOpen}
+          toggleDrawer={toggleDrawer}
+          filterValues={filterValues}
+          handleMenuInputChange={handleMenuInputChange}
+          resetMenuFilters={resetMenuFilters}
+        />
       </Toolbar>
       <ProposalTable
         data={filteredProposals}

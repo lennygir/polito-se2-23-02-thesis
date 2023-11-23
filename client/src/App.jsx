@@ -20,9 +20,9 @@ import ErrorPage from "./routes/ErrorPage";
 import ErrorContext from "./contexts/ErrorContext";
 import UserContext from "./contexts/UserContext";
 import LoginPage from "./routes/LoginPage";
-import API from "./API";
 import ViewProposalPage from "./routes/ViewProposalPage";
 import ViewApplicationPage from "./routes/ViewApplicationPage";
+import API from "./utils/API";
 
 function App() {
   const { theme } = useThemeContext();

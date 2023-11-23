@@ -12,9 +12,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import UserContext from "../contexts/UserContext";
 import { DatePicker } from "@mui/x-date-pickers";
-
-const TYPES = ["Research", "Company", "Experimental", "Abroad"];
-const LEVELS = ["Bachelor Degree", "Master Degree"];
+import { LEVELS, TYPES } from "../utils/constants";
 
 function ProposalForm(props) {
   const user = useContext(UserContext);

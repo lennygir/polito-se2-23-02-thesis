@@ -1,5 +1,5 @@
 import API from "./API";
-const SERVER_URL = "http://localhost:3000/api";
+import { SERVER_URL } from "./constants";
 
 globalThis.fetch = jest.fn();
 
