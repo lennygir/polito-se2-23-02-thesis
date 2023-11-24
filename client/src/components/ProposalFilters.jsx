@@ -23,24 +23,12 @@ import { TYPES } from "../utils/constants";
 function ProposalFilters(props) {
   const {
     groups,
-    degrees,
     isDrawerOpen,
     toggleDrawer,
     filterValues,
     handleMenuInputChange,
     resetMenuFilters,
   } = props;
-
-  // Filter degrees based on the selected level
-  const getCdsOptions = () => {
-    if (filterValues.level === "MSC") {
-      return degrees.filter((degree) => degree.cod_degree.startsWith("LM"));
-    } else if (filterValues.level === "BCS") {
-      return degrees.filter((degree) => !degree.cod_degree.startsWith("LM"));
-    } else {
-      return degrees;
-    }
-  };
 
   return (
     <>
@@ -78,7 +66,8 @@ function ProposalFilters(props) {
           </Stack>
           <Divider />
           <Box sx={{ mt: 2 }}>
-            <FormControl fullWidth sx={{ my: 1 }}>
+            <Typography variant="body">Select one or more:</Typography>
+            <FormControl fullWidth sx={{ my: 1, mt: 2 }}>
               <Autocomplete
                 size="small"
                 multiple
@@ -89,11 +78,11 @@ function ProposalFilters(props) {
                 }
                 filterSelectedOptions
                 renderInput={(params) => (
-                  <TextField {...params} label="Type" placeholder="Type" />
+                  <TextField {...params} label="Types" placeholder="Types" />
                 )}
               />
             </FormControl>
-            <FormControl fullWidth sx={{ my: 1, mb: 3 }}>
+            <FormControl fullWidth sx={{ my: 2, mb: 3 }}>
               <Autocomplete
                 size="small"
                 multiple
@@ -108,47 +97,9 @@ function ProposalFilters(props) {
               />
             </FormControl>
             <Divider />
-            <FormControl fullWidth sx={{ mt: 2, ml: 1 }}>
-              <RadioGroup
-                name="level"
-                value={filterValues.level}
-                onChange={(e) => handleMenuInputChange("level", e.target.value)}
-              >
-                <FormControlLabel
-                  value="BCS"
-                  control={<Radio />}
-                  label={"Bachelor Degree"}
-                />
-                <FormControlLabel
-                  value="MSC"
-                  control={<Radio />}
-                  label={"Master Degree"}
-                />
-              </RadioGroup>
-            </FormControl>
-            <FormControl fullWidth sx={{ my: 1, mb: 3 }}>
-              <TextField
-                size="small"
-                select
-                label="CDS/Programme"
-                value={filterValues.cds}
-                onChange={(event) =>
-                  handleMenuInputChange("cds", event.target.value)
-                }
-                disabled={filterValues.level === ""}
-              >
-                {getCdsOptions().map((degree) => (
-                  <MenuItem key={degree.cod_degree} value={degree.cod_degree}>
-                    {degree.cod_degree + " " + degree.title_degree}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <FormHelperText>First select a degree level</FormHelperText>
-            </FormControl>
-            <Divider />
             <FormControl fullWidth sx={{ my: 3 }}>
-              <Stack spacing={2}>
-                <Typography variant="body">Expiration date from:</Typography>
+              <Typography variant="body">Expiration date from:</Typography>
+              <Stack spacing={2} sx={{ mt: 2 }}>
                 <DatePicker
                   format="DD/MM/YYYY"
                   label="Start Date"

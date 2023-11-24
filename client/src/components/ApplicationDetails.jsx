@@ -1,5 +1,4 @@
 import { useContext, useState } from "react";
-import { NavLink } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
@@ -8,11 +7,11 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
-import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import UserContext from "../contexts/UserContext";
+import dayjs from "dayjs";
 
 function ApplicationDetails(props) {
   const user = useContext(UserContext);
@@ -50,6 +49,58 @@ function ApplicationDetails(props) {
     return props.applications.some(
       (a) => a.id === application.id && a.state === "rejected"
     );
+  };
+
+  const renderActionButton = () => {
+    if (isApplicationAccepted()) {
+      return (
+        <Button fullWidth disabled variant="outlined">
+          Application Accepted
+        </Button>
+      );
+    }
+    if (isApplicationRejected()) {
+      return (
+        <Button fullWidth disabled variant="outlined">
+          Application Rejected
+        </Button>
+      );
+    }
+    if (user.role === "teacher") {
+      return (
+        <Stack direction="row" spacing={3}>
+          <Button
+            variant="outlined"
+            fullWidth
+            sx={{ mt: 3, mb: 2 }}
+            onClick={() => {
+              handleOpenDialog();
+              setDecision("rejected");
+            }}
+          >
+            Reject
+          </Button>
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{ mt: 3, mb: 2 }}
+            onClick={() => {
+              handleOpenDialog();
+              setDecision("accepted");
+            }}
+          >
+            Accept
+          </Button>
+        </Stack>
+      );
+    }
+    if (user.role === "student" && application.state === "pending") {
+      return (
+        <Button fullWidth disabled variant="outlined">
+          Pending Application
+        </Button>
+      );
+    }
   };
 
   return (
@@ -93,11 +144,11 @@ function ApplicationDetails(props) {
         <span style={{ fontWeight: "bold" }}>Student ID: </span>
         {application.student_id}
       </Typography>
-      <Typography variant="subtitle1" gutterBottom paddingTop={1}>
+      <Typography variant="subtitle1" gutterBottom>
         <span style={{ fontWeight: "bold" }}>Full Name: </span>
         {application.student_surname + " " + application.student_name}
       </Typography>
-      <Typography variant="subtitle1" gutterBottom paddingTop={1}>
+      <Typography variant="subtitle1" gutterBottom>
         <span style={{ fontWeight: "bold" }}>Email: </span>
         {application.student_id + "@studenti.polito.it"}
       </Typography>
@@ -109,67 +160,19 @@ function ApplicationDetails(props) {
           Student CV
         </Button>
       </Stack>
-      <Typography variant="h5" gutterBottom paddingTop={1}>
+      <Typography variant="h5" gutterBottom>
         Thesis Proposal
       </Typography>
       <Divider />
       <Typography variant="subtitle1" gutterBottom paddingTop={2}>
-        <span style={{ fontWeight: "bold" }}>Link to proposal: </span>
-        <Link
-          color="inherit"
-          underline="always"
-          component={NavLink}
-          to={"/proposals/" + proposal?.id}
-          state={{ proposal: proposal }}
-        >
-          {proposal?.title}
-        </Link>
+        <span style={{ fontWeight: "bold" }}>Title: </span>
+        {proposal?.title}
       </Typography>
-      <Box paddingTop={5}>
-        {isApplicationAccepted() && (
-          <Button fullWidth disabled variant="outlined">
-            Application Accepted
-          </Button>
-        )}
-        {isApplicationRejected() && (
-          <Button fullWidth disabled variant="outlined">
-            Application Rejected
-          </Button>
-        )}
-        {!isApplicationAccepted() &&
-          !isApplicationRejected() &&
-          user?.role === "teacher" && (
-            <Stack direction="row" spacing={3}>
-              <Button
-                variant="outlined"
-                fullWidth
-                sx={{ mt: 3, mb: 2 }}
-                onClick={() => {
-                  handleOpenDialog();
-                  setDecision("rejected");
-                }}
-              >
-                Reject
-              </Button>
-              <Button
-                variant="contained"
-                fullWidth
-                sx={{ mt: 3, mb: 2 }}
-                onClick={() => {
-                  handleOpenDialog();
-                  setDecision("accepted");
-                }}
-              >
-                Accept
-              </Button>
-            </Stack>
-          )}
-        {application.state === "pending" && user?.role === "student" && (
-          <Button fullWidth disabled variant="outlined">
-            Pending Application
-          </Button>
-        )}
-      </Box>
+      <Typography variant="subtitle1" gutterBottom>
+        <span style={{ fontWeight: "bold" }}>Expiration date: </span>
+        {dayjs(proposal?.expiration_date).format("MMMM D, YYYY")}
+      </Typography>
+      <Box paddingTop={4}>{renderActionButton()}</Box>
     </>
   );
 }

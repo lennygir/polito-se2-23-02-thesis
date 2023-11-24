@@ -56,10 +56,10 @@ function RootPage(props) {
             component="main"
             sx={{
               flexGrow: 1,
-              p: 3,
+              p: { md: 3, xs: 1 },
               width: "100%",
               height: `calc(100vh - ${navbarHeight}px)`,
-              marginTop: 8,
+              marginTop: { md: 8, xs: 11 },
             }}
           >
             {props.loading ? (

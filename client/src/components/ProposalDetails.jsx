@@ -36,10 +36,58 @@ function ProposalDetails(props) {
     props.createApplication(application);
   };
 
+  const isApplicationAccepted = () => {
+    return applications.some((application) => application.state === "accepted");
+  };
+
+  const isWaitingOnDecision = () => {
+    return applications.some((application) => application.state === "pending");
+  };
+
   const isApplicationSent = () => {
     return applications.some(
       (application) => application.proposal_id === proposal.id
     );
+  };
+
+  const renderActionButton = () => {
+    if (isApplicationAccepted()) {
+      return null;
+    }
+    if (isWaitingOnDecision()) {
+      return (
+        <Button
+          disabled
+          variant="outlined"
+          sx={{ mt: 3, mb: 2 }}
+          onClick={handleOpenDialog}
+        >
+          Waiting on decision
+        </Button>
+      );
+    }
+    if (isApplicationSent()) {
+      return (
+        <Button
+          disabled
+          variant="outlined"
+          sx={{ mt: 3, mb: 2 }}
+          onClick={handleOpenDialog}
+        >
+          Application already sent
+        </Button>
+      );
+    } else {
+      return (
+        <Button
+          variant="contained"
+          sx={{ mt: 3, mb: 2 }}
+          onClick={handleOpenDialog}
+        >
+          Send Application
+        </Button>
+      );
+    }
   };
 
   return (
@@ -127,7 +175,7 @@ function ProposalDetails(props) {
           {proposal.notes}
         </Typography>
       )}
-      {user?.role === "student" && (
+      {user.role === "student" && (
         <Box
           sx={{
             display: "flex",
@@ -135,24 +183,7 @@ function ProposalDetails(props) {
             justifyContent: "center",
           }}
         >
-          {!isApplicationSent() ? (
-            <Button
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-              onClick={handleOpenDialog}
-            >
-              Send Application
-            </Button>
-          ) : (
-            <Button
-              disabled
-              variant="outlined"
-              sx={{ mt: 3, mb: 2 }}
-              onClick={handleOpenDialog}
-            >
-              Application Sent
-            </Button>
-          )}
+          {renderActionButton()}
         </Box>
       )}
     </>

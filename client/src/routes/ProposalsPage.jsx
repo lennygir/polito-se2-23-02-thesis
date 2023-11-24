@@ -24,8 +24,6 @@ function ProposalsPage(props) {
   const [filterValues, setFilterValues] = useState({
     type: [],
     groups: [],
-    level: "",
-    cds: "",
     startDate: null,
     endDate: null,
   });
@@ -39,11 +37,9 @@ function ProposalsPage(props) {
   };
 
   const handleMenuInputChange = (filter, value) => {
-    const newFilters =
-      filter === "level" ? { [filter]: value, cds: "" } : { [filter]: value };
     setFilterValues((prevValues) => ({
       ...prevValues,
-      ...newFilters,
+      [filter]: value,
     }));
   };
 
@@ -51,8 +47,6 @@ function ProposalsPage(props) {
     setFilterValues({
       type: [],
       groups: [],
-      level: "",
-      cds: "",
       startDate: null,
       endDate: null,
     });
@@ -97,15 +91,12 @@ function ProposalsPage(props) {
     })
     .filter((proposal) => {
       // Apply additional filters based on filterValues
-      const { type, groups, level, cds, startDate, endDate } = filterValues;
+      const { type, groups, startDate, endDate } = filterValues;
 
       // Check if proposal matches the filter values
       const typeMatch = type.length === 0 || type.includes(proposal.type);
       const groupsMatch =
         groups.length === 0 || groups.includes(proposal.groups);
-      const levelMatch = level === "" || proposal.level === level;
-      const cdsMatch = cds === "" || proposal.cds === cds;
-
       const expirationDate = dayjs(proposal.expiration_date);
       let isExpirationDateInRange = true;
       if (startDate !== null && endDate !== null) {
@@ -115,13 +106,7 @@ function ProposalsPage(props) {
           (expirationDate.isBefore(dayjs(endDate)) ||
             expirationDate.isSame(dayjs(endDate)));
       }
-      return (
-        typeMatch &&
-        groupsMatch &&
-        levelMatch &&
-        cdsMatch &&
-        isExpirationDateInRange
-      );
+      return typeMatch && groupsMatch && isExpirationDateInRange;
     });
 
   const studentView = (
@@ -143,7 +128,7 @@ function ProposalsPage(props) {
         }}
       >
         <OutlinedInput
-          sx={{ borderRadius: 4, width: { md: "300px", xs: "200px" } }}
+          sx={{ borderRadius: 4, width: { md: "400px", xs: "200px" } }}
           placeholder="Search proposal..."
           onChange={(e) => handleSearchInputChange(e.target.value)}
           value={searchInput}
@@ -157,7 +142,6 @@ function ProposalsPage(props) {
         />
         <ProposalFilters
           groups={props.groups}
-          degrees={props.degrees}
           isDrawerOpen={isDrawerOpen}
           toggleDrawer={toggleDrawer}
           filterValues={filterValues}
