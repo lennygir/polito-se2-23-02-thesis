@@ -3,14 +3,14 @@
 -- sqlite3 polito-original.db < create_db.sql
 
 -- Destruction of the old tables if they exist
-DROP TABLE IF EXISTS STUDENT;
-DROP TABLE IF EXISTS TEACHER;
-DROP TABLE IF EXISTS DEGREE;
-DROP TABLE IF EXISTS CAREER;
-DROP TABLE IF EXISTS DEPARTMENTS;
-DROP TABLE IF EXISTS GROUPS;
-DROP TABLE IF EXISTS PROPOSALS;
 DROP TABLE IF EXISTS APPLICATIONS;
+DROP TABLE IF EXISTS CAREER;
+DROP TABLE IF EXISTS STUDENT;
+DROP TABLE IF EXISTS PROPOSALS;
+DROP TABLE IF EXISTS DEGREE;
+DROP TABLE IF EXISTS TEACHER;
+DROP TABLE IF EXISTS GROUPS;
+DROP TABLE IF EXISTS DEPARTMENTS;
 DROP TABLE IF EXISTS USERS;
 
 CREATE TABLE IF NOT EXISTS DEGREE ( 
@@ -158,13 +158,13 @@ VALUES
         ('s317743', 'Baracco', 'Francesco', 'Male', 'Italy', 's317743@studenti.polito.it', 'LM-32 (DM270)', 2022),
         ('s321503', 'Girardot', 'Lenny', 'Male', 'France', 's321503@studenti.polito.it', 'LM-32 (DM270)', 2023),
         ('s308920', 'Ghorbani', 'Ghazal', 'Female', 'Iran', 's308920@studenti.polito.it', 'LM-32 (DM270)', 2023),
-        ('s319831', 'Choi', 'Seo-yeon', 'Female', 'South Korea', 's319831@studenti.polito.it', 'L-8-T (DM270)', 2023),
-        ('s319832', 'Gomez', 'Luis', 'Male', 'Spain', 's319832@studenti.polito.it', 'L-9-A (DM270)', 2023),
-        ('s319833', 'Bianchi', 'Giulia', 'Female', 'Italy', 's319833@studenti.polito.it', 'LM-33 (DM270)', 2023),
-        ('s319834', 'Ahmed', 'Mohammed', 'Male', 'Egypt', 's319834@studenti.polito.it', 'L-8-C (DM270)', 2023),
-        ('s319835', 'Lopez', 'Isabella', 'Female', 'Mexico', 's319835@studenti.polito.it', 'LM-23 (DM270)', 2023),
-        ('s319836', 'Nakamura', 'Yuki', 'Male', 'Japan', 's319836@studenti.polito.it', 'L-9 (DM270)', 2023),
-        ('s319837', 'Silva', 'Ana', 'Female', 'Brazil', 's319837@studenti.polito.it', 'LM-29 (DM270)', 2023);
+        ('s319831', 'Choi', 'Seo-yeon', 'Female', 'South Korea', 's319831@studenti.polito.it', 'L-8-T (DM278)', 2023),
+        ('s319832', 'Gomez', 'Luis', 'Male', 'Spain', 's319832@studenti.polito.it', 'L-9-A (DM281)', 2023),
+        ('s319833', 'Bianchi', 'Giulia', 'Female', 'Italy', 's319833@studenti.polito.it', 'LM-33 (DM272)', 2023),
+        ('s319834', 'Ahmed', 'Mohammed', 'Male', 'Egypt', 's319834@studenti.polito.it', 'L-8-C (DM283)', 2023),
+        ('s319835', 'Lopez', 'Isabella', 'Female', 'Mexico', 's319835@studenti.polito.it', 'LM-23 (DM271)', 2023),
+        ('s319836', 'Nakamura', 'Yuki', 'Male', 'Japan', 's319836@studenti.polito.it', 'L-9-A (DM281)', 2023),
+        ('s319837', 'Silva', 'Ana', 'Female', 'Brazil', 's319837@studenti.polito.it', 'LM-29 (DM274)', 2023);
 
 INSERT INTO TEACHER (id, surname, name, email, cod_group, cod_department)
 VALUES  ('s123456', 'Torchiano', 'Marco', 'marco.torchiano@polito.it', 'SOFTENG', 'DAUIN'),
@@ -254,3 +254,6 @@ VALUES (1,'s317743','rejected'),
        (1,'s309618','rejected'),
        (6,'s309618','rejected'),
        (8,'s309618','accepted');
+
+-- ACTIVATE FOREIGN KEYS
+PRAGMA foreign_keys = ON;
