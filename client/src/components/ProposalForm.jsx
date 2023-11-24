@@ -9,7 +9,6 @@ import FormHelperText from "@mui/material/FormHelperText";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
 import UserContext from "../contexts/UserContext";
 import { DatePicker } from "@mui/x-date-pickers";
 import { LEVELS, TYPES } from "../utils/constants";
@@ -19,13 +18,14 @@ function ProposalForm(props) {
   const [teachers, setTeachers] = useState(
     props.teachers.map((teacher) => teacher.email)
   );
+  const [availableGroups, setAvailableGroups] = useState([user.cod_group]);
 
   const [formData, setFormData] = useState({
     title: "",
     supervisor: user ? user.email : "",
     coSupervisors: [],
     externalCoSupervisor: "",
-    expirationDate: dayjs().format("YYYY-MM-DD"),
+    expirationDate: null,
     type: [],
     level: "",
     groups: [],
@@ -52,6 +52,23 @@ function ProposalForm(props) {
     cds: "",
   });
 
+  // Handle input change
+  const handleFormInputChange = (field, value) => {
+    if (field === "coSupervisors") {
+      getAvailableGroups(value);
+    }
+    const newFormData =
+      field === "level" ? { [field]: value, cds: "" } : { [field]: value };
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      ...newFormData,
+    }));
+    setFormErrors((prevErrors) => ({
+      ...prevErrors,
+      [field]: "",
+    }));
+  };
+
   // Filter degrees based on the selected level
   const getCdsOptions = () => {
     if (formData.level === "Master Degree") {
@@ -67,33 +84,20 @@ function ProposalForm(props) {
     }
   };
 
-  // Single input field
-  const handleSingleInputChange = (event) => {
-    const { name, value } = event.target;
+  // Get groups based on the selected co-supervisors
+  const getAvailableGroups = (coSupervisors) => {
+    const groups = coSupervisors.map((email) => {
+      const teacher = props.teachers.find((teacher) => teacher.email === email);
+      return teacher ? teacher.cod_group : null;
+    });
+    // Remove null values and duplicate groups
+    const uniqueGroups = [...new Set(groups.filter(Boolean))];
 
-    const updatedFormData =
-      name === "level" ? { [name]: value, cds: "" } : { [name]: value };
+    // If no co-supervisors selected, default to user's group
+    const finalGroups =
+      uniqueGroups.length === 0 ? [user.cod_group] : uniqueGroups;
 
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      ...updatedFormData,
-    }));
-    setFormErrors((prevErrors) => ({
-      ...prevErrors,
-      [name]: "",
-    }));
-  };
-
-  // Multiple input fields
-  const handleAutocompleteChange = (fieldName) => (event, values, reason) => {
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [fieldName]: values,
-    }));
-    setFormErrors((prevErrors) => ({
-      ...prevErrors,
-      [fieldName]: "",
-    }));
+    setAvailableGroups(finalGroups);
   };
 
   // Add external co-supervisor to co-supervisors array
@@ -104,7 +108,13 @@ function ProposalForm(props) {
       // Invalid input
       setFormErrors((prevErrors) => ({
         ...prevErrors,
-        externalCoSupervisor: "Please provide a valid email address",
+        externalCoSupervisor: "Invalid email address",
+      }));
+    } else if (formData.coSupervisors.includes(externalCoSup)) {
+      // Co-supervisor already present
+      setFormErrors((prevErrors) => ({
+        ...prevErrors,
+        externalCoSupervisor: "Email address already added",
       }));
     } else {
       setTeachers([...teachers, externalCoSup]);
@@ -115,14 +125,6 @@ function ProposalForm(props) {
         externalCoSupervisor: "", // Reset the input field
       }));
     }
-  };
-
-  // Date input field
-  const handleDateChange = (date) => {
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      expirationDate: dayjs(date).format("YYYY-MM-DD"),
-    }));
   };
 
   // Form validation
@@ -145,30 +147,19 @@ function ProposalForm(props) {
       errors.level = "Please provide a level";
     }
     if (validator.isEmpty(formData.cds)) {
-      errors.cds = "Please provide a cds";
+      errors.cds = "Please provide a cds programme";
     }
     if (validator.isEmpty(formData.description)) {
       errors.description = "Please provide a description";
     }
     if (validator.isEmpty(formData.requiredKnowledge)) {
-      errors.requiredKnowledge =
-        "Please provide the required knowledge for this proposal";
+      errors.requiredKnowledge = "Please provide required knowledge";
     }
     if (!validator.isEmpty(formData.keywords)) {
-      const keywordsArray = formData.keywords
+      const areKeywordsInvalid = formData.keywords
         .split("\n")
-        .map((keyword) => keyword.trim());
-      let invalidCount = 0;
-      const validKeywords = keywordsArray.filter((keyword) => {
-        if (!validator.isAscii(keyword)) {
-          invalidCount++;
-          return false;
-        }
-        return true;
-      });
-      if (invalidCount > 0) {
-        errors.keywords = "Please insert only letters or numbers";
-      }
+        .some((keyword) => !validator.isAscii(keyword.trim()));
+      errors.keywords = areKeywordsInvalid ? "Invalid keywords" : "";
     }
     return errors;
   };
@@ -208,7 +199,7 @@ function ProposalForm(props) {
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate>
       {/* Title field */}
-      <FormControl fullWidth>
+      <FormControl fullWidth sx={{ mt: { md: 2, xs: 0 } }}>
         <TextField
           required
           multiline
@@ -217,7 +208,9 @@ function ProposalForm(props) {
           label="Title"
           margin="normal"
           value={formData.title}
-          onChange={handleSingleInputChange}
+          onChange={(event) =>
+            handleFormInputChange("title", event.target.value)
+          }
           error={!!formErrors.title}
           helperText={formErrors.title}
         />
@@ -225,29 +218,29 @@ function ProposalForm(props) {
       <Stack
         direction={{ xs: "column", md: "row" }}
         alignItems="start"
-        spacing={2}
-        marginTop={4}
+        spacing={{ md: 2, xs: -1 }}
+        sx={{ mt: { md: 2, xs: 1 } }}
       >
         {/* Supervisor field */}
-        <TextField
-          fullWidth
-          name="supervisor"
-          label="Supervisor"
-          margin="normal"
-          defaultValue={formData.supervisor}
-          disabled
-          helperText="Supervisor cannot be changed"
-        />
+        <FormControl fullWidth>
+          <TextField
+            name="supervisor"
+            label="Supervisor"
+            margin="normal"
+            defaultValue={user.email}
+            disabled
+            helperText="Supervisor cannot be changed"
+          />
+        </FormControl>
         {/* Co-supervisors field */}
         <FormControl fullWidth>
           <Autocomplete
             multiple
             name="coSupervisors"
             options={teachers}
-            getOptionLabel={(option) => option}
             value={formData.coSupervisors}
-            onChange={(event, values, reason) =>
-              handleAutocompleteChange("coSupervisors")(event, values, reason)
+            onChange={(event, value) =>
+              handleFormInputChange("coSupervisors", value)
             }
             filterSelectedOptions
             renderInput={(params) => (
@@ -255,6 +248,7 @@ function ProposalForm(props) {
                 {...params}
                 label="Co-supervisors"
                 placeholder="Email"
+                margin="normal"
               />
             )}
           />
@@ -262,12 +256,13 @@ function ProposalForm(props) {
       </Stack>
 
       {/* External co-supervisor */}
-      <FormControl fullWidth sx={{ mt: 4 }}>
+      <FormControl fullWidth>
         <Stack
           spacing={1}
           direction="row"
           alignItems="flex-start"
           justifyContent="space-between"
+          sx={{ mt: { md: 2, xs: 3 } }}
         >
           <TextField
             fullWidth
@@ -275,11 +270,13 @@ function ProposalForm(props) {
             label="External co-supervisor"
             margin="normal"
             value={formData.externalCoSupervisor}
-            onChange={handleSingleInputChange}
+            onChange={(event) =>
+              handleFormInputChange("externalCoSupervisor", event.target.value)
+            }
             helperText={
               formErrors.externalCoSupervisor !== ""
                 ? formErrors.externalCoSupervisor
-                : "Enter one email address at a time"
+                : "Enter an email address"
             }
             error={!!formErrors.externalCoSupervisor}
           />
@@ -294,37 +291,36 @@ function ProposalForm(props) {
       </FormControl>
 
       {/* Expiration date field */}
-      <Stack direction="row" alignItems="center" marginTop={{ xs: 1, md: 3 }}>
-        <Typography variant="h7">Expiration&nbsp;date</Typography>
+      <FormControl fullWidth sx={{ mt: 1 }}>
         <DatePicker
           slotProps={{
             textField: {
-              fullWidth: true,
               color: "primary",
+              margin: "normal",
               helperText: formErrors.expirationDate,
+              error: !!formErrors.expirationDate,
             },
           }}
-          sx={{ ml: 5 }}
-          defaultValue={dayjs(formData.expirationDate)}
-          value={dayjs(formData.expirationDate)}
-          onChange={handleDateChange}
-          onError={(error) =>
-            setFormErrors((prevFormErrors) => ({
-              ...prevFormErrors,
-              expirationDate: "Please provide a valid date",
-            }))
+          value={
+            formData.expirationDate ? dayjs(formData.expirationDate) : null
+          }
+          onChange={(newDate) =>
+            handleFormInputChange(
+              "expirationDate",
+              dayjs(newDate).format("YYYY-MM-DD")
+            )
           }
           disableFuture={false}
           disablePast
-          format="DD/MM/YYYY"
+          format="MMMM D, YYYY"
+          label="Expiration Date*"
         />
-      </Stack>
-
+      </FormControl>
       <Stack
         direction={{ xs: "column", md: "row" }}
         alignItems="start"
-        spacing={{ xs: 4, md: 2 }}
-        marginTop={4}
+        spacing={{ xs: 0, md: 2 }}
+        sx={{ mt: { md: 2, xs: 1 } }}
       >
         {/* Type field */}
         <FormControl fullWidth required error={!!formErrors.type}>
@@ -332,11 +328,8 @@ function ProposalForm(props) {
             multiple
             name="type"
             options={TYPES}
-            getOptionLabel={(option) => option}
             value={formData.type}
-            onChange={(event, values, reason) =>
-              handleAutocompleteChange("type")(event, values, reason)
-            }
+            onChange={(event, value) => handleFormInputChange("type", value)}
             filterSelectedOptions
             renderInput={(params) => (
               <TextField
@@ -344,6 +337,7 @@ function ProposalForm(props) {
                 required
                 label="Type"
                 placeholder="Type"
+                margin="normal"
                 error={!!formErrors.type}
               />
             )}
@@ -356,12 +350,9 @@ function ProposalForm(props) {
           <Autocomplete
             multiple
             name="groups"
-            options={props.groups.map((group) => group.cod_group)}
-            getOptionLabel={(group) => group}
+            options={availableGroups}
             value={formData.groups}
-            onChange={(event, values, reason) =>
-              handleAutocompleteChange("groups")(event, values, reason)
-            }
+            onChange={(event, value) => handleFormInputChange("groups", value)}
             filterSelectedOptions
             renderInput={(params) => (
               <TextField
@@ -369,6 +360,7 @@ function ProposalForm(props) {
                 required
                 label="Groups"
                 placeholder="Group"
+                margin="normal"
                 error={!!formErrors.groups}
               />
             )}
@@ -380,64 +372,73 @@ function ProposalForm(props) {
       <Stack
         direction={{ xs: "column", md: "row" }}
         alignItems="start"
-        spacing={{ xs: 4, md: 2 }}
-        marginTop={4}
+        spacing={{ xs: 0, md: 2 }}
+        sx={{ mt: { md: 2, xs: 0 } }}
       >
         {/* Level field */}
-        <TextField
-          required
-          fullWidth
-          select
-          name="level"
-          label="Level"
-          margin="normal"
-          defaultValue={LEVELS[0]}
-          value={formData.level}
-          onChange={handleSingleInputChange}
-          error={!!formErrors.level}
-          helperText={formErrors.level}
-        >
-          {LEVELS.map((level) => (
-            <MenuItem key={level} value={level}>
-              {level}
-            </MenuItem>
-          ))}
-        </TextField>
+        <FormControl fullWidth>
+          <TextField
+            required
+            select
+            name="level"
+            label="Level"
+            margin="normal"
+            value={formData.level}
+            onChange={(event) =>
+              handleFormInputChange("level", event.target.value)
+            }
+            error={!!formErrors.level}
+            helperText={formErrors.level}
+          >
+            {LEVELS.map((level) => (
+              <MenuItem key={level} value={level}>
+                {level}
+              </MenuItem>
+            ))}
+          </TextField>
+        </FormControl>
 
         {/* CDS field */}
-        <TextField
-          required
-          fullWidth
-          select
-          name="cds"
-          label="CDS/Programmes"
-          margin="normal"
-          value={formData.cds}
-          onChange={handleSingleInputChange}
-          error={!!formErrors.cds}
-          helperText={formErrors.cds}
-          disabled={formData.level === ""}
-          SelectProps={{
-            MenuProps: {
-              PaperProps: {
-                style: {
-                  maxWidth: "400px",
-                  whiteSpace: "nowrap",
+        <FormControl fullWidth>
+          <TextField
+            required
+            select
+            name="cds"
+            label="CDS/Programmes"
+            margin="normal"
+            value={formData.cds}
+            onChange={(event) =>
+              handleFormInputChange("cds", event.target.value)
+            }
+            error={!!formErrors.cds}
+            helperText={
+              formErrors.cds !== ""
+                ? formErrors.cds
+                : "First select a degree level"
+            }
+            disabled={formData.level === ""}
+            SelectProps={{
+              MenuProps: {
+                PaperProps: {
+                  style: {
+                    maxWidth: "400px",
+                    whiteSpace: "nowrap",
+                  },
                 },
               },
-            },
-          }}
-        >
-          {getCdsOptions().map((degree) => (
-            <MenuItem key={degree.cod_degree} value={degree.cod_degree}>
-              {degree.cod_degree + " " + degree.title_degree}
-            </MenuItem>
-          ))}
-        </TextField>
+            }}
+          >
+            {getCdsOptions().map((degree) => (
+              <MenuItem key={degree.cod_degree} value={degree.cod_degree}>
+                {degree.cod_degree + " " + degree.title_degree}
+              </MenuItem>
+            ))}
+          </TextField>
+        </FormControl>
       </Stack>
 
       {/* Keywords field */}
-      <FormControl fullWidth sx={{ mt: 2 }}>
+      <FormControl fullWidth sx={{ mt: { md: 2, xs: 0 } }}>
         <TextField
           multiline
           rows={3}
@@ -445,7 +446,9 @@ function ProposalForm(props) {
           label="Keywords"
           margin="normal"
           value={formData.keywords}
-          onChange={handleSingleInputChange}
+          onChange={(event) =>
+            handleFormInputChange("keywords", event.target.value)
+          }
           helperText={
             formErrors.keywords !== ""
               ? formErrors.keywords
@@ -456,53 +459,56 @@ function ProposalForm(props) {
       </FormControl>
 
       {/* Description field */}
-      <FormControl fullWidth id="description">
+      <FormControl fullWidth sx={{ mt: { md: 2, xs: 0 } }}>
         <TextField
           required
           multiline
           rows={6}
-          id="description"
           name="description"
           label="Description"
           margin="normal"
           value={formData.description}
-          onChange={handleSingleInputChange}
+          onChange={(event) =>
+            handleFormInputChange("description", event.target.value)
+          }
           error={!!formErrors.description}
           helperText={formErrors.description}
         />
       </FormControl>
 
       {/* Required knowledge field */}
-      <FormControl fullWidth sx={{ mt: 1 }} id="required-knowledge">
+      <FormControl fullWidth sx={{ mt: { md: 2, xs: 0 } }}>
         <TextField
           required
           multiline
           rows={4}
-          id="required-knowledge"
           name="requiredKnowledge"
           label="Required knowledge"
           margin="normal"
           value={formData.requiredKnowledge}
-          onChange={handleSingleInputChange}
+          onChange={(event) =>
+            handleFormInputChange("requiredKnowledge", event.target.value)
+          }
           error={!!formErrors.requiredKnowledge}
           helperText={formErrors.requiredKnowledge}
         />
       </FormControl>
 
       {/* Notes field */}
-      <FormControl fullWidth sx={{ mt: 1 }} id="notes">
+      <FormControl fullWidth sx={{ mt: { md: 2, xs: 0 } }}>
         <TextField
           multiline
           rows={4}
-          id="notes"
           name="notes"
           label="Notes"
           margin="normal"
           value={formData.notes}
-          onChange={handleSingleInputChange}
+          onChange={(event) =>
+            handleFormInputChange("notes", event.target.value)
+          }
         />
       </FormControl>
-      <Button fullWidth type="submit" variant="contained" sx={{ mt: 3, mb: 2 }}>
+      <Button fullWidth type="submit" variant="contained" sx={{ mt: 4, mb: 2 }}>
         Create Proposal
       </Button>
     </Box>

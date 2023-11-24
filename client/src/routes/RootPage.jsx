@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import Box from "@mui/material/Box";
 import LoadingPage from "./LoadingPage";
+import { Container } from "@mui/material";
 
 const drawerWidth = 240;
 const logoHeight = 70;
@@ -50,18 +51,24 @@ function RootPage(props) {
           handleTabSelection={handleTabSelection}
           logout={props.logout}
         />
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            p: 3,
-            width: "100%",
-            height: `calc(100vh - ${navbarHeight}px)`,
-            marginTop: 8,
-          }}
-        >
-          {props.loading ? <LoadingPage loading={props.loading} /> : <Outlet />}
-        </Box>
+        <Container maxWidth="lg">
+          <Box
+            component="main"
+            sx={{
+              flexGrow: 1,
+              p: 3,
+              width: "100%",
+              height: `calc(100vh - ${navbarHeight}px)`,
+              marginTop: 8,
+            }}
+          >
+            {props.loading ? (
+              <LoadingPage loading={props.loading} />
+            ) : (
+              <Outlet />
+            )}
+          </Box>
+        </Container>
       </Box>
     </div>
   );

@@ -23,6 +23,7 @@ const {
   getApplicationById,
   rejectPendingApplications,
   deletePendingApplications,
+  getTeacherByEmail,
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -130,36 +131,43 @@ router.post(
         level,
         cds,
       } = req.body;
-      const teacher = getTeacher(supervisor);
-      if (teacher === undefined) {
+      const teacher_supervisor = getTeacher(supervisor);
+      if (teacher_supervisor === undefined) {
         return res.status(400).send({ message: "Invalid proposal content" });
-      } else {
-        for (const group of groups) {
-          if (getGroup(group) === undefined) {
-            return res
-              .status(400)
-              .send({ message: "Invalid proposal content" });
-          }
-        }
-        if (level !== "MSC" && level !== "BSC") {
+      }
+      for (const group of groups) {
+        if (getGroup(group) === undefined) {
           return res.status(400).send({ message: "Invalid proposal content" });
         }
-        const teacher = insertProposal(
-          title,
-          supervisor,
-          co_supervisors.join(", "),
-          groups.join(", "),
-          keywords.join(", "),
-          types.join(", "),
-          description,
-          required_knowledge,
-          notes,
-          dayjs(expiration_date).format("YYYY-MM-DD"),
-          level,
-          cds,
-        );
-        return res.status(200).json(teacher);
       }
+      if (level !== "MSC" && level !== "BSC") {
+        return res.status(400).send({ message: "Invalid proposal content" });
+      }
+      const legal_groups = [teacher_supervisor.cod_group];
+      for (const co_supervisor_email of co_supervisors) {
+        const co_supervisor = getTeacherByEmail(co_supervisor_email);
+        if (co_supervisor !== undefined) {
+          legal_groups.push(co_supervisor.cod_group);
+        }
+      }
+      if (!groups.every((group) => legal_groups.includes(group))) {
+        return res.status(400).send({ message: "Invalid groups" });
+      }
+      const teacher = insertProposal(
+        title,
+        supervisor,
+        co_supervisors.join(", "),
+        groups.join(", "),
+        keywords.join(", "),
+        types.join(", "),
+        description,
+        required_knowledge,
+        notes,
+        dayjs(expiration_date).format("YYYY-MM-DD"),
+        level,
+        cds,
+      );
+      return res.status(200).json(teacher);
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }
@@ -338,12 +346,10 @@ router.patch(
         return res.status(400).json({ message: "Application not existent" });
       } else {
         if (application.state !== "pending") {
-          return res
-            .status(400)
-            .json({
-              message:
-                "You cannot modify an application already accepted or rejected",
-            });
+          return res.status(400).json({
+            message:
+              "You cannot modify an application already accepted or rejected",
+          });
         }
         updateApplication(application.id, state);
         if (state === "accepted") {
