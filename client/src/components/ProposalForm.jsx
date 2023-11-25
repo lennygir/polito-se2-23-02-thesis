@@ -7,6 +7,7 @@ import Button from "@mui/material/Button";
 import FormControl from "@mui/material/FormControl";
 import FormHelperText from "@mui/material/FormHelperText";
 import MenuItem from "@mui/material/MenuItem";
+import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import UserContext from "../contexts/UserContext";
@@ -185,6 +186,10 @@ function ProposalForm(props) {
     }
   };
 
+  const CustomPaper = (props) => {
+    return <Paper elevation={8} {...props} />;
+  };
+
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate>
       {/* Title field */}
@@ -298,6 +303,7 @@ function ProposalForm(props) {
             value={formData.type}
             onChange={(event, value) => handleFormInputChange("type", value)}
             filterSelectedOptions
+            PaperComponent={CustomPaper}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -321,6 +327,7 @@ function ProposalForm(props) {
             value={formData.groups}
             onChange={(event, value) => handleFormInputChange("groups", value)}
             filterSelectedOptions
+            PaperComponent={CustomPaper}
             renderInput={(params) => (
               <TextField
                 {...params}
