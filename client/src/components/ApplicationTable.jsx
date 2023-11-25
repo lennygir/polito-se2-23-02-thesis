@@ -27,7 +27,7 @@ function ApplicationTable(props) {
         marginX: { md: 4, sm: 0 },
         maxHeight: "70vh",
         overflowY: "auto",
-        borderRadius: 4,
+        borderRadius: 4
       }}
     >
       <TableContainer sx={{ overflowX: "auto" }}>
@@ -36,19 +36,13 @@ function ApplicationTable(props) {
             <TableRow>
               {user?.role === "student" &&
                 STUDENT_HEADERS.map((headCell) => (
-                  <TableCell
-                    key={headCell}
-                    align={headCell === "Status" ? "center" : "inherit"}
-                  >
+                  <TableCell key={headCell} align={headCell === "Status" ? "center" : "inherit"}>
                     {headCell}
                   </TableCell>
                 ))}
               {user?.role === "teacher" &&
                 TEACHER_HEADERS.map((headCell) => (
-                  <TableCell
-                    key={headCell}
-                    align={headCell === "Status" ? "center" : "inherit"}
-                  >
+                  <TableCell key={headCell} align={headCell === "Status" ? "center" : "inherit"}>
                     {headCell}
                   </TableCell>
                 ))}
@@ -58,13 +52,7 @@ function ApplicationTable(props) {
             {applications.map((application) => {
               // Get the proposal object for the current application
               const proposal = getProposalById(application.proposal_id);
-              return (
-                <ApplicationRow
-                  key={application.id}
-                  application={application}
-                  proposal={proposal}
-                />
-              );
+              return <ApplicationRow key={application.id} application={application} proposal={proposal} />;
             })}
           </TableBody>
         </Table>

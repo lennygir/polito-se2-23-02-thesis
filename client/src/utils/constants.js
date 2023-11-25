@@ -17,3 +17,37 @@ export const TYPES = ["RESEARCH", "COMPANY", "EXPERIMENTAL", "ABROAD"];
  * @constant
  */
 export const LEVELS = ["Bachelor Degree", "Master Degree"];
+
+/**
+ * Color Palette
+ */
+export const NAVY = {
+  main: "#002B49",
+  light: "#2AA8FF",
+  dark: "#00192A",
+  contrastText: "#FFF"
+};
+
+export const ORANGE = {
+  main: "#FF8F19",
+  light: "#FFB76A",
+  dark: "#B75E00",
+  contrastText: "#00192A"
+};
+
+export const ROSE = {
+  main: "#FB7185",
+  light: "#FECDD3",
+  dark: "#E11D48",
+  contrastText: "#FFF"
+};
+
+export const LIGHT_BACKGROUND = {
+  paper: "#FFFFFF",
+  default: "#F0F3F5"
+};
+
+export const DARK_BACKGROUND = {
+  paper: "#00192A",
+  default: "#00192A"
+};

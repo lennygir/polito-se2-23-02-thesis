@@ -21,7 +21,7 @@ function Navbar(props) {
       position="fixed"
       sx={{
         width: { sm: `calc(100% - ${props.drawerWidth}px)` },
-        ml: { sm: `${props.drawerWidth}px` },
+        ml: { sm: `${props.drawerWidth}px` }
       }}
     >
       <Toolbar>

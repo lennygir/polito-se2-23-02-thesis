@@ -14,6 +14,7 @@ import UserContext from "../contexts/UserContext";
 import ProposalTable from "../components/ProposalTable";
 import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
+import CreateIcon from "@mui/icons-material/Create";
 import ProposalFilters from "../components/ProposalFilters";
 
 function ProposalsPage(props) {
@@ -25,7 +26,7 @@ function ProposalsPage(props) {
     type: [],
     groups: [],
     startDate: null,
-    endDate: null,
+    endDate: null
   });
 
   const toggleDrawer = () => {
@@ -39,7 +40,7 @@ function ProposalsPage(props) {
   const handleMenuInputChange = (filter, value) => {
     setFilterValues((prevValues) => ({
       ...prevValues,
-      [filter]: value,
+      [filter]: value
     }));
   };
 
@@ -48,25 +49,16 @@ function ProposalsPage(props) {
       type: [],
       groups: [],
       startDate: null,
-      endDate: null,
+      endDate: null
     });
   };
 
   const filteredProposals = proposals
     .filter((proposal) => {
-      const {
-        title,
-        co_supervisors,
-        keywords,
-        description,
-        required_knowledge,
-        notes,
-      } = proposal;
+      const { title, co_supervisors, keywords, description, required_knowledge, notes } = proposal;
 
       // Convert supervisor ID to name
-      const supervisor = props.teachers.find(
-        (teacher) => teacher.id === proposal.supervisor
-      );
+      const supervisor = props.teachers.find((teacher) => teacher.id === proposal.supervisor);
       const supervisorName = supervisor?.name || "";
       const supervisorSurname = supervisor?.surname || "";
 
@@ -79,7 +71,7 @@ function ProposalsPage(props) {
         keywords,
         description,
         required_knowledge,
-        notes || "",
+        notes || ""
       ];
 
       return searchFields.some((field) => {
@@ -94,17 +86,15 @@ function ProposalsPage(props) {
       const { type, groups, startDate, endDate } = filterValues;
 
       // Check if proposal matches the filter values
-      const typeMatch = type.length === 0 || type.includes(proposal.type);
-      const groupsMatch =
-        groups.length === 0 || groups.includes(proposal.groups);
+      const proposalTypeArray = proposal.type.split(",").map((type) => type.trim());
+      const typeMatch = type.length === 0 || proposalTypeArray.some((t) => type.includes(t));
+      const groupsMatch = groups.length === 0 || groups.includes(proposal.groups);
       const expirationDate = dayjs(proposal.expiration_date);
       let isExpirationDateInRange = true;
       if (startDate !== null && endDate !== null) {
         isExpirationDateInRange =
-          (expirationDate.isAfter(dayjs(startDate)) ||
-            expirationDate.isSame(dayjs(startDate))) &&
-          (expirationDate.isBefore(dayjs(endDate)) ||
-            expirationDate.isSame(dayjs(endDate)));
+          (expirationDate.isAfter(dayjs(startDate)) || expirationDate.isSame(dayjs(startDate))) &&
+          (expirationDate.isBefore(dayjs(endDate)) || expirationDate.isSame(dayjs(endDate)));
       }
       return typeMatch && groupsMatch && isExpirationDateInRange;
     });
@@ -112,10 +102,7 @@ function ProposalsPage(props) {
   const studentView = (
     <>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography
-          variant="h4"
-          sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}
-        >
+        <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
           Theses Proposals
         </Typography>
       </Stack>
@@ -124,7 +111,7 @@ function ProposalsPage(props) {
           display: "flex",
           justifyContent: "space-between",
           height: 96,
-          marginX: { md: 3, xs: -1 },
+          marginX: { md: 3, xs: -1 }
         }}
       >
         <OutlinedInput
@@ -134,9 +121,7 @@ function ProposalsPage(props) {
           value={searchInput}
           startAdornment={
             <InputAdornment position="start">
-              <SearchIcon
-                sx={{ color: "text.disabled", width: 20, height: 20 }}
-              />
+              <SearchIcon sx={{ color: "text.disabled", width: 20, height: 20 }} />
             </InputAdornment>
           }
         />
@@ -149,10 +134,7 @@ function ProposalsPage(props) {
           resetMenuFilters={resetMenuFilters}
         />
       </Toolbar>
-      <ProposalTable
-        data={filteredProposals}
-        getTeacherById={props.getTeacherById}
-      />
+      <ProposalTable data={filteredProposals} getTeacherById={props.getTeacherById} />
       <Box height={5} marginTop={3} />
     </>
   );
@@ -160,19 +142,11 @@ function ProposalsPage(props) {
   const teacherView = (
     <>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography
-          variant="h4"
-          sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}
-        >
+        <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
           My Theses Proposals
         </Typography>
         <Hidden smDown>
-          <Button
-            component={Link}
-            to="/add-proposal"
-            variant="contained"
-            sx={{ mr: 4 }}
-          >
+          <Button component={Link} to="/add-proposal" variant="contained" sx={{ mr: 4 }} endIcon={<CreateIcon />}>
             New Proposal
           </Button>
         </Hidden>
@@ -186,12 +160,7 @@ function ProposalsPage(props) {
           justifyContent="flex-end"
           sx={{ position: "fixed", bottom: 24, right: 24 }}
         >
-          <Fab
-            component={Link}
-            to="/add-proposal"
-            aria-label="Add"
-            color="primary"
-          >
+          <Fab component={Link} to="/add-proposal" aria-label="Add" color="primary">
             <AddIcon />
           </Fab>
         </Stack>
@@ -199,11 +168,7 @@ function ProposalsPage(props) {
     </>
   );
 
-  return (
-    <div id="proposals-page">
-      {user?.role === "student" ? studentView : teacherView}
-    </div>
-  );
+  return <div id="proposals-page">{user?.role === "student" ? studentView : teacherView}</div>;
 }
 
 export default ProposalsPage;
