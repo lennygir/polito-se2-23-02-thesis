@@ -233,6 +233,7 @@ function ProposalForm(props) {
             value={formData.coSupervisors}
             onChange={(event, value) => handleFormInputChange("coSupervisors", value)}
             filterSelectedOptions
+            PaperComponent={CustomPaper}
             renderInput={(params) => (
               <TextField {...params} label="Co-supervisors" placeholder="Email" margin="normal" />
             )}
