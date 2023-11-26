@@ -249,7 +249,8 @@
         student_name: 'Lorenzo',
         student_surname: 'Bertetto',
         teacher_name: 'Marco',
-        teacher_surname: 'Torchiano'
+        teacher_surname: 'Torchiano',
+        title: 'Gamification di attività di modellazione UML'
       },
       {
         id: 6,
@@ -259,27 +260,8 @@
         student_name: 'Francesco',
         student_surname: 'Baracco',
         teacher_name: 'Marco',
-        teacher_surname: 'Torchiano'
-      },
-      {
-        id: 7,
-        proposal_id: 2,
-        student_id: 's317743',
-        state: 'pending',
-        student_name: 'Francesco',
-        student_surname: 'Baracco',
-        teacher_name: 'Marco',
-        teacher_surname: 'Torchiano'
-      },
-      {
-        id: 8,
-        proposal_id: 3,
-        student_id: 's317743',
-        state: 'pending',
-        student_name: 'Francesco',
-        student_surname: 'Baracco',
-        teacher_name: 'Marco',
-        teacher_surname: 'Torchiano'
+        teacher_surname: 'Torchiano',
+        title: 'Analisi empirica dei difetti in R Markdown'
       }
     ]
   ```

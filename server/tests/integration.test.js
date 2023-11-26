@@ -115,15 +115,7 @@ it("Return 200 correct get of all application of a selected teacher", () => {
 });
 
 describe("Get Application From Teacher", () => {
-  it("Return 404 for a teacher that doesn't exist", () => {
-    const teacher = 0;
-    return request(app)
-      .get(`/api/applications?teacher=${teacher}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  it("Return 404 for emply list of application of that teacher", () => {
+  it("Return 404 for empty list of application of that teacher", () => {
     const teacher = "s789012";
     return request(app)
       .get(`/api/applications?teacher=${teacher}`)

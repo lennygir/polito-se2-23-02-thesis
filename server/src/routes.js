@@ -23,6 +23,7 @@ const {
   rejectPendingApplications,
   deletePendingApplications,
   getTeacherByEmail,
+  getApplications,
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -286,9 +287,19 @@ router.post(
 
 router.get(
   "/api/applications",
-  check("teacher").isAlphanumeric().isLength({ min: 7, max: 7 }),
-  check("student").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  check("teacher")
+    .isAlphanumeric()
+    .isLength({ min: 7, max: 7 })
+    .optional({ values: undefined }),
+  check("student")
+    .isAlphanumeric()
+    .isLength({ min: 7, max: 7 })
+    .optional({ values: undefined }),
   (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).json({ message: "Invalid application content" });
+    }
     try {
       if (req.query.teacher !== undefined && req.query.student === undefined) {
         const teacher = getTeacher(req.query.teacher);
@@ -296,34 +307,36 @@ router.get(
           return res.status(404).json({
             message: `Teacher ${req.query.teacher} not found, cannot get the applications`,
           });
-        } else {
-          const applications = getApplicationsOfTeacher(teacher.id);
-          if (applications.length === 0) {
-            return res.status(404).json({
-              message: `No application found for teacher ${req.query.teacher}`,
-            });
-          } else {
-            return res.status(200).json(applications);
-          }
         }
+        const applications = getApplicationsOfTeacher(teacher.id);
+        if (applications.length === 0) {
+          return res.status(404).json({
+            message: `No application found for teacher ${req.query.teacher}`,
+          });
+        }
+        return res.status(200).json(applications);
       }
       if (req.query.student !== undefined && req.query.teacher === undefined) {
         const student = getStudent(req.query.student);
-
         if (student === undefined) {
           return res.status(404).json({
             message: `Student ${req.query.student} not found, cannot get the applications`,
           });
-        } else {
-          const applications = getApplicationsOfStudent(student.id);
-          if (applications.length === 0) {
-            return res.status(404).json({
-              message: `No application found for student ${req.query.student}`,
-            });
-          } else {
-            return res.status(200).json(applications);
-          }
         }
+        const applications = getApplicationsOfStudent(student.id);
+        if (applications.length === 0) {
+          return res.status(404).json({
+            message: `No application found for student ${req.query.student}`,
+          });
+        }
+        return res.status(200).json(applications);
+      }
+      if (req.query.student === undefined && req.query.teacher === undefined) {
+        const applications = getApplications();
+        if (applications.length === 0) {
+          return res.status(404).json({ message: "No application found" });
+        }
+        return res.status(200).json(applications);
       }
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });

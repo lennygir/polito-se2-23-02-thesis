@@ -13,6 +13,7 @@ const {
   getTeacherByEmail,
   getTeacher,
   getGroup,
+  getApplications,
 } = require("../src/theses-dao");
 
 jest.mock("../src/theses-dao");
@@ -102,6 +103,88 @@ describe("Proposal Insertion Tests", () => {
   });
 });
 
+describe("Applications retrieval tests", () => {
+  test("Return 400 for a teacher that doesn't exist", () => {
+    const teacher = 0;
+    return request(app)
+      .get(`/api/applications?teacher=${teacher}`)
+      .set("Content-Type", "application/json")
+      .expect(400);
+  });
+  test("Get all the applications", () => {
+    getApplications.mockReturnValue([
+      {
+        id: 1,
+        proposal_id: 1,
+        student_id: "s317743",
+        state: "rejected",
+        student_name: "Francesco",
+        student_surname: "Baracco",
+        teacher_name: "Marco",
+        teacher_surname: "Torchiano",
+        title: "Gamification di attività di modellazione UML",
+      },
+      {
+        id: 2,
+        proposal_id: 2,
+        student_id: "s317743",
+        state: "pending",
+        student_name: "Francesco",
+        student_surname: "Baracco",
+        teacher_name: "Marco",
+        teacher_surname: "Torchiano",
+        title: "Analisi empirica dei difetti in R Markdown",
+      },
+      {
+        id: 3,
+        proposal_id: 3,
+        student_id: "s317743",
+        state: "pending",
+        student_name: "Francesco",
+        student_surname: "Baracco",
+        teacher_name: "Marco",
+        teacher_surname: "Torchiano",
+        title:
+          "Data-centric AI: Dataset augmentation techniques for bias and data quality improvement",
+      },
+      {
+        id: 4,
+        proposal_id: 4,
+        student_id: "s317743",
+        state: "pending",
+        student_name: "Francesco",
+        student_surname: "Baracco",
+        teacher_name: "Marco",
+        teacher_surname: "Torchiano",
+        title:
+          "Detecting the risk discrimination in classifiers with imbalance measures",
+      },
+      {
+        id: 37,
+        proposal_id: 8,
+        student_id: "s309618",
+        state: "pending",
+        student_name: "Lorenzo",
+        student_surname: "Bertetto",
+        teacher_name: "Maurizio",
+        teacher_surname: "Morisio",
+        title:
+          "Analisi della qualità del codice e della sicurezza delle librerie software nell ambito dell IoT: un approccio basato sull analisi statica",
+      },
+    ]);
+    return request(app)
+      .get("/api/applications")
+      .set("Content-Type", "application/json")
+      .expect(200);
+  });
+  test("No applications", () => {
+    getApplications.mockReturnValue([]);
+    return request(app)
+      .get("/api/applications")
+      .set("Content-Type", "application/json")
+      .expect(404);
+  });
+});
 describe("Get All Teachers Test", () => {
   test("Correct get of all teachers from db", () => {
     getTeachers.mockReturnValue([

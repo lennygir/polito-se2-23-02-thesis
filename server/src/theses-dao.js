@@ -194,6 +194,7 @@ exports.updateApplication = (id, state) => {
  *     student_surname,
  *     teacher_name,
  *     teacher_surname
+ *     title
  *   }
  * ]}
  */
@@ -207,7 +208,8 @@ exports.getApplicationsOfTeacher = (teacher_id) => {
                   STUDENT.name as student_name, 
                   STUDENT.surname as student_surname, 
                   TEACHER.name as teacher_name, 
-                  TEACHER.surname as teacher_surname
+                  TEACHER.surname as teacher_surname,
+                  PROPOSALS.title as title
        from APPLICATIONS,
             PROPOSALS,
             STUDENT,
@@ -230,7 +232,8 @@ exports.getApplicationsOfStudent = (student_id) => {
                   STUDENT.name as student_name, 
                   STUDENT.surname as student_surname, 
                   TEACHER.name as teacher_name, 
-                  TEACHER.surname as teacher_surname
+                  TEACHER.surname as teacher_surname,
+                  PROPOSALS.title as title
        from APPLICATIONS,
             PROPOSALS,
             STUDENT,
@@ -241,6 +244,29 @@ exports.getApplicationsOfStudent = (student_id) => {
          and APPLICATIONS.student_id = ?`,
     )
     .all(student_id);
+};
+
+exports.getApplications = () => {
+  return db
+    .prepare(
+      `select APPLICATIONS.id,
+              APPLICATIONS.proposal_id,
+              APPLICATIONS.student_id,
+              APPLICATIONS.state,
+              STUDENT.name as student_name,
+              STUDENT.surname as student_surname,
+              TEACHER.name as teacher_name,
+              TEACHER.surname as teacher_surname,
+              PROPOSALS.title as title
+       from APPLICATIONS,
+            PROPOSALS,
+            STUDENT,
+            TEACHER
+       where APPLICATIONS.proposal_id = PROPOSALS.id
+         and PROPOSALS.supervisor = TEACHER.id
+         and APPLICATIONS.student_id = STUDENT.id`,
+    )
+    .all();
 };
 
 exports.getProposals = () => {
