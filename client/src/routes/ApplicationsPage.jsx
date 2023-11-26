@@ -12,10 +12,7 @@ function ApplicationsPage(props) {
   const studentView = (
     <>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography
-          variant="h4"
-          sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}
-        >
+        <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
           My Applications
         </Typography>
       </Stack>
@@ -27,10 +24,7 @@ function ApplicationsPage(props) {
   const teacherView = (
     <>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography
-          variant="h4"
-          sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}
-        >
+        <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
           Applications
         </Typography>
       </Stack>
@@ -39,11 +33,7 @@ function ApplicationsPage(props) {
     </>
   );
 
-  return (
-    <div id="application-page">
-      {user?.role === "teacher" ? teacherView : studentView}
-    </div>
-  );
+  return <div id="application-page">{user?.role === "teacher" ? teacherView : studentView}</div>;
 }
 
 export default ApplicationsPage;

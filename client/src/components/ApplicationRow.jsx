@@ -15,36 +15,24 @@ function ApplicationRow(props) {
   return (
     <>
       <TableRow>
-        {user?.role === "teacher" && (
-          <TableCell>{application.student_id}</TableCell>
-        )}
-        {user?.role === "student" && (
-          <TableCell>
-            {`${application.teacher_name.charAt(0)}. ${
-              application.teacher_surname
-            }`}
-          </TableCell>
+        {user.role === "teacher" && <TableCell>{application.student_id}</TableCell>}
+        {user.role === "student" && (
+          <TableCell>{`${application.teacher_name.charAt(0)}. ${application.teacher_surname}`}</TableCell>
         )}
         <TableCell
           sx={{
             maxWidth: "500px",
             whiteSpace: "nowrap",
             overflow: "hidden",
-            textOverflow: "ellipsis",
+            textOverflow: "ellipsis"
           }}
         >
           {proposal?.title}
         </TableCell>
         <TableCell align="center">
-          {application.state === "rejected" && (
-            <Chip label="Rejected" size="small" color="error" />
-          )}
-          {application.state === "accepted" && (
-            <Chip label="Accepted" size="small" color="success" />
-          )}
-          {application.state === "pending" && (
-            <Chip label="Pending" size="small" />
-          )}
+          {application.state === "rejected" && <Chip label="REJECTED" size="small" color="error" />}
+          {application.state === "accepted" && <Chip label="ACCEPTED" size="small" color="success" />}
+          {application.state === "pending" && <Chip label="PENDING" size="small" color="info" />}
         </TableCell>
         <TableCell>
           <Tooltip title="View application">

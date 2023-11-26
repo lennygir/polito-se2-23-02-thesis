@@ -19,7 +19,7 @@ function CreateProposalPage(props) {
       .then(() => {
         props.setAlert({
           message: "Proposal created successfully",
-          severity: "success",
+          severity: "success"
         });
         props.fetchProposals();
         navigate("/proposals");
@@ -46,16 +46,10 @@ function CreateProposalPage(props) {
           Back
         </Button>
       </Stack>
-      <Typography
-        variant="h4"
-        sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}
-      >
+      <Typography variant="h4" sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}>
         New Thesis Proposal
       </Typography>
-      <Paper
-        elevation={1}
-        sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}
-      >
+      <Paper elevation={1} sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
           <ProposalForm
             teachers={props.teachers}

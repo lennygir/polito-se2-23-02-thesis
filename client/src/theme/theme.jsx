@@ -1,4 +1,4 @@
-import { amber, deepOrange, grey } from "@mui/material/colors";
+import { NAVY, ORANGE, ROSE, LIGHT_BACKGROUND, DARK_BACKGROUND } from "../utils/constants";
 
 export const getDesignTokens = (mode) => ({
   palette: {
@@ -6,39 +6,119 @@ export const getDesignTokens = (mode) => ({
     ...(mode === "light"
       ? {
           // Light mode palette
-          primary: {
-            main: "#1e4aa2",
-          },
-          secondary: {
-            main: "#ef6c00",
-          },
+          // Blue Navy
+          primary: NAVY,
+          // Orange
+          secondary: ORANGE,
+          // White
+          background: LIGHT_BACKGROUND
         }
       : {
           // Dark mode palette
-          primary: {
-            main: "#ef6c00",
-          },
-          secondary: {
-            main: "#1e4aa2",
-          },
+          // Orange
+          primary: ORANGE,
+          // Blue Navy
+          secondary: NAVY,
+          // Deep Blue
+          background: DARK_BACKGROUND
         }),
+    rose: ROSE
   },
   typography: {
+    htmlFontSize: 16,
     fontFamily: ["Montserrat", "sans-serif"].join(","),
+    fontSize: 14,
+    h4: {
+      fontWeight: 700,
+      color: mode === "light" ? "#00192A" : "#FFF"
+    },
+    h5: {
+      fontWeight: 700,
+      color: mode === "light" ? "#00192A" : "#FFF"
+    },
+    body1: {
+      fontWeight: 500
+    },
+    body2: {
+      fontWeight: 500,
+      fontSize: 16
+    },
+    button: {
+      fontWeight: 700
+    }
   },
   components: {
     MuiButtonBase: {
       defaultProps: {
-        disableRipple: true,
-      },
+        disableRipple: true
+      }
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: "18px",
+          height: "40px"
+        },
+        outlined: {
+          border: "1px solid"
+        }
+      }
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          color: mode === "light" ? "#00192A" : "#FFF"
+        }
+      }
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          borderRadius: "18px"
+        }
+      }
+    },
+    MuiDivider: {
+      styleOverrides: {
+        middle: {
+          border: "2px solid",
+          color: "#2AA8FF",
+          width: "30px",
+          marginLeft: 0
+        }
+      }
+    },
+    MuiListItem: {
+      styleOverrides: {
+        root: {
+          paddingLeft: 8,
+          paddingRight: 8,
+          marginBottom: 8
+        }
+      }
     },
     MuiListItemButton: {
       styleOverrides: {
         root: {
           paddingLeft: 24,
           paddingRight: 24,
-        },
-      },
+          borderRadius: "18px"
+        }
+      }
     },
-  },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: "18px"
+        }
+      }
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          height: "19px"
+        }
+      }
+    }
+  }
 });
