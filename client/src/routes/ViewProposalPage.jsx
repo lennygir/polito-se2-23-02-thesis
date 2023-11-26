@@ -4,7 +4,7 @@ import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ProposalDetails from "../components/ProposalDetails";
 import ErrorContext from "../contexts/ErrorContext";
-import API from "../API";
+import API from "../utils/API";
 
 function ViewProposalPage(props) {
   const navigate = useNavigate();

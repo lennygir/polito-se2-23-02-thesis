@@ -8,7 +8,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import ProposalForm from "../components/ProposalForm";
 import ErrorContext from "../contexts/ErrorContext";
-import API from "../API";
+import API from "../utils/API";
 
 function CreateProposalPage(props) {
   const navigate = useNavigate();
