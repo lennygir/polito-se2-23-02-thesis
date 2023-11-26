@@ -129,27 +129,27 @@ function ProposalDetails(props) {
         {proposal.co_supervisors}
       </Typography>
       {proposal.keywords && proposal.keywords !== "" && (
-        <Typography variant="body1" gutterBottom>
-          <Stack direction="row" spacing={1} alignItems={{ md: "center", xs: "flex-start" }}>
-            <span style={{ fontWeight: "bold" }}>Keywords: </span>
-            <Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap flexWrap="wrap">
-              {proposal.keywords.split(",").map((keyword) => renderKeyword(keyword.trim()))}
-            </Stack>
+        <Stack direction="row" spacing={1} alignItems={{ md: "center", xs: "flex-start" }} sx={{ mb: 1 }}>
+          <Typography variant="body1" fontWeight={700} gutterBottom>
+            Keywords:
+          </Typography>
+          <Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap flexWrap="wrap">
+            {proposal.keywords.split(",").map((keyword) => renderKeyword(keyword.trim()))}
           </Stack>
-        </Typography>
+        </Stack>
       )}
       <Typography variant="body1" gutterBottom>
         <span style={{ fontWeight: "bold" }}>Groups: </span>
         {proposal.groups}
       </Typography>
-      <Typography variant="body1" gutterBottom>
-        <Stack direction="row" spacing={1} alignItems={{ md: "center", xs: "flex-start" }}>
-          <span style={{ fontWeight: "bold" }}>Type: </span>
-          <Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap flexWrap="wrap">
-            {proposal.type.split(",").map((type) => renderType(type.trim()))}
-          </Stack>
+      <Stack direction="row" spacing={1} alignItems={{ md: "center", xs: "flex-start" }} sx={{ mb: 1 }}>
+        <Typography variant="body1" fontWeight={700} gutterBottom>
+          Type:
+        </Typography>
+        <Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap flexWrap="wrap">
+          {proposal.type.split(",").map((type) => renderType(type.trim()))}
         </Stack>
-      </Typography>
+      </Stack>
       <Typography variant="body1" gutterBottom>
         <span style={{ fontWeight: "bold" }}>Description: </span>
         {proposal.description}
