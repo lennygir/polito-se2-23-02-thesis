@@ -1,8 +1,10 @@
 "use strict";
 
 const router = require("express").Router();
-const userDao = require("./user-dao");
+const dayjs = require("dayjs");
+const { auth } = require("express-openid-connect");
 const { check, validationResult } = require("express-validator");
+const userDao = require("./user-dao");
 const {
   getTeacher,
   getStudent,
@@ -25,7 +27,23 @@ const {
   deletePendingApplications,
   getTeacherByEmail,
 } = require("./theses-dao");
-const dayjs = require("dayjs");
+
+const config = {
+  authRequired: false,
+  auth0Logout: true,
+  secret: "aa026be35f2f2fd7bc665347d5bfe44b2c47bcc80f5fc48fbe342bd2c55000fa",
+  baseURL: "http://localhost:3000",
+  clientID: "OhrX6zAdWHcVxRMXFfkK2MBarmyzzMf0",
+  issuerBaseURL: "https://dev-b1bmu6tyqbve3iwg.us.auth0.com",
+};
+
+// auth router attaches /login, /logout, and /callback routes to the baseURL
+router.use(auth(config));
+
+// req.isAuthenticated is provided from the auth router
+router.get("/", (req, res) => {
+  res.send(req.oidc.isAuthenticated() ? "Logged in" : "Logged out");
+});
 
 // ==================================================
 // Routes
@@ -371,14 +389,5 @@ router.patch(
     }
   },
 );
-
-// ==================================================
-// Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS
-// ==================================================
-router.use(function (req, res) {
-  res.status(404).json({
-    message: "Endpoint not found, make sure you used the correct URL / Method",
-  });
-});
 
 module.exports = router;
