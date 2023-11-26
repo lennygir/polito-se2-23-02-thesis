@@ -20,10 +20,12 @@ const {
   getApplicationsOfStudent,
   getProposals,
   getApplicationById,
-  rejectPendingApplications,
-  deletePendingApplications,
   getTeacherByEmail,
   getApplications,
+  cancelPendingApplications,
+  getPendingOrAcceptedApplicationsOfStudent,
+  findAcceptedProposal,
+  findRejectedApplication,
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -272,9 +274,20 @@ router.post(
       if (db_student === undefined || db_proposal === undefined) {
         return res.status(400).json({ message: "Invalid application content" });
       }
-      if (getApplicationsOfStudent(student).length !== 0) {
+      if (getPendingOrAcceptedApplicationsOfStudent(student).length !== 0) {
         return res.status(400).json({
           message: `The student ${student} has already applied to a proposal`,
+        });
+      }
+      if (findAcceptedProposal(proposal)) {
+        return res.status(400).json({
+          message: `The proposal ${proposal} is already accepted for another student`,
+        });
+      }
+      if (findRejectedApplication(proposal, student)) {
+        return res.status(400).json({
+          message:
+            "The student has already applied for this application and it was rejected",
         });
       }
       const application = insertApplication(proposal, student, "pending");
@@ -367,13 +380,9 @@ router.patch(
       }
       updateApplication(application.id, state);
       if (state === "accepted") {
-        rejectPendingApplications(
+        cancelPendingApplications(
           application.proposal_id,
           application.student_id,
-        );
-        deletePendingApplications(
-          application.student_id,
-          application.proposal_id,
         );
       }
       return res.status(200).json({ message: `Application ${state}` });

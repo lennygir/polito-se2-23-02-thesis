@@ -165,20 +165,38 @@ exports.getProposalsByDegree = (cds) => {
     .all(cds);
 };
 
-exports.rejectPendingApplications = (of_proposal, except_for_student) => {
+exports.cancelPendingApplications = (of_proposal, except_for_student) => {
   db.prepare(
-    "update APPLICATIONS set state = 'rejected' where proposal_id = ? AND state = 'pending' AND student_id != ?",
+    "update APPLICATIONS set state = 'canceled' where proposal_id = ? AND state = 'pending' AND student_id != ?",
   ).run(of_proposal, except_for_student);
-};
-
-exports.deletePendingApplications = (of_student, except_proposal) => {
-  db.prepare(
-    "update APPLICATIONS set state = 'canceled' where student_id = ? and proposal_id != ? and state = 'pending'",
-  ).run(of_student, except_proposal);
 };
 
 exports.updateApplication = (id, state) => {
   db.prepare("update APPLICATIONS set state = ? where id = ?").run(state, id);
+};
+
+exports.getPendingOrAcceptedApplicationsOfStudent = (student_id) => {
+  return db
+    .prepare(
+      `select * from APPLICATIONS where student_id = ? and (state = 'accepted' or state = 'pending')`,
+    )
+    .all(student_id);
+};
+
+exports.findAcceptedProposal = (proposal_id) => {
+  return db
+    .prepare(
+      `select * from APPLICATIONS where proposal_id = ? and state = 'accepted'`,
+    )
+    .get(proposal_id);
+};
+
+exports.findRejectedApplication = (proposal_id, student_id) => {
+  return db
+    .prepare(
+      `select * from APPLICATIONS where proposal_id = ? and student_id = ? and state = 'rejected'`,
+    )
+    .get(proposal_id, student_id);
 };
 
 /**
