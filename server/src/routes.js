@@ -16,8 +16,6 @@ const {
   updateApplication,
   getProposal,
   insertApplication,
-  getApplication,
-  searchAcceptedApplication,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   getProposals,
@@ -272,14 +270,14 @@ router.post(
       const db_proposal = getProposal(proposal);
       if (db_student === undefined || db_proposal === undefined) {
         return res.status(400).json({ message: "Invalid application content" });
-      } else if (getApplication(student, proposal)) {
-        return res.status(400).json({ message: "Application already present" });
-      } else if (searchAcceptedApplication(student)) {
-        return res.status(400).json({ message: "Student already assigned to a proposal" });
-      } else{
-        const application = insertApplication(proposal, student, "pending");
-        return res.status(200).json(application);
       }
+      if (getApplicationsOfStudent(student).length !== 0) {
+        return res.status(400).json({
+          message: `The student ${student} has already applied to a proposal`,
+        });
+      }
+      const application = insertApplication(proposal, student, "pending");
+      return res.status(200).json(application);
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
     }
@@ -347,28 +345,25 @@ router.patch(
       const application = getApplicationById(req.params.id);
       if (application === undefined) {
         return res.status(400).json({ message: "Application not existent" });
-      } else {
-        if (application.state !== "pending") {
-          return res.status(400).json({
-            message:
-              "You cannot modify an application already accepted or rejected",
-          });
-        }
-        updateApplication(application.id, state);
-        if (state === "accepted") {
-          rejectPendingApplications(
-            application.proposal_id,
-            application.student_id,
-          );
-          deletePendingApplications(
-            application.student_id,
-            application.proposal_id,
-          );
-          res.status(200).json({ message: "Application accepted" });
-        } else {
-          res.status(200).json({ message: "Application rejected" });
-        }
       }
+      if (application.state !== "pending") {
+        return res.status(400).json({
+          message:
+            "You cannot modify an application already accepted or rejected",
+        });
+      }
+      updateApplication(application.id, state);
+      if (state === "accepted") {
+        rejectPendingApplications(
+          application.proposal_id,
+          application.student_id,
+        );
+        deletePendingApplications(
+          application.student_id,
+          application.proposal_id,
+        );
+      }
+      return res.status(200).json({ message: `Application ${state}` });
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }

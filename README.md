@@ -201,7 +201,7 @@
   }
   ```
 - PATCH `/api/applications/:id`
-  - accept or reject a specific application. If the application is accepted, all the pending applications of that student are removed, and all the pending applications for that proposal are rejected
+  - accept or reject a specific application. If the application is accepted, all the pending applications of that student are set canceled, and all the pending applications for that proposal are rejected
   - request body content example
   ```
   {
@@ -211,6 +211,7 @@
 - POST `/api/applications`
   - notes
     - the initial state is always `pending`
+    - will not work if the student already applied for a proposal
   - request body content example
   ```
   {
