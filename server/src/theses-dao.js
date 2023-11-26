@@ -417,3 +417,14 @@ exports.getProposals = () => {
   //  );
   //});
 };
+
+exports.deleteProposal = (proposal_id) => {
+  try {
+    console.log(proposal_id)
+    db.prepare("DELETE FROM APPLICATIONS WHERE proposal_id = ?").run(proposal_id);
+    db.prepare("DELETE FROM PROPOSALS WHERE id = ?").run(proposal_id);
+    console.log("Deletions were successful");
+  } catch (err) {
+    console.error("Error deleting:", err);
+  }
+};

@@ -455,3 +455,13 @@ describe("Get All Degrees Test", () => {
       .expect(500);
   });
 });
+
+describe("Delete proposals", () => {
+  test("Correct elimination of a proposal", () => {
+    const id = 2;
+    return request(app)
+      .delete(`/api/proposals?id=${id}`)
+      .expect(200);
+  });
+
+});

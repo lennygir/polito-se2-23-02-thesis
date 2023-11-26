@@ -19,6 +19,7 @@ const {
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   getProposals,
+  deleteProposal
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -318,6 +319,17 @@ router.get(
   },
 );
 
+router.delete('/api/proposals',
+  [ check('id').isInt() ],
+  async (req, res) => {
+    try {
+      await deleteProposal(req.query.id);
+      return res.status(200).send('Proposal deleted successfully.');
+    } catch (err) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
 // ==================================================
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS
 // ==================================================
