@@ -31,9 +31,9 @@ const logIn = async (credentials) => {
     fetch(SERVER_URL + "/sessions", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(credentials),
+      body: JSON.stringify(credentials)
     })
   );
 };
@@ -55,9 +55,9 @@ const createProposal = async (proposal) => {
     fetch(SERVER_URL + "/proposals", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(proposal),
+      body: JSON.stringify(proposal)
     })
   );
 };
@@ -79,9 +79,9 @@ const insertApplication = async (application) => {
     fetch(SERVER_URL + "/applications", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(application),
+      body: JSON.stringify(application)
     })
   );
 };
@@ -91,9 +91,9 @@ const evaluateApplication = async (application) => {
     fetch(SERVER_URL + "/applications/" + application.id, {
       method: "PATCH",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({ state: application.state }),
+      body: JSON.stringify({ state: application.state })
     })
   );
 };
@@ -125,7 +125,7 @@ const API = {
   getApplicationsByTeacher,
   getApplicationsByStudent,
   evaluateApplication,
-  logIn,
+  logIn
 };
 
 export default API;

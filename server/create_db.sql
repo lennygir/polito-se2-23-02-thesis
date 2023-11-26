@@ -249,8 +249,5 @@ VALUES ('marco.torchiano@polito.it', 's123456'),
 INSERT INTO APPLICATIONS (proposal_id,student_id,state)
 VALUES (1,'s317743','rejected'),
        (2,'s317743','pending'),
-       (3,'s317743','pending'),
-       (4,'s317743','pending'),
        (1,'s309618','rejected'),
-       (6,'s309618','rejected'),
-       (8,'s309618','accepted');
+       (6,'s309618','rejected');

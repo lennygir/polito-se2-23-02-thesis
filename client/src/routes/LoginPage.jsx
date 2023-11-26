@@ -1,8 +1,6 @@
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
 import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
@@ -63,7 +61,7 @@ function LoginPage(props) {
             marginTop: 8,
             display: "flex",
             flexDirection: "column",
-            alignItems: "center",
+            alignItems: "center"
           }}
         >
           <Box marginBottom={4}>
@@ -71,8 +69,7 @@ function LoginPage(props) {
               src={logo}
               alt="PoliLogo"
               style={{
-                filter:
-                  mode === "dark" ? "brightness(0) invert(1)" : "invert(0)",
+                filter: mode === "dark" ? "brightness(0) invert(1)" : "invert(0)"
               }}
               height={100}
             />
@@ -83,13 +80,7 @@ function LoginPage(props) {
           <Typography component="h1" variant="h5">
             Login
           </Typography>
-          <Box
-            component="form"
-            onSubmit={handleSubmit}
-            noValidate
-            autoComplete="on"
-            sx={{ mt: 1 }}
-          >
+          <Box component="form" onSubmit={handleSubmit} noValidate autoComplete="on" sx={{ mt: 1 }}>
             <TextField
               autoComplete="on"
               margin="normal"
@@ -124,12 +115,7 @@ function LoginPage(props) {
               }}
               helperText={passwordError}
             />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
+            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
               Login
             </Button>
           </Box>

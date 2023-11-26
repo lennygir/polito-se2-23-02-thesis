@@ -1,3 +1,4 @@
+import { useContext } from "react";
 import Card from "@mui/material/Card";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -6,11 +7,11 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import ProposalRow from "./ProposalRow";
-import { useContext } from "react";
 import UserContext from "../contexts/UserContext";
+import { Typography } from "@mui/material";
 
-const TEACHER_HEADERS = ["Id", "Title", "Expiration Date", ""];
-const STUDENT_HEADERS = ["Supervisor", "Title", "Expiration Date"];
+const TEACHER_HEADERS = ["Thesis", "Expiration Date", ""];
+const STUDENT_HEADERS = ["Supervisor", "Thesis", "Expiration Date"];
 
 function ProposalTable(props) {
   const user = useContext(UserContext);
@@ -22,7 +23,7 @@ function ProposalTable(props) {
         marginX: { md: 4, sm: 0 },
         maxHeight: user?.role === "student" ? "60vh" : "70vh",
         overflowY: "auto",
-        borderRadius: 4,
+        borderRadius: 4
       }}
     >
       <TableContainer sx={{ overflowX: "auto" }}>
@@ -33,33 +34,27 @@ function ProposalTable(props) {
                 STUDENT_HEADERS.map((headCell) => (
                   <TableCell
                     key={headCell}
-                    align={
-                      headCell === "Expiration Date" ? "center" : "inherit"
-                    }
+                    align={headCell === "Expiration Date" ? "center" : "inherit"}
+                    variant="head"
                   >
-                    {headCell}
+                    <Typography fontWeight={700}>{headCell}</Typography>
                   </TableCell>
                 ))}
               {user?.role === "teacher" &&
                 TEACHER_HEADERS.map((headCell) => (
                   <TableCell
                     key={headCell}
-                    align={
-                      headCell === "Expiration Date" ? "center" : "inherit"
-                    }
+                    align={headCell === "Expiration Date" ? "center" : "inherit"}
+                    variant="head"
                   >
-                    {headCell}
+                    <Typography fontWeight={700}>{headCell}</Typography>
                   </TableCell>
                 ))}
             </TableRow>
           </TableHead>
           <TableBody>
             {props.data.map((proposal) => (
-              <ProposalRow
-                key={proposal.id}
-                proposal={proposal}
-                getTeacherById={props.getTeacherById}
-              />
+              <ProposalRow key={proposal.id} proposal={proposal} getTeacherById={props.getTeacherById} />
             ))}
           </TableBody>
         </Table>

@@ -5,14 +5,12 @@ import { useColorTheme } from "./useColorTheme";
 export const ThemeContext = createContext({
   mode: "light",
   toggleColorMode: () => {},
-  theme: createTheme(),
+  theme: createTheme()
 });
 
 export const ThemeContextProvider = ({ children }) => {
   const value = useColorTheme();
-  return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
 export const useThemeContext = () => {
