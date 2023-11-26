@@ -420,11 +420,38 @@ exports.getProposals = () => {
 
 exports.deleteProposal = (proposal_id) => {
   try {
-    console.log(proposal_id)
-    db.prepare("DELETE FROM APPLICATIONS WHERE proposal_id = ?").run(proposal_id);
-    db.prepare("DELETE FROM PROPOSALS WHERE id = ?").run(proposal_id);
-    console.log("Deletions were successful");
+    // Check if proposal_id exists in APPLICATIONS table
+    const checkApplications = db.prepare("SELECT COUNT(*) AS count FROM APPLICATIONS WHERE proposal_id = ?");
+    const applicationsCount = checkApplications.get(proposal_id).count;
+
+    if (applicationsCount === 0) {
+      throw { status: 404, message: "Proposal ID not found in APPLICATIONS table. Deletion unsuccessful." };
+    }
+
+    // Check if proposal_id exists in PROPOSALS table
+    const checkProposals = db.prepare("SELECT COUNT(*) AS count FROM PROPOSALS WHERE id = ?");
+    const proposalsCount = checkProposals.get(proposal_id).count;
+
+    if (proposalsCount === 0) {
+      throw { status: 404, message: "Proposal ID not found in PROPOSALS table. Deletion unsuccessful." };
+    }
+
+    // Delete rows from APPLICATIONS and PROPOSALS tables
+    const deleteApplications = db.prepare("DELETE FROM APPLICATIONS WHERE proposal_id = ?");
+    const applicationsResult = deleteApplications.run([proposal_id]);
+
+    const deleteProposals = db.prepare("DELETE FROM PROPOSALS WHERE id = ?");
+    const proposalsResult = deleteProposals.run([proposal_id]);
+
+    if (applicationsResult.changes === 0 || proposalsResult.changes === 0) {
+      throw { status: 404, message: "No rows were deleted. Deletion unsuccessful." };
+    } else {
+      console.log("Deletions were successful");
+    }
   } catch (err) {
     console.error("Error deleting:", err);
+    // Re-throw the error to propagate it to the caller
+    throw err;
   }
 };
+

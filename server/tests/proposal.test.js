@@ -464,4 +464,11 @@ describe("Delete proposals", () => {
       .expect(200);
   });
 
+  test("Get 404 error for no rows eliminated", () => {
+   const id = 10000;
+    return request(app)
+      .delete(`/api/proposals?id=${id}`)
+      .expect(404);
+  });
+
 });

@@ -326,6 +326,9 @@ router.delete('/api/proposals',
       await deleteProposal(req.query.id);
       return res.status(200).send('Proposal deleted successfully.');
     } catch (err) {
+      if (err.status === 404) {
+        return res.status(404).json({ message: err.message });
+      }
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
