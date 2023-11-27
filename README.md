@@ -265,10 +265,6 @@
       }
     ]
   ```
-- POST `/api/something`
-  - request parameters and request body content
-  - response body content
-- ...
 
 ## Users Credentials
 

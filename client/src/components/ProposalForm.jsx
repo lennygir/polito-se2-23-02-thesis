@@ -7,17 +7,17 @@ import Button from "@mui/material/Button";
 import FormControl from "@mui/material/FormControl";
 import FormHelperText from "@mui/material/FormHelperText";
 import MenuItem from "@mui/material/MenuItem";
+import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import UserContext from "../contexts/UserContext";
 import { DatePicker } from "@mui/x-date-pickers";
 import { LEVELS, TYPES } from "../utils/constants";
+import { Tooltip } from "@mui/material";
 
 function ProposalForm(props) {
   const user = useContext(UserContext);
-  const [teachers, setTeachers] = useState(
-    props.teachers.map((teacher) => teacher.email)
-  );
+  const [teachers, setTeachers] = useState(props.teachers.map((teacher) => teacher.email));
   const [availableGroups, setAvailableGroups] = useState([user.cod_group]);
 
   const [formData, setFormData] = useState({
@@ -33,7 +33,7 @@ function ProposalForm(props) {
     requiredKnowledge: "",
     keywords: "",
     notes: "",
-    cds: "",
+    cds: ""
   });
 
   const [formErrors, setFormErrors] = useState({
@@ -49,7 +49,7 @@ function ProposalForm(props) {
     requiredKnowledge: "",
     keywords: "",
     notes: "",
-    cds: "",
+    cds: ""
   });
 
   // Handle input change
@@ -57,28 +57,23 @@ function ProposalForm(props) {
     if (field === "coSupervisors") {
       getAvailableGroups(value);
     }
-    const newFormData =
-      field === "level" ? { [field]: value, cds: "" } : { [field]: value };
+    const newFormData = field === "level" ? { [field]: value, cds: "" } : { [field]: value };
     setFormData((prevFormData) => ({
       ...prevFormData,
-      ...newFormData,
+      ...newFormData
     }));
     setFormErrors((prevErrors) => ({
       ...prevErrors,
-      [field]: "",
+      [field]: ""
     }));
   };
 
   // Filter degrees based on the selected level
   const getCdsOptions = () => {
     if (formData.level === "Master Degree") {
-      return props.degrees.filter((degree) =>
-        degree.cod_degree.startsWith("LM")
-      );
+      return props.degrees.filter((degree) => degree.cod_degree.startsWith("LM"));
     } else if (formData.level === "Bachelor Degree") {
-      return props.degrees.filter(
-        (degree) => !degree.cod_degree.startsWith("LM")
-      );
+      return props.degrees.filter((degree) => !degree.cod_degree.startsWith("LM"));
     } else {
       return props.degrees;
     }
@@ -94,8 +89,7 @@ function ProposalForm(props) {
     const uniqueGroups = [...new Set(groups.filter(Boolean))];
 
     // If no co-supervisors selected, default to user's group
-    const finalGroups =
-      uniqueGroups.length === 0 ? [user.cod_group] : uniqueGroups;
+    const finalGroups = uniqueGroups.length === 0 ? [user.cod_group] : uniqueGroups;
 
     setAvailableGroups(finalGroups);
   };
@@ -108,13 +102,13 @@ function ProposalForm(props) {
       // Invalid input
       setFormErrors((prevErrors) => ({
         ...prevErrors,
-        externalCoSupervisor: "Invalid email address",
+        externalCoSupervisor: "Invalid email address"
       }));
     } else if (formData.coSupervisors.includes(externalCoSup)) {
       // Co-supervisor already present
       setFormErrors((prevErrors) => ({
         ...prevErrors,
-        externalCoSupervisor: "Email address already added",
+        externalCoSupervisor: "Email address already added"
       }));
     } else {
       setTeachers([...teachers, externalCoSup]);
@@ -122,7 +116,7 @@ function ProposalForm(props) {
       setFormData((prevFormData) => ({
         ...prevFormData,
         coSupervisors: [...prevFormData.coSupervisors, externalCoSup],
-        externalCoSupervisor: "", // Reset the input field
+        externalCoSupervisor: "" // Reset the input field
       }));
     }
   };
@@ -156,9 +150,7 @@ function ProposalForm(props) {
       errors.requiredKnowledge = "Please provide required knowledge";
     }
     if (!validator.isEmpty(formData.keywords)) {
-      const areKeywordsInvalid = formData.keywords
-        .split("\n")
-        .some((keyword) => !validator.isAscii(keyword.trim()));
+      const areKeywordsInvalid = formData.keywords.split("\n").some((keyword) => !validator.isAscii(keyword.trim()));
       errors.keywords = areKeywordsInvalid ? "Invalid keywords" : "";
     }
     return errors;
@@ -181,19 +173,21 @@ function ProposalForm(props) {
         supervisor: user.id,
         co_supervisors: formData.coSupervisors,
         groups: formData.groups,
-        keywords: formData.keywords
-          .split("\n")
-          .map((keyword) => keyword.trim()),
+        keywords: formData.keywords.split("\n").map((keyword) => keyword.trim()),
         types: formData.type,
         description: formData.description,
         required_knowledge: formData.requiredKnowledge,
         notes: formData.notes,
         expiration_date: formData.expirationDate,
         level: formData.level === "Bachelor Degree" ? "BSC" : "MSC",
-        cds: formData.cds,
+        cds: formData.cds
       };
       props.createProposal(data);
     }
+  };
+
+  const CustomPaper = (props) => {
+    return <Paper elevation={8} {...props} />;
   };
 
   return (
@@ -208,9 +202,7 @@ function ProposalForm(props) {
           label="Title"
           margin="normal"
           value={formData.title}
-          onChange={(event) =>
-            handleFormInputChange("title", event.target.value)
-          }
+          onChange={(event) => handleFormInputChange("title", event.target.value)}
           error={!!formErrors.title}
           helperText={formErrors.title}
         />
@@ -239,17 +231,11 @@ function ProposalForm(props) {
             name="coSupervisors"
             options={teachers}
             value={formData.coSupervisors}
-            onChange={(event, value) =>
-              handleFormInputChange("coSupervisors", value)
-            }
+            onChange={(event, value) => handleFormInputChange("coSupervisors", value)}
             filterSelectedOptions
+            PaperComponent={CustomPaper}
             renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Co-supervisors"
-                placeholder="Email"
-                margin="normal"
-              />
+              <TextField {...params} label="Co-supervisors" placeholder="Email" margin="normal" />
             )}
           />
         </FormControl>
@@ -270,23 +256,17 @@ function ProposalForm(props) {
             label="External co-supervisor"
             margin="normal"
             value={formData.externalCoSupervisor}
-            onChange={(event) =>
-              handleFormInputChange("externalCoSupervisor", event.target.value)
-            }
+            onChange={(event) => handleFormInputChange("externalCoSupervisor", event.target.value)}
             helperText={
-              formErrors.externalCoSupervisor !== ""
-                ? formErrors.externalCoSupervisor
-                : "Enter an email address"
+              formErrors.externalCoSupervisor !== "" ? formErrors.externalCoSupervisor : "Enter an email address"
             }
             error={!!formErrors.externalCoSupervisor}
           />
-          <Button
-            variant="outlined"
-            sx={{ height: "56px" }}
-            onClick={addCoSupervisor}
-          >
-            Add
-          </Button>
+          <Tooltip title="Add to co-supervisors">
+            <Button variant="contained" sx={{ height: "56px" }} onClick={addCoSupervisor}>
+              Add
+            </Button>
+          </Tooltip>
         </Stack>
       </FormControl>
 
@@ -298,18 +278,11 @@ function ProposalForm(props) {
               color: "primary",
               margin: "normal",
               helperText: formErrors.expirationDate,
-              error: !!formErrors.expirationDate,
-            },
+              error: !!formErrors.expirationDate
+            }
           }}
-          value={
-            formData.expirationDate ? dayjs(formData.expirationDate) : null
-          }
-          onChange={(newDate) =>
-            handleFormInputChange(
-              "expirationDate",
-              dayjs(newDate).format("YYYY-MM-DD")
-            )
-          }
+          value={formData.expirationDate ? dayjs(formData.expirationDate) : null}
+          onChange={(newDate) => handleFormInputChange("expirationDate", dayjs(newDate).format("YYYY-MM-DD"))}
           disableFuture={false}
           disablePast
           format="MMMM D, YYYY"
@@ -331,6 +304,7 @@ function ProposalForm(props) {
             value={formData.type}
             onChange={(event, value) => handleFormInputChange("type", value)}
             filterSelectedOptions
+            PaperComponent={CustomPaper}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -354,6 +328,7 @@ function ProposalForm(props) {
             value={formData.groups}
             onChange={(event, value) => handleFormInputChange("groups", value)}
             filterSelectedOptions
+            PaperComponent={CustomPaper}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -384,9 +359,7 @@ function ProposalForm(props) {
             label="Level"
             margin="normal"
             value={formData.level}
-            onChange={(event) =>
-              handleFormInputChange("level", event.target.value)
-            }
+            onChange={(event) => handleFormInputChange("level", event.target.value)}
             error={!!formErrors.level}
             helperText={formErrors.level}
           >
@@ -407,25 +380,19 @@ function ProposalForm(props) {
             label="CDS/Programmes"
             margin="normal"
             value={formData.cds}
-            onChange={(event) =>
-              handleFormInputChange("cds", event.target.value)
-            }
+            onChange={(event) => handleFormInputChange("cds", event.target.value)}
             error={!!formErrors.cds}
-            helperText={
-              formErrors.cds !== ""
-                ? formErrors.cds
-                : "First select a degree level"
-            }
+            helperText={formErrors.cds !== "" ? formErrors.cds : "First select a degree level"}
             disabled={formData.level === ""}
             SelectProps={{
               MenuProps: {
                 PaperProps: {
                   style: {
                     maxWidth: "400px",
-                    whiteSpace: "nowrap",
-                  },
-                },
-              },
+                    whiteSpace: "nowrap"
+                  }
+                }
+              }
             }}
           >
             {getCdsOptions().map((degree) => (
@@ -446,14 +413,8 @@ function ProposalForm(props) {
           label="Keywords"
           margin="normal"
           value={formData.keywords}
-          onChange={(event) =>
-            handleFormInputChange("keywords", event.target.value)
-          }
-          helperText={
-            formErrors.keywords !== ""
-              ? formErrors.keywords
-              : "Write one keyword per line"
-          }
+          onChange={(event) => handleFormInputChange("keywords", event.target.value)}
+          helperText={formErrors.keywords !== "" ? formErrors.keywords : "Write one keyword per line"}
           error={!!formErrors.keywords}
         />
       </FormControl>
@@ -468,9 +429,7 @@ function ProposalForm(props) {
           label="Description"
           margin="normal"
           value={formData.description}
-          onChange={(event) =>
-            handleFormInputChange("description", event.target.value)
-          }
+          onChange={(event) => handleFormInputChange("description", event.target.value)}
           error={!!formErrors.description}
           helperText={formErrors.description}
         />
@@ -486,9 +445,7 @@ function ProposalForm(props) {
           label="Required knowledge"
           margin="normal"
           value={formData.requiredKnowledge}
-          onChange={(event) =>
-            handleFormInputChange("requiredKnowledge", event.target.value)
-          }
+          onChange={(event) => handleFormInputChange("requiredKnowledge", event.target.value)}
           error={!!formErrors.requiredKnowledge}
           helperText={formErrors.requiredKnowledge}
         />
@@ -503,9 +460,7 @@ function ProposalForm(props) {
           label="Notes"
           margin="normal"
           value={formData.notes}
-          onChange={(event) =>
-            handleFormInputChange("notes", event.target.value)
-          }
+          onChange={(event) => handleFormInputChange("notes", event.target.value)}
         />
       </FormControl>
       <Button fullWidth type="submit" variant="contained" sx={{ mt: 4, mb: 2 }}>

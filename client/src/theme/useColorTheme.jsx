@@ -11,14 +11,11 @@ export const useColorTheme = () => {
     setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
   };
 
-  const modifiedTheme = useMemo(
-    () => createTheme(getDesignTokens(mode)),
-    [mode]
-  );
+  const modifiedTheme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
 
   return {
     theme: responsiveFontSizes(modifiedTheme),
     mode,
-    toggleColorMode,
+    toggleColorMode
   };
 };
