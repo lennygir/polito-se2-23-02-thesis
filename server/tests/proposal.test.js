@@ -8,25 +8,32 @@ const {
   getDegrees,
   updateApplication,
   getApplicationById,
-  rejectPendingApplications,
-  deletePendingApplications,
   getTeacherByEmail,
   getTeacher,
   getGroup,
   getApplications,
+  cancelPendingApplications,
+  getProposal,
+  getStudent,
+  getPendingOrAcceptedApplicationsOfStudent,
+  findAcceptedProposal,
+  findRejectedApplication,
 } = require("../src/theses-dao");
 
 jest.mock("../src/theses-dao");
 
+const application = {
+  student: "s309618",
+  proposal: 8,
+};
+
 beforeEach(() => {
   jest.clearAllMocks();
+  application.student = "s309618";
+  application.proposal = 8;
 });
 
 describe("Application Insertion Tests", () => {
-  const application = {
-    student: "s309618",
-    proposal: 8,
-  };
   test("Insertion of an application with a wrong proposal", () => {
     application.proposal = -5;
     return request(app)
@@ -39,6 +46,124 @@ describe("Application Insertion Tests", () => {
           message: "Invalid application content",
         });
       });
+  });
+  test("Insertion of an application with a proposal that does not exist", () => {
+    getProposal.mockReturnValue(undefined);
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: "Invalid application content",
+        });
+      });
+  });
+  test("Insertion of an application with a student that does not exist", () => {
+    getProposal.mockReturnValue({
+      proposal: "proposal",
+    });
+    getStudent.mockReturnValue(undefined);
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: "Invalid application content",
+        });
+      });
+  });
+  test("There is already a pending or accepted application for the student", () => {
+    getProposal.mockReturnValue({
+      proposal: "something",
+    });
+    getStudent.mockReturnValue({
+      student: "something",
+    });
+    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([
+      {
+        student_id: "s309618",
+        proposal_id: "4",
+        state: "pending",
+      },
+    ]);
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: `The student ${application.student} has already applied to a proposal`,
+        });
+      });
+  });
+  test("The proposal of the application is accepted for another student", () => {
+    getProposal.mockReturnValue({
+      proposal: "something",
+    });
+    getStudent.mockReturnValue({
+      student: "something",
+    });
+    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([]);
+    findAcceptedProposal.mockReturnValue({
+      proposal: "proposal",
+    });
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: `The proposal ${application.proposal} is already accepted for another student`,
+        });
+      });
+  });
+  test("There same application was already rejected for the student", () => {
+    getProposal.mockReturnValue({
+      proposal: "something",
+    });
+    getStudent.mockReturnValue({
+      student: "something",
+    });
+    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([]);
+    findAcceptedProposal.mockReturnValue(undefined);
+    findRejectedApplication.mockReturnValue({
+      student: "s309618",
+      proposal: 8,
+      state: "rejected",
+    });
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message:
+            "The student has already applied for this application and it was rejected",
+        });
+      });
+  });
+  test("Correct insertion of a right application", () => {
+    getProposal.mockReturnValue({
+      proposal: "something",
+    });
+    getStudent.mockReturnValue({
+      student: "something",
+    });
+    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([]);
+    findAcceptedProposal.mockReturnValue(undefined);
+    findRejectedApplication.mockReturnValue(undefined);
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(200);
   });
 });
 describe("Proposal Insertion Tests", () => {
@@ -207,7 +332,6 @@ describe("Get All Teachers Test", () => {
       .expect(200)
       .then((response) => {
         // Assuming the response body is an array
-        console.log(response.body);
         expect(Array.isArray(response.body)).toBe(true);
         // todo: Add more specific checks on the response body if needed
       });
@@ -322,8 +446,7 @@ describe("PATCH /api/applications/:id", () => {
     expect(response.body).toEqual({ message: "Application accepted" });
 
     expect(updateApplication).toHaveBeenCalledWith(1, "accepted");
-    expect(rejectPendingApplications).toHaveBeenCalledWith(2, "s123456");
-    expect(deletePendingApplications).toHaveBeenCalledWith("s123456", 2);
+    expect(cancelPendingApplications).toHaveBeenCalledWith(2, "s123456");
   });
   test("Should return 200 if the state is rejected for an existent application", async () => {
     getApplicationById.mockReturnValue({
@@ -340,8 +463,7 @@ describe("PATCH /api/applications/:id", () => {
     expect(response.body).toEqual({ message: "Application rejected" });
 
     expect(updateApplication).toHaveBeenCalledWith(1, "rejected");
-    expect(rejectPendingApplications).toHaveBeenCalledTimes(0);
-    expect(deletePendingApplications).toHaveBeenCalledTimes(0);
+    expect(cancelPendingApplications).toHaveBeenCalledTimes(0);
   });
   test("It should return 500 in case of database error", () => {
     getApplicationById.mockImplementation(() => {
