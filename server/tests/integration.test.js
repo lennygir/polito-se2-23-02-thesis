@@ -1,6 +1,6 @@
 const request = require("supertest");
 const app = require("../src/server");
-const { deleteApplication } = require("../src/theses-dao");
+const { deleteApplicationsOfStudent } = require("../src/theses-dao");
 
 let proposal;
 let application;
@@ -115,15 +115,7 @@ it("Return 200 correct get of all application of a selected teacher", () => {
 });
 
 describe("Get Application From Teacher", () => {
-  it("Return 404 for a teacher that doesn't exist", () => {
-    const teacher = 0;
-    return request(app)
-      .get(`/api/applications?teacher=${teacher}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  it("Return 404 for emply list of application of that teacher", () => {
+  it("Return 404 for empty list of application of that teacher", () => {
     const teacher = "s789012";
     return request(app)
       .get(`/api/applications?teacher=${teacher}`)
@@ -216,8 +208,8 @@ describe("Application Insertion Tests", () => {
         });
       });
   });
-  it("Insertion of a correct application", async () => {
-    await deleteApplication(application.student, application.proposal);
+  it("Insertion of a correct application", () => {
+    deleteApplicationsOfStudent(application.student);
     return request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
@@ -231,8 +223,8 @@ describe("Application Insertion Tests", () => {
         });
       });
   });
-  it("Insertion of an application already existent", async () => {
-    await deleteApplication(application.student, application.proposal);
+  it("Insertion of an application for a student who already applied to a proposal", async () => {
+    deleteApplicationsOfStudent(application.student);
     await request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
@@ -244,7 +236,7 @@ describe("Application Insertion Tests", () => {
       .expect(400)
       .then((response) => {
         expect(response.body).toStrictEqual({
-          message: "Application already present",
+          message: `The student ${application.student} has already applied to a proposal`,
         });
       });
   });

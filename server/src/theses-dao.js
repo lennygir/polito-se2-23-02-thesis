@@ -6,7 +6,7 @@ const { db } = require("./db");
 
 exports.insertApplication = (proposal, student, state) => {
   db.prepare(
-    "insert into APPLICATIONS(proposal_id, student_id, state) values (?,?,?)"
+    "insert into APPLICATIONS(proposal_id, student_id, state) values (?,?,?)",
   ).run(proposal, student, state);
   return { proposal_id: proposal, student_id: student, state: state };
   //  return new Promise((resolve, reject) => {
@@ -24,6 +24,14 @@ exports.insertApplication = (proposal, student, state) => {
   //  });
 };
 
+exports.searchAcceptedApplication = (student_id) => {
+  return db
+    .prepare(
+      "select * from APPLICATIONS where student_id = ? and state = 'accepted'",
+    )
+    .get(student_id);
+};
+
 exports.insertProposal = (
   title,
   supervisor,
@@ -36,11 +44,11 @@ exports.insertProposal = (
   notes,
   expiration_date,
   level,
-  cds
+  cds,
 ) => {
   return db
     .prepare(
-      "insert into PROPOSAlS(title, supervisor, co_supervisors, keywords, type, groups, description, required_knowledge, notes, expiration_date, level, cds) values(?,?,?,?,?,?,?,?,?,?,?,?)"
+      "insert into PROPOSAlS(title, supervisor, co_supervisors, keywords, type, groups, description, required_knowledge, notes, expiration_date, level, cds) values(?,?,?,?,?,?,?,?,?,?,?,?)",
     )
     .run(
       title,
@@ -54,7 +62,7 @@ exports.insertProposal = (
       notes,
       expiration_date,
       level,
-      cds
+      cds,
     ).lastInsertRowid;
   //  return new Promise((resolve, reject) => {
   //    db.run(
@@ -91,7 +99,7 @@ exports.getApplicationById = (id) => {
 exports.getApplication = (student_id, proposal_id) => {
   return db
     .prepare(
-      "select * from APPLICATIONS where student_id = ? and proposal_id = ?"
+      "select * from APPLICATIONS where student_id = ? and proposal_id = ?",
     )
     .get(student_id, proposal_id);
 };
@@ -126,8 +134,12 @@ exports.getGroup = (cod_group) => {
 
 exports.deleteApplication = (student_id, proposal_id) => {
   db.prepare(
-    "delete from APPLICATIONS where student_id = ? and proposal_id = ?"
+    "delete from APPLICATIONS where student_id = ? and proposal_id = ?",
   ).run(student_id, proposal_id);
+};
+
+exports.deleteApplicationsOfStudent = (student_id) => {
+  db.prepare("delete from APPLICATIONS where student_id = ?").run(student_id);
 };
 
 exports.getGroups = () => {
@@ -148,25 +160,43 @@ exports.getProposalsByDegree = (cds) => {
         SELECT proposal_id
         FROM APPLICATIONS
         WHERE state = 'accepted' AND proposal_id IS NOT NULL
-      )`
+      )`,
     )
     .all(cds);
 };
 
-exports.rejectPendingApplications = (of_proposal, except_for_student) => {
+exports.cancelPendingApplications = (of_proposal, except_for_student) => {
   db.prepare(
-    "update APPLICATIONS set state = 'rejected' where proposal_id = ? AND state = 'pending' AND student_id != ?"
+    "update APPLICATIONS set state = 'canceled' where proposal_id = ? AND state = 'pending' AND student_id != ?",
   ).run(of_proposal, except_for_student);
-};
-
-exports.deletePendingApplications = (of_student, except_proposal) => {
-  db.prepare(
-    "delete from APPLICATIONS where student_id = ? and proposal_id != ? and state = 'pending'"
-  ).run(of_student, except_proposal);
 };
 
 exports.updateApplication = (id, state) => {
   db.prepare("update APPLICATIONS set state = ? where id = ?").run(state, id);
+};
+
+exports.getPendingOrAcceptedApplicationsOfStudent = (student_id) => {
+  return db
+    .prepare(
+      `select * from APPLICATIONS where student_id = ? and (state = 'accepted' or state = 'pending')`,
+    )
+    .all(student_id);
+};
+
+exports.findAcceptedProposal = (proposal_id) => {
+  return db
+    .prepare(
+      `select * from APPLICATIONS where proposal_id = ? and state = 'accepted'`,
+    )
+    .get(proposal_id);
+};
+
+exports.findRejectedApplication = (proposal_id, student_id) => {
+  return db
+    .prepare(
+      `select * from APPLICATIONS where proposal_id = ? and student_id = ? and state = 'rejected'`,
+    )
+    .get(proposal_id, student_id);
 };
 
 /**
@@ -182,6 +212,7 @@ exports.updateApplication = (id, state) => {
  *     student_surname,
  *     teacher_name,
  *     teacher_surname
+ *     title
  *   }
  * ]}
  */
@@ -195,7 +226,8 @@ exports.getApplicationsOfTeacher = (teacher_id) => {
                   STUDENT.name as student_name, 
                   STUDENT.surname as student_surname, 
                   TEACHER.name as teacher_name, 
-                  TEACHER.surname as teacher_surname
+                  TEACHER.surname as teacher_surname,
+                  PROPOSALS.title as title
        from APPLICATIONS,
             PROPOSALS,
             STUDENT,
@@ -203,7 +235,7 @@ exports.getApplicationsOfTeacher = (teacher_id) => {
        where APPLICATIONS.proposal_id = PROPOSALS.id
          and PROPOSALS.supervisor = TEACHER.id
          and APPLICATIONS.student_id = STUDENT.id
-         and PROPOSALS.supervisor = ?`
+         and PROPOSALS.supervisor = ?`,
     )
     .all(teacher_id);
 };
@@ -218,7 +250,8 @@ exports.getApplicationsOfStudent = (student_id) => {
                   STUDENT.name as student_name, 
                   STUDENT.surname as student_surname, 
                   TEACHER.name as teacher_name, 
-                  TEACHER.surname as teacher_surname
+                  TEACHER.surname as teacher_surname,
+                  PROPOSALS.title as title
        from APPLICATIONS,
             PROPOSALS,
             STUDENT,
@@ -226,9 +259,32 @@ exports.getApplicationsOfStudent = (student_id) => {
        where APPLICATIONS.proposal_id = PROPOSALS.id
          and PROPOSALS.supervisor = TEACHER.id
          and APPLICATIONS.student_id = STUDENT.id
-         and APPLICATIONS.student_id = ?`
+         and APPLICATIONS.student_id = ?`,
     )
     .all(student_id);
+};
+
+exports.getApplications = () => {
+  return db
+    .prepare(
+      `select APPLICATIONS.id,
+              APPLICATIONS.proposal_id,
+              APPLICATIONS.student_id,
+              APPLICATIONS.state,
+              STUDENT.name as student_name,
+              STUDENT.surname as student_surname,
+              TEACHER.name as teacher_name,
+              TEACHER.surname as teacher_surname,
+              PROPOSALS.title as title
+       from APPLICATIONS,
+            PROPOSALS,
+            STUDENT,
+            TEACHER
+       where APPLICATIONS.proposal_id = PROPOSALS.id
+         and PROPOSALS.supervisor = TEACHER.id
+         and APPLICATIONS.student_id = STUDENT.id`,
+    )
+    .all();
 };
 
 exports.getProposals = () => {
