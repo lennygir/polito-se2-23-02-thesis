@@ -319,3 +319,12 @@ exports.getApplications = () => {
 exports.getProposals = () => {
   return db.prepare("select * from PROPOSALS").all();
 };
+
+exports.getNotificationsOfStudent = (student_id) => {
+  return db
+    .prepare(
+      "SELECT * FROM NOTIFICATIONS WHERE student_id = ?"
+      ,
+    )
+    .all(student_id);
+};
