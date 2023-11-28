@@ -317,6 +317,7 @@ INSERT INTO USERS (email, password)
 VALUES ('marco.torchiano@polito.it', 's123456'),
        ('maurizio.morisio@polito.it', 's234567'),
        ('s319823@studenti.polito.it', 's319823'),
+       ('s321503@studenti.polito.it', 's321503'),
        ('s308747@studenti.polito.it', 's308747'),
        ('s309618@studenti.polito.it', 's309618');
 
