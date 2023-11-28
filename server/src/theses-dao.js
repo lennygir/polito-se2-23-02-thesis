@@ -456,18 +456,33 @@ exports.deleteProposal = (proposal_id) => {
 };
 
 exports.updateProposal = (id, setValues) => {
-  const sqlQuery = `UPDATE PROPOSALS SET ${setValues} WHERE id = ?`;
-  db.run(sqlQuery, id, function(err) {
-    if (err) {
-      // Handle error
-      console.error("Error updating proposal:", err);
-      // Optionally return an error response
+
+  const params = [];
+  const sqlParams = [];
+  for (const key in setValues) {
+    const value = setValues[key];
+    // Check if the value is of a supported type for SQLite3 bindings
+    if (
+      typeof value === 'number' ||
+      typeof value === 'string' ||
+      value instanceof Buffer ||
+      value === null
+    ) {
+      sqlParams.push(`${key} = ?`);
+      params.push(value);
     } else {
-      console.log(`Proposal with ID ${id} updated successfully`);
-      // Optionally return a success response
+      sqlParams.push(`${key} = ?`);
+      params.push(JSON.stringify(value)); 
     }
-  });
-};
+  }
+
+  const sqlQuery = `UPDATE PROPOSALS SET ${sqlParams.join(', ')} WHERE id = ?`;
+  params.push(id);
+
+  const stmt = db.prepare(sqlQuery);
+  stmt.run(params)
+}
+
 
 
 

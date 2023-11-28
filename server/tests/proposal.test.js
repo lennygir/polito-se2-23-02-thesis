@@ -471,6 +471,13 @@ describe("Delete proposals", () => {
       .expect(404);
   });
 
+  test("Get 404 error for incorrect data format in", () => {
+    const id = "a";
+     return request(app)
+       .delete(`/api/proposals?id=${id}`)
+       .expect(400);
+   });
+
 });
 
 describe("Update proposals", () => {
@@ -479,7 +486,7 @@ describe("Update proposals", () => {
     const updatedFields = {
       // Specify the fields and their updated values
       title: "Updated Title",
-      supervisor: "Updated Supervisor",
+      supervisor: "s940590",
       // Add other fields to update
     };
 
@@ -490,6 +497,24 @@ describe("Update proposals", () => {
 
     // Check if the response status is successful (e.g., 200 OK)
     expect(response.status).toBe(200);
+  });
+
+  test("Should return 500 for an incorrect server behaviour", async () => {
+    const proposalId = 1; // Replace with the proposal ID you want to update
+    const updatedFields = {
+      // Specify the fields and their updated values
+      title: "Updated4 Title",
+      supervisor: "s9405902309090",
+      // Add other fields to update
+    };
+
+    // Send the PATCH request to update the proposal
+    const response = await request(app)
+      .patch(`/api/proposal/${proposalId}`)
+      .send(updatedFields);
+
+    // Check if the response status is successful (e.g., 200 OK)
+    expect(response.status).toBe(500);
   });
 
   
