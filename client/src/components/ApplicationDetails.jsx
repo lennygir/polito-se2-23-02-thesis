@@ -16,7 +16,7 @@ import { useThemeContext } from "../theme/ThemeContextProvider";
 function ApplicationDetails(props) {
   const user = useContext(UserContext);
   const { theme } = useThemeContext();
-  const { application, proposal } = props;
+  const { application } = props;
 
   const [decision, setDecision] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);

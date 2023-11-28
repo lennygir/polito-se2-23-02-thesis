@@ -9,7 +9,7 @@ import FileOpenIcon from "@mui/icons-material/FileOpen";
 import UserContext from "../contexts/UserContext";
 
 function ApplicationRow(props) {
-  const { application, proposal } = props;
+  const { application } = props;
   const user = useContext(UserContext);
 
   return (
@@ -43,11 +43,7 @@ function ApplicationRow(props) {
         </TableCell>
         <TableCell>
           <Tooltip title="View application">
-            <IconButton
-              component={NavLink}
-              to={"/applications/" + application.id}
-              state={{ application: application, proposal: proposal }}
-            >
+            <IconButton component={NavLink} to={"/applications/" + application.id} state={{ application: application }}>
               <FileOpenIcon />
             </IconButton>
           </Tooltip>
