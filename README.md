@@ -21,7 +21,7 @@ docker build -t s321503/polito-thesis .
 
 ```
 
-You can run the application by executing with the following command (CHANGE THE SMTP PASSWORD) :
+You can run the application by executing with the following command (don't forget to change the "SMTP password" variable) :
 
 ```bash
 
@@ -29,7 +29,7 @@ docker run \
   -p 80:80 -p 3000:3000 \
   --name polito-thesis \
   --rm \
-  -e SMTP_HOST='foo' \
+  -e SMTP_HOST='smtp.gmail.com' \
   -e SMTP_PORT=465 \
   -e SMTP_USERNAME='thesis.se2.02@gmail.com' \
   -e SMTP_PASSWORD='<<SMTP password>>' \
