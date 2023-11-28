@@ -160,21 +160,6 @@ function Main() {
     }
   }, [dirty]);
 
-  // Virtual clock
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      const currentLocalDate = dayjs().format("YYYY-MM-DD");
-
-      if (currentLocalDate !== currentDate) {
-        // Update the state when the new day begins
-        setCurrentDate(currentLocalDate);
-      }
-    }, 1000 * 60); // Check every minute
-
-    // Clear the interval when the component is unmounted
-    return () => clearInterval(intervalId);
-  }, [currentDate]);
-
   // Utility function to retrieve a teacher given its id
   const getTeacherById = (teacherId) => {
     return teachers.find((teacher) => teacher.id === teacherId);
@@ -191,14 +176,14 @@ function Main() {
         <Routes>
           {/* prettier-ignore */}
           <Route path="/" element={user ? <RootPage loading={loading} currentDate={currentDate} logout={handleLogout} fetchProposals={fetchProposals} fetchApplications={fetchApplications} /> : <LoginPage login={handleLogin} />}>
-          <Route path="proposals" element={user ? <ProposalsPage proposals={proposals} teachers={teachers} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
-          <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} getTeacherById={getTeacherById} getDegreeById={getDegreeById} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
-          <Route path="add-proposal" element={user ? <CreateProposalPage fetchProposals={fetchProposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
-          <Route path="applications" element={user ? <ApplicationsPage applications={applications} /> : <Navigate replace to="/" /> } />
-          <Route path="applications/:applicationId" element={user ? <ViewApplicationPage fetchApplications={fetchApplications} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
-          <Route path="notifications" element={user ? <NotificationsPage /> : <Navigate replace to="/" />} />
-          <Route path="settings" element={user ? <SettingsPage currentDate={currentDate} setCurrentDate={setCurrentDate}/> : <Navigate replace to="/" />} />
-        </Route>
+            <Route path="proposals" element={user ? <ProposalsPage currentDate={currentDate} proposals={proposals} applications={applications} teachers={teachers} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
+            <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} getTeacherById={getTeacherById} getDegreeById={getDegreeById} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
+            <Route path="add-proposal" element={user ? <CreateProposalPage fetchProposals={fetchProposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
+            <Route path="applications" element={user ? <ApplicationsPage applications={applications} /> : <Navigate replace to="/" /> } />
+            <Route path="applications/:applicationId" element={user ? <ViewApplicationPage fetchApplications={fetchApplications} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
+            <Route path="notifications" element={user ? <NotificationsPage /> : <Navigate replace to="/" />} />
+            <Route path="settings" element={user ? <SettingsPage currentDate={currentDate} setCurrentDate={setCurrentDate} /> : <Navigate replace to="/" />} />
+          </Route>
           <Route path="*" element={<ErrorPage />} />
         </Routes>
         <Snackbar
