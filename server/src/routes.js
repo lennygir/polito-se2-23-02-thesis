@@ -1,8 +1,8 @@
 "use strict";
 
 const router = require("express").Router();
+const passport = require("passport");
 const dayjs = require("dayjs");
-const { auth } = require("express-openid-connect");
 const { check, validationResult } = require("express-validator");
 const userDao = require("./user-dao");
 const {
@@ -28,29 +28,49 @@ const {
   getTeacherByEmail,
 } = require("./theses-dao");
 
-const config = {
-  authRequired: false,
-  auth0Logout: true,
-  secret: "aa026be35f2f2fd7bc665347d5bfe44b2c47bcc80f5fc48fbe342bd2c55000fa",
-  baseURL: "http://localhost:3000",
-  clientID: "OhrX6zAdWHcVxRMXFfkK2MBarmyzzMf0",
-  issuerBaseURL: "https://dev-b1bmu6tyqbve3iwg.us.auth0.com",
-};
-
-// auth router attaches /login, /logout, and /callback routes to the baseURL
-router.use(auth(config));
-
-// req.isAuthenticated is provided from the auth router
-router.get("/", (req, res) => {
-  res.send(req.oidc.isAuthenticated() ? "Logged in" : "Logged out");
-});
-
 // ==================================================
 // Routes
 // ==================================================
 
 router.get("/api", (req, res) => {
   return res.status(200).json({ message: "API home page" });
+});
+
+router.get(
+  "/login",
+  passport.authenticate("saml", {
+    faliureFlash: true,
+    failureRedirect: "/login",
+  }),
+  (_req, res) => {
+    return res.redirect("http://localhost:5173");
+  },
+);
+
+/** Endpoint called by Okta using Passport */
+router.post(
+  "/login/callback",
+  passport.authenticate("saml", {
+    faliureFlash: true,
+    failureRedirect: "/login",
+  }),
+  (_req, res) => {
+    return res.redirect("http://localhost:5173");
+  },
+);
+
+/** Check for user authentication
+ * If user authenticated return user
+ */
+router.get("/api/me", (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  } else {
+    const { user } = req;
+    return res.status(200).json({ user });
+  }
 });
 
 // login endpoint
