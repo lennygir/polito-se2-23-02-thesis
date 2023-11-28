@@ -20,33 +20,33 @@ const sidebarMainTabs = [
     id: "proposals",
     label: "Theses",
     icon: <SchoolRoundedIcon color="primary" />,
-    path: "/proposals",
+    path: "/proposals"
   },
   {
     id: "applications",
     label: "Applications",
     icon: <BookRoundedIcon color="primary" />,
-    path: "/applications",
+    path: "/applications"
   },
   {
     id: "notifications",
     label: "Notifications",
     icon: <EmailRoundedIcon color="primary" />,
-    path: "/notifications",
-  },
+    path: "/notifications"
+  }
 ];
 
 const settingsTab = {
   id: "settings",
   label: "Settings",
   icon: <SettingsRoundedIcon color="primary" />,
-  path: "/settings",
+  path: "/settings"
 };
 
 const logoutTab = {
   id: "logout",
   label: "Logout",
-  icon: <LogoutRoundedIcon color="primary" />,
+  icon: <LogoutRoundedIcon color="primary" />
 };
 
 function Sidebar(props) {
@@ -57,18 +57,15 @@ function Sidebar(props) {
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: "100vh",
+        height: "100vh"
       }}
     >
-      <Box
-        marginY={3}
-        sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
-      >
+      <Box marginY={3} sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
         <img
           src={logo}
           alt="PoliLogo"
           style={{
-            filter: mode === "dark" ? "brightness(0) invert(1)" : "invert(0)",
+            filter: mode === "dark" ? "brightness(0) invert(1)" : "invert(0)"
           }}
           height={props.logoHeight}
         />
@@ -128,23 +125,20 @@ function Sidebar(props) {
   );
 
   return (
-    <Box
-      component="nav"
-      sx={{ width: { sm: props.drawerWidth }, flexShrink: { sm: 0 } }}
-    >
+    <Box component="nav" sx={{ width: { sm: props.drawerWidth }, flexShrink: { sm: 0 } }}>
       <Drawer
         variant="temporary"
         open={props.mobileOpen}
         onClose={props.handleDrawerToggle}
         ModalProps={{
-          keepMounted: true,
+          keepMounted: true
         }}
         sx={{
           display: { xs: "block", sm: "none" },
           "& .MuiDrawer-paper": {
             boxSizing: "border-box",
-            width: props.drawerWidth,
-          },
+            width: props.drawerWidth
+          }
         }}
       >
         {drawer}
@@ -155,8 +149,8 @@ function Sidebar(props) {
           display: { xs: "none", sm: "block" },
           "& .MuiDrawer-paper": {
             boxSizing: "border-box",
-            width: props.drawerWidth,
-          },
+            width: props.drawerWidth
+          }
         }}
         open
       >

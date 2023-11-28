@@ -7,19 +7,16 @@ import UserContext from "../contexts/UserContext";
 
 function ApplicationsPage(props) {
   const user = useContext(UserContext);
-  const { applications, proposals } = props;
+  const { applications } = props;
 
   const studentView = (
     <>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography
-          variant="h4"
-          sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}
-        >
+        <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
           My Applications
         </Typography>
       </Stack>
-      <ApplicationTable applications={applications} proposals={proposals} />
+      <ApplicationTable applications={applications} />
       <Box height={5} marginTop={3} />
     </>
   );
@@ -27,23 +24,16 @@ function ApplicationsPage(props) {
   const teacherView = (
     <>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography
-          variant="h4"
-          sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}
-        >
+        <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
           Applications
         </Typography>
       </Stack>
-      <ApplicationTable applications={applications} proposals={proposals} />
+      <ApplicationTable applications={applications} />
       <Box height={5} marginTop={3} />
     </>
   );
 
-  return (
-    <div id="application-page">
-      {user?.role === "teacher" ? teacherView : studentView}
-    </div>
-  );
+  return <div id="application-page">{user?.role === "teacher" ? teacherView : studentView}</div>;
 }
 
 export default ApplicationsPage;

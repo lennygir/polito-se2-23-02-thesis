@@ -1,12 +1,6 @@
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
-import {
-  BrowserRouter,
-  Navigate,
-  Route,
-  Routes,
-  useNavigate,
-} from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { Alert, Snackbar, ThemeProvider } from "@mui/material";
 import { useThemeContext } from "./theme/ThemeContextProvider";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -65,7 +59,7 @@ function Main() {
   // Message to be shown to the user after an API has been called
   const [alert, setAlert] = useState({
     message: "",
-    severity: "success",
+    severity: "success"
   });
 
   const handleLogin = async (credentials) => {
@@ -76,7 +70,7 @@ function Main() {
       navigate("/proposals");
       setAlert({
         message: "Welcome, " + user.name + "!",
-        severity: "success",
+        severity: "success"
       });
       await fetchStaticData();
     } catch (err) {
@@ -110,11 +104,7 @@ function Main() {
 
   const fetchStaticData = async () => {
     try {
-      const [teachers, groups, degrees] = await Promise.all([
-        API.getTeachers(),
-        API.getGroups(),
-        API.getDegrees(),
-      ]);
+      const [teachers, groups, degrees] = await Promise.all([API.getTeachers(), API.getGroups(), API.getDegrees()]);
       setTeachers(teachers);
       setGroups(groups);
       setDegrees(degrees);
@@ -204,7 +194,7 @@ function Main() {
           <Route path="proposals" element={user ? <ProposalsPage proposals={proposals} teachers={teachers} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
           <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} getTeacherById={getTeacherById} getDegreeById={getDegreeById} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
           <Route path="add-proposal" element={user ? <CreateProposalPage fetchProposals={fetchProposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
-          <Route path="applications" element={user ? <ApplicationsPage applications={applications} proposals={proposals} /> : <Navigate replace to="/" /> } />
+          <Route path="applications" element={user ? <ApplicationsPage applications={applications} /> : <Navigate replace to="/" /> } />
           <Route path="applications/:applicationId" element={user ? <ViewApplicationPage fetchApplications={fetchApplications} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
           <Route path="notifications" element={user ? <NotificationsPage /> : <Navigate replace to="/" />} />
           <Route path="settings" element={user ? <SettingsPage currentDate={currentDate} setCurrentDate={setCurrentDate}/> : <Navigate replace to="/" />} />

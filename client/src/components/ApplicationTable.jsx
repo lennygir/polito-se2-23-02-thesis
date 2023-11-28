@@ -13,12 +13,8 @@ const TEACHER_HEADERS = ["Student", "Proposal", "Status", "Open"];
 const STUDENT_HEADERS = ["Teacher", "Proposal", "Status", "Open"];
 
 function ApplicationTable(props) {
-  const { applications, proposals } = props;
+  const { applications } = props;
   const user = useContext(UserContext);
-
-  const getProposalById = (proposalId) => {
-    return proposals.find((proposal) => proposal.id === proposalId);
-  };
 
   return (
     <Card
@@ -27,7 +23,7 @@ function ApplicationTable(props) {
         marginX: { md: 4, sm: 0 },
         maxHeight: "70vh",
         overflowY: "auto",
-        borderRadius: 4,
+        borderRadius: 4
       }}
     >
       <TableContainer sx={{ overflowX: "auto" }}>
@@ -36,36 +32,22 @@ function ApplicationTable(props) {
             <TableRow>
               {user?.role === "student" &&
                 STUDENT_HEADERS.map((headCell) => (
-                  <TableCell
-                    key={headCell}
-                    align={headCell === "Status" ? "center" : "inherit"}
-                  >
+                  <TableCell key={headCell} align={headCell === "Status" ? "center" : "inherit"}>
                     {headCell}
                   </TableCell>
                 ))}
               {user?.role === "teacher" &&
                 TEACHER_HEADERS.map((headCell) => (
-                  <TableCell
-                    key={headCell}
-                    align={headCell === "Status" ? "center" : "inherit"}
-                  >
+                  <TableCell key={headCell} align={headCell === "Status" ? "center" : "inherit"}>
                     {headCell}
                   </TableCell>
                 ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {applications.map((application) => {
-              // Get the proposal object for the current application
-              const proposal = getProposalById(application.proposal_id);
-              return (
-                <ApplicationRow
-                  key={application.id}
-                  application={application}
-                  proposal={proposal}
-                />
-              );
-            })}
+            {applications.map((application) => (
+              <ApplicationRow key={application.id} application={application} />
+            ))}
           </TableBody>
         </Table>
       </TableContainer>

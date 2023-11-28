@@ -7,13 +7,13 @@ function LoadingPage(props) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        height: "100%",
+        height: "100%"
       }}
     >
       <Fade
         in={props.loading}
         style={{
-          transitionDelay: props.loading ? "800ms" : "0ms",
+          transitionDelay: props.loading ? "800ms" : "0ms"
         }}
         unmountOnExit
       >

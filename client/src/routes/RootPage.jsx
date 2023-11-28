@@ -3,11 +3,11 @@ import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
 import LoadingPage from "./LoadingPage";
-import { Container } from "@mui/material";
 
 const drawerWidth = 240;
-const logoHeight = 70;
+const logoHeight = 80;
 const navbarHeight = 65;
 
 function RootPage(props) {
@@ -56,17 +56,13 @@ function RootPage(props) {
             component="main"
             sx={{
               flexGrow: 1,
-              p: 3,
+              p: { md: 3, xs: 1 },
               width: "100%",
               height: `calc(100vh - ${navbarHeight}px)`,
-              marginTop: 8,
+              marginTop: { md: 8, xs: 11 }
             }}
           >
-            {props.loading ? (
-              <LoadingPage loading={props.loading} />
-            ) : (
-              <Outlet />
-            )}
+            {props.loading ? <LoadingPage loading={props.loading} /> : <Outlet />}
           </Box>
         </Container>
       </Box>
