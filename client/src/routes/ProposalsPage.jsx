@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import Fab from "@mui/material/Fab";
 import Hidden from "@mui/material/Hidden";
 import OutlinedInput from "@mui/material/OutlinedInput";
@@ -16,9 +17,12 @@ import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
 import CreateIcon from "@mui/icons-material/Create";
 import ProposalFilters from "../components/ProposalFilters";
+import { TEACHER_PROPOSALS_FILTERS } from "../utils/constants";
 
 function ProposalsPage(props) {
   const proposals = props.proposals;
+  const applications = props.applications;
+  const currentDate = props.currentDate;
   const user = useContext(UserContext);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
@@ -28,6 +32,11 @@ function ProposalsPage(props) {
     startDate: null,
     endDate: null
   });
+  const [selectedTeacherFilter, setSelectedTeacherFilter] = useState("all");
+
+  const handleTeacherFilterChange = (selectedFilter) => {
+    setSelectedTeacherFilter(selectedFilter);
+  };
 
   const toggleDrawer = () => {
     setIsDrawerOpen(!isDrawerOpen);
@@ -53,7 +62,7 @@ function ProposalsPage(props) {
     });
   };
 
-  const filteredProposals = proposals
+  const filteredStudentProposals = proposals
     .filter((proposal) => {
       const { title, co_supervisors, keywords, description, required_knowledge, notes } = proposal;
 
@@ -134,10 +143,24 @@ function ProposalsPage(props) {
           resetMenuFilters={resetMenuFilters}
         />
       </Toolbar>
-      <ProposalTable data={filteredProposals} getTeacherById={props.getTeacherById} />
+      <ProposalTable data={filteredStudentProposals} getTeacherById={props.getTeacherById} />
       <Box height={5} marginTop={3} />
     </>
   );
+
+  const filteredTeacherProposals = proposals.filter((proposal) => {
+    if (selectedTeacherFilter === "all") {
+      return true;
+    }
+    if (selectedTeacherFilter === "active") {
+      const isNotExpired = dayjs(proposal.expiration_date).isAfter(currentDate);
+      const hasAcceptedApplications = applications.some(
+        (application) => application.proposal_id === proposal.id && application.state === "accepted"
+      );
+      return isNotExpired && !hasAcceptedApplications;
+    }
+    return true;
+  });
 
   const teacherView = (
     <>
@@ -151,7 +174,27 @@ function ProposalsPage(props) {
           </Button>
         </Hidden>
       </Stack>
-      <ProposalTable data={proposals} />
+      <Toolbar
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginX: 3,
+          marginY: -2
+        }}
+      >
+        <Stack direction="row" spacing={1}>
+          {TEACHER_PROPOSALS_FILTERS.map((filter) => (
+            <Chip
+              key={filter.id}
+              label={filter.label}
+              variant={selectedTeacherFilter === filter.id ? "filled" : "outlined"}
+              onClick={() => handleTeacherFilterChange(filter.id)}
+              sx={{ height: 30 }}
+            />
+          ))}
+        </Stack>
+      </Toolbar>
+      <ProposalTable data={filteredTeacherProposals} />
       <Box height={5} marginTop={3} />
       <Hidden smUp>
         <Stack
