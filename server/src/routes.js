@@ -19,7 +19,8 @@ const {
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   getProposals,
-  deleteProposal
+  deleteProposal,
+  updateProposal
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -315,6 +316,80 @@ router.get(
       }
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+router.patch(
+  "/api/proposal/:id",
+  (req, res) => {
+    try {
+     /* const fieldsToCheck = [
+        { field: "id", validation: check("id").isInt() },
+        { field: "title", validation: check("title").isString() },
+        { field: "supervisor", validation: check("supervisor").isAlphanumeric().isLength({ min: 7, max: 7 }) },
+        { field: "co_supervisors", validation: check("co_supervisors").isArray() },
+        //{ field: "co_supervisors", validation: check("co_supervisors.*").isEmail() },
+        { field: "groups", validation: check("groups").isArray() },
+        //{ field: "groups.*", validation: check("groups.*").isString() },
+        { field: "keywords", validation: check("keywords").isArray() },
+        //{ field: "keywords.*", validation: check("keywords.*").isString() },
+        { field: "types", validation: check("types").isArray() },
+        //{ field: "types.*", validation: check("types.*").isString() },
+        { field: "description", validation: check("description").isString() },
+        { field: "required_knowledge", validation: check("required_knowledge").isString() },
+        { field: "notes", validation: check("notes").isString().optional({ values: "null" }) },
+        { field: "expiration_date", validation: check("expiration_date").isISO8601().toDate() },
+        { field: "level", validation: check("level").isString().isLength({ min: 3, max: 3 }) },
+        { field: "cds", validation: check("cds").isString() },
+      ];    
+    */
+     /* const validations = fieldsToCheck
+        .filter(field => req.body.hasOwnProperty(field.field)) // Filter only fields present in the request body
+        .map(field => field.validation);
+      // Run validations
+      req.check(validations);*/
+
+      const {
+        title,
+        supervisor,
+        co_supervisors,
+        groups,
+        keywords,
+        types,
+        description,
+        required_knowledge,
+        notes,
+        expiration_date,
+        level,
+        cds,
+      } = req.body;
+
+      const id = req.params.id
+
+      const fieldsToUpdate = [
+        { field: "title", value: title },
+        { field: "supervisor", value: supervisor },
+        { field: "co_supervisors", value: co_supervisors },
+        { field: "groups", value: groups },
+        { field: "keywords", value: keywords },
+        { field: "types", value: types },
+        { field: "description", value: description },
+        { field: "required_knowledge", value: required_knowledge },
+        { field: "notes", value: notes },
+        { field: "expiration_date", value: expiration_date },
+        { field: "level", value: level },
+        { field: "cds", value: cds },
+      ].filter(field => field.value !== undefined);
+      console.log(fieldsToUpdate)
+      const setValues = fieldsToUpdate
+        .map(field => `${field.field} = '${field.value}'`)
+        .join(", ");
+
+      console.log(setValues)
+      updateProposal(id, setValues)
+      return res.status(200).send('Proposal updated successfully.');
+    } catch (e) {
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );

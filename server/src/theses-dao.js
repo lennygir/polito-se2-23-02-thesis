@@ -455,3 +455,19 @@ exports.deleteProposal = (proposal_id) => {
   }
 };
 
+exports.updateProposal = (id, setValues) => {
+  const sqlQuery = `UPDATE PROPOSALS SET ${setValues} WHERE id = ?`;
+  db.run(sqlQuery, id, function(err) {
+    if (err) {
+      // Handle error
+      console.error("Error updating proposal:", err);
+      // Optionally return an error response
+    } else {
+      console.log(`Proposal with ID ${id} updated successfully`);
+      // Optionally return a success response
+    }
+  });
+};
+
+
+

@@ -472,3 +472,26 @@ describe("Delete proposals", () => {
   });
 
 });
+
+describe("Update proposals", () => {
+  test("Correct update of a proposal", async () => {
+    const proposalId = 1; // Replace with the proposal ID you want to update
+    const updatedFields = {
+      // Specify the fields and their updated values
+      title: "Updated Title",
+      supervisor: "Updated Supervisor",
+      // Add other fields to update
+    };
+
+    // Send the PATCH request to update the proposal
+    const response = await request(app)
+      .patch(`/api/proposal/${proposalId}`)
+      .send(updatedFields);
+
+    // Check if the response status is successful (e.g., 200 OK)
+    expect(response.status).toBe(200);
+  });
+
+  
+
+});
