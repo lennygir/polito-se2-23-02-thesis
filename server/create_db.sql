@@ -1,6 +1,7 @@
 -- TO RUN THIS SCRIPT:
 -- sqlite3 theses_management.db < create_db.sql
 
+DROP TABLE IF EXISTS NOTIFICATIONS;
 DROP TABLE IF EXISTS APPLICATIONS;
 DROP TABLE IF EXISTS CAREER;
 DROP TABLE IF EXISTS STUDENT;
@@ -92,6 +93,15 @@ CREATE TABLE IF NOT EXISTS APPLICATIONS (
 CREATE TABLE IF NOT EXISTS USERS (
   email TEXT NOT NULL,
   password TEXT NOT NULL
+);
+
+CREATE TABLE "NOTIFICATIONS" (
+	"id"	INTEGER PRIMARY KEY AUTOINCREMENT,
+	"date"	TEXT NOT NULL DEFAULT (DATETIME('now')),
+	"object"	TEXT NOT NULL,
+	"content"	TEXT NOT NULL,
+	"student_id"	TEXT NOT NULL,
+	FOREIGN KEY("student_id") REFERENCES "STUDENT"("id")
 );
 
 INSERT INTO DEGREE (cod_degree, title_degree)
@@ -327,6 +337,11 @@ VALUES (1,'s309618','rejected'),
        (4,'s308747','rejected'),
        (1,'s319823','rejected'),
        (2,'s319823','pending');
+
+INSERT INTO NOTIFICATIONS (object, content, student_id)
+VALUES ('New decision on your thesis application', 'Dear Tortore Luca,' || char(10) || 'your application for the thesis Gamification di attività di modellazione UML has been rejected.' || char(10) || 'Best regards,' || char(10) || 'the Thesis Managment system', 's319823'),
+		('New decision on your thesis application', 'Dear Bertetto Lorenzo,' || char(10) || 'your application for the thesis Gamification di attività di modellazione UML has been rejected.' || char(10) || 'Best regards,' || char(10) || 'the Thesis Managment system', 's309618'),
+		('New decision on your thesis application', 'Dear Valeriano Carlos,' || char(10) || 'your application for the thesis Detecting the risk discrimination in classifiers with imbalance measures has been rejected.' || char(10) || 'Best regards,' || char(10) || 'the Thesis Managment system', 's308747');
 
 -- ACTIVATE FOREIGN KEYS
 PRAGMA foreign_keys = ON;

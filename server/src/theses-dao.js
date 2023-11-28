@@ -203,27 +203,29 @@ exports.findRejectedApplication = (proposal_id, student_id) => {
 
 exports.notifyApplicationDecision = async (applicationId, decision) => {
   // Send email to student
-  const applicationJoined = db.prepare("SELECT P.title, S.email, S.surname, S.name \
+  const applicationJoined = db.prepare("SELECT S.id, P.title, S.email, S.surname, S.name \
     FROM APPLICATIONS A \
     JOIN PROPOSALS P ON P.id = A.proposal_id \
     JOIN STUDENT S ON S.id = A.student_id \
     WHERE A.id = ?").get(applicationId);
+  const mailBody = applicationDecisionTemplate({
+    name: applicationJoined.surname + " " + applicationJoined.name,
+    thesis: applicationJoined.title,
+    decision: decision,
+  });
   try {
     await nodemailer.sendMail({
       to: applicationJoined.email,
       subject: "New decision on your thesis application",
-      html: applicationDecisionTemplate({
-        name: applicationJoined.surname + " " + applicationJoined.name,
-        thesis: applicationJoined.title,
-        decision: decision,
-      })
+      text: mailBody.text,
+      html: mailBody.html
     });
   } catch (e) {
     console.log('[mail service]', e);
   }
 
   // Save email in DB
-  // db.prepare("update APPLICATIONS set state = ? where id = ?").run(state, id);
+  db.prepare("INSERT INTO NOTIFICATIONS(student_id, object, content) VALUES(?,?,?)").run(applicationJoined.id, "New decision on your thesis application", mailBody.text);
 };
 
 /**
