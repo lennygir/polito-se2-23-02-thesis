@@ -81,16 +81,17 @@ function ProposalForm(props) {
 
   // Get groups based on the selected co-supervisors
   const getAvailableGroups = (coSupervisors) => {
-    const groups = coSupervisors.map((email) => {
-      const teacher = props.teachers.find((teacher) => teacher.email === email);
-      return teacher ? teacher.cod_group : null;
+    const supervisorGroup = user.cod_group;
+
+    const selectedCoSupervisorsGroups = coSupervisors.map((email) => {
+      const coSupervisor = props.teachers.find((teacher) => teacher.email === email);
+      return coSupervisor ? coSupervisor.cod_group : null;
     });
     // Remove null values and duplicate groups
-    const uniqueGroups = [...new Set(groups.filter(Boolean))];
+    const uniqueGroups = [...new Set(selectedCoSupervisorsGroups.filter(Boolean))];
 
     // If no co-supervisors selected, default to user's group
-    const finalGroups = uniqueGroups.length === 0 ? [user.cod_group] : uniqueGroups;
-
+    const finalGroups = uniqueGroups.includes(supervisorGroup) ? uniqueGroups : [supervisorGroup, ...uniqueGroups];
     setAvailableGroups(finalGroups);
   };
 
