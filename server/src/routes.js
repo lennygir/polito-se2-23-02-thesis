@@ -26,6 +26,7 @@ const {
   getPendingOrAcceptedApplicationsOfStudent,
   findAcceptedProposal,
   findRejectedApplication,
+  notifyApplicationDecision,
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -379,6 +380,7 @@ router.patch(
         });
       }
       updateApplication(application.id, state);
+      notifyApplicationDecision(application.id, state);
       if (state === "accepted") {
         cancelPendingApplications(
           application.proposal_id,
