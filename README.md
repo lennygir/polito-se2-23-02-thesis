@@ -201,7 +201,7 @@
   }
   ```
 - PATCH `/api/applications/:id`
-  - accept or reject a specific application. If the application is accepted, all the pending applications of that student are removed, and all the pending applications for that proposal are rejected
+  - accept or reject a specific application. If the application is accepted, all the pending applications for that proposal are set as 'cancelled'
   - request body content example
   ```
   {
@@ -211,6 +211,7 @@
 - POST `/api/applications`
   - notes
     - the initial state is always `pending`
+    - will not work if the student already applied for a proposal
   - request body content example
   ```
   {
@@ -248,7 +249,8 @@
         student_name: 'Lorenzo',
         student_surname: 'Bertetto',
         teacher_name: 'Marco',
-        teacher_surname: 'Torchiano'
+        teacher_surname: 'Torchiano',
+        title: 'Gamification di attività di modellazione UML'
       },
       {
         id: 6,
@@ -258,27 +260,8 @@
         student_name: 'Francesco',
         student_surname: 'Baracco',
         teacher_name: 'Marco',
-        teacher_surname: 'Torchiano'
-      },
-      {
-        id: 7,
-        proposal_id: 2,
-        student_id: 's317743',
-        state: 'pending',
-        student_name: 'Francesco',
-        student_surname: 'Baracco',
-        teacher_name: 'Marco',
-        teacher_surname: 'Torchiano'
-      },
-      {
-        id: 8,
-        proposal_id: 3,
-        student_id: 's317743',
-        state: 'pending',
-        student_name: 'Francesco',
-        student_surname: 'Baracco',
-        teacher_name: 'Marco',
-        teacher_surname: 'Torchiano'
+        teacher_surname: 'Torchiano',
+        title: 'Analisi empirica dei difetti in R Markdown'
       }
     ]
   ```
