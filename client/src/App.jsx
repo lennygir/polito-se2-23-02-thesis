@@ -17,6 +17,8 @@ import LoginPage from "./routes/LoginPage";
 import ViewProposalPage from "./routes/ViewProposalPage";
 import ViewApplicationPage from "./routes/ViewApplicationPage";
 import API from "./utils/API";
+import { useAuth0 } from "@auth0/auth0-react";
+import LoadingPage from "./routes/LoadingPage";
 
 function App() {
   const { theme } = useThemeContext();
@@ -32,6 +34,7 @@ function App() {
 }
 
 function Main() {
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const navigate = useNavigate();
 
   // Flag to re-fetch data
@@ -41,7 +44,7 @@ function Main() {
   const [loading, setLoading] = useState(false);
 
   // Current logged in user data
-  const [user, setUser] = useState(undefined);
+  // const [user, setUser] = useState(undefined);
 
   // Current local date
   const [currentDate, setCurrentDate] = useState(dayjs().format("YYYY-MM-DD"));
@@ -62,31 +65,31 @@ function Main() {
     severity: "success"
   });
 
-  const handleLogin = async (credentials) => {
-    try {
-      const user = await API.logIn(credentials);
-      setUser(user);
-      setDirty(true);
-      navigate("/proposals");
-      setAlert({
-        message: "Welcome, " + user.name + "!",
-        severity: "success"
-      });
-      await fetchStaticData();
-    } catch (err) {
-      handleErrors(err);
-    }
-  };
+  // const handleLogin = async (credentials) => {
+  //   try {
+  //     const user = await API.logIn(credentials);
+  //     setUser(user);
+  //     setDirty(true);
+  //     navigate("/proposals");
+  //     setAlert({
+  //       message: "Welcome, " + user.name + "!",
+  //       severity: "success"
+  //     });
+  //     await fetchStaticData();
+  //   } catch (err) {
+  //     handleErrors(err);
+  //   }
+  // };
 
-  const handleLogout = () => {
-    setUser(undefined);
-    navigate("/");
-    setTeachers([]);
-    setGroups([]);
-    setDegrees([]);
-    setProposals([]);
-    setApplications([]);
-  };
+  // const handleLogout = () => {
+  //   setUser(undefined);
+  //   navigate("/");
+  //   setTeachers([]);
+  //   setGroups([]);
+  //   setDegrees([]);
+  //   setProposals([]);
+  //   setApplications([]);
+  // };
 
   const handleErrors = (err) => {
     let errMsg;
@@ -102,16 +105,16 @@ function Main() {
     setAlert({ message: errMsg, severity: "error" });
   };
 
-  const fetchStaticData = async () => {
-    try {
-      const [teachers, groups, degrees] = await Promise.all([API.getTeachers(), API.getGroups(), API.getDegrees()]);
-      setTeachers(teachers);
-      setGroups(groups);
-      setDegrees(degrees);
-    } catch (err) {
-      return handleErrors(err);
-    }
-  };
+  // const fetchStaticData = async () => {
+  //   try {
+  //     const [teachers, groups, degrees] = await Promise.all([API.getTeachers(), API.getGroups(), API.getDegrees()]);
+  //     setTeachers(teachers);
+  //     setGroups(groups);
+  //     setDegrees(degrees);
+  //   } catch (err) {
+  //     return handleErrors(err);
+  //   }
+  // };
 
   const fetchDynamicData = async () => {
     try {
@@ -160,6 +163,20 @@ function Main() {
     }
   }, [dirty]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [teachers, groups, degrees] = await Promise.all([API.getTeachers(), API.getGroups(), API.getDegrees()]);
+        setTeachers(teachers);
+        setGroups(groups);
+        setDegrees(degrees);
+      } catch (err) {
+        return handleErrors(err);
+      }
+    };
+    fetchData();
+  }, []);
+
   // Virtual clock
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -185,19 +202,23 @@ function Main() {
     return degrees.find((degree) => degree.cod_degree === codDegree);
   };
 
+  if (isLoading) {
+    return <LoadingPage loading={isLoading} />;
+  }
+
   return (
     <UserContext.Provider value={user}>
       <ErrorContext.Provider value={{ handleErrors }}>
         <Routes>
           {/* prettier-ignore */}
-          <Route path="/" element={user ? <RootPage loading={loading} currentDate={currentDate} logout={handleLogout} fetchProposals={fetchProposals} fetchApplications={fetchApplications} /> : <LoginPage login={handleLogin} />}>
-          <Route path="proposals" element={user ? <ProposalsPage proposals={proposals} teachers={teachers} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
-          <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} getTeacherById={getTeacherById} getDegreeById={getDegreeById} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
-          <Route path="add-proposal" element={user ? <CreateProposalPage fetchProposals={fetchProposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
-          <Route path="applications" element={user ? <ApplicationsPage applications={applications} proposals={proposals} /> : <Navigate replace to="/" /> } />
-          <Route path="applications/:applicationId" element={user ? <ViewApplicationPage fetchApplications={fetchApplications} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
-          <Route path="notifications" element={user ? <NotificationsPage /> : <Navigate replace to="/" />} />
-          <Route path="settings" element={user ? <SettingsPage currentDate={currentDate} setCurrentDate={setCurrentDate}/> : <Navigate replace to="/" />} />
+          <Route path="/" element={isAuthenticated ? <RootPage loading={loading} currentDate={currentDate} fetchProposals={fetchProposals} fetchApplications={fetchApplications} /> : <LoginPage />}>
+          <Route path="proposals" element={isAuthenticated ? <ProposalsPage proposals={proposals} teachers={teachers} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
+          <Route path="proposals/:proposalId" element={isAuthenticated ? <ViewProposalPage setDirty={setDirty} getTeacherById={getTeacherById} getDegreeById={getDegreeById} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
+          <Route path="add-proposal" element={isAuthenticated ? <CreateProposalPage fetchProposals={fetchProposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
+          <Route path="applications" element={isAuthenticated ? <ApplicationsPage applications={applications} proposals={proposals} /> : <Navigate replace to="/" /> } />
+          <Route path="applications/:applicationId" element={isAuthenticated ? <ViewApplicationPage fetchApplications={fetchApplications} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
+          <Route path="notifications" element={isAuthenticated ? <NotificationsPage /> : <Navigate replace to="/" />} />
+          <Route path="settings" element={isAuthenticated ? <SettingsPage currentDate={currentDate} setCurrentDate={setCurrentDate}/> : <Navigate replace to="/" />} />
         </Route>
           <Route path="*" element={<ErrorPage />} />
         </Routes>

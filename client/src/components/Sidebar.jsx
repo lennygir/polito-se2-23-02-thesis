@@ -14,6 +14,7 @@ import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import logo from "../assets/images/logo.png";
 import { Link } from "react-router-dom";
 import { useThemeContext } from "../theme/ThemeContextProvider";
+import { LogoutButton } from "./Auth";
 
 const sidebarMainTabs = [
   {
@@ -107,17 +108,7 @@ function Sidebar(props) {
             </ListItemButton>
           </ListItem>
           <ListItem key={logoutTab.id} disablePadding>
-            <ListItemButton
-              selected={props.selectedTab === logoutTab.id}
-              onClick={() => {
-                props.handleTabSelection(logoutTab.id);
-                props.closeDrawer();
-                props.logout();
-              }}
-            >
-              <ListItemIcon>{logoutTab.icon}</ListItemIcon>
-              <ListItemText primary={logoutTab.label} />
-            </ListItemButton>
+            <LogoutButton />
           </ListItem>
         </List>
       </Box>

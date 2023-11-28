@@ -35,7 +35,7 @@ function Navbar(props) {
           <MenuIcon />
         </IconButton>
         <Typography variant="h6" noWrap component="div">
-          {user?.name + " " + user?.surname}
+          {user.name}
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
         <Button
