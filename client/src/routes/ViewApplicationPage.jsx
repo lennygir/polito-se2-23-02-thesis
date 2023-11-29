@@ -25,6 +25,7 @@ function ViewApplicationPage(props) {
           severity: "success"
         });
         props.fetchApplications();
+        props.fetchNotifications();
       })
       .catch((err) => handleErrors(err));
   };
