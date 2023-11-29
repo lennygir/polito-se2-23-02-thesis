@@ -344,7 +344,7 @@ exports.deleteProposal = (proposal_id) => {
   db.prepare("DELETE FROM PROPOSALS WHERE id = ?").run(proposal_id);
 };
 
-exports.updateProposal = (id, setValues) => {
+/*exports.updateProposal = (id, setValues) => {
 
   const params = [];
   const sqlParams = [];
@@ -352,7 +352,7 @@ exports.updateProposal = (id, setValues) => {
     const value = setValues[key];
     // Check if the value is of a supported type for SQLite3 bindings
     if (
-      typeof value === 'number' ||
+      typeof value === 'number' || 
       typeof value === 'string' ||
       value instanceof Buffer ||
       value === null
@@ -370,7 +370,44 @@ exports.updateProposal = (id, setValues) => {
 
   const stmt = db.prepare(sqlQuery);
   stmt.run(params)
+}*/
+
+exports.updateProposal = (
+  proposal_id, 
+  title,
+  supervisor,
+  co_supervisors,
+  groups,
+  keywords,
+  types,
+  description,
+  required_knowledge,
+  notes,
+  expiration_date,
+  level,
+  cds,
+) => {
+  return db
+    .prepare(
+      "UPDATE PROPOSALS SET title = ?, supervisor = ?, co_supervisors = ?, keywords = ?, type = ?, groups = ?, description = ?, required_knowledge = ?, notes = ?, expiration_date = ?, level = ?, cds = ? WHERE id = ?",
+    )
+    .run(
+      title,
+      supervisor,
+      co_supervisors,
+      keywords,
+      types,
+      groups,
+      description,
+      required_knowledge,
+      notes,
+      expiration_date,
+      level,
+      cds,
+      proposal_id,
+    );
 }
+
 
 
 

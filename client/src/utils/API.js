@@ -191,7 +191,7 @@ const getNotificationsByStudent = async (student_id) => {
 const updateProposal = async (proposal) => {
   return getJson(
     fetch(SERVER_URL + "/proposals/" + proposal.id, {
-      method: "PATCH",
+      method: "PUT",
       headers: {
         "Content-Type": "application/json"
       },

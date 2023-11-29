@@ -261,7 +261,7 @@ it('updateProposal - should update a proposal successfully and return the result
   });
   const result = await API.updateProposal(proposalToUpdate);
   expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/${proposalToUpdate.id}`, {
-    method: 'PATCH',
+    method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
