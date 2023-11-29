@@ -27,6 +27,7 @@ const {
   findAcceptedProposal,
   findRejectedApplication,
   notifyApplicationDecision,
+  getNotificationsOfStudent,
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -389,6 +390,34 @@ router.patch(
       }
       return res.status(200).json({ message: `Application ${state}` });
     } catch (err) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+
+router.get(
+  "/api/notifications",
+  check("student")
+    .isAlphanumeric()
+    .isLength({ min: 7, max: 7 })
+    .optional({ values: undefined }),
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).json({ message: "Invalid student content" });
+    }
+    try {
+      if (req.query.student !== undefined) {
+        const student = getStudent(req.query.student);
+        if (student === undefined) {
+          return res.status(404).json({
+            message: `Student ${req.query.student} not found, cannot get the notifications`,
+          });
+        }
+        const notifications = getNotificationsOfStudent(student.id);
+        return res.status(200).json(notifications);
+      }
+    } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   },
