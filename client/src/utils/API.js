@@ -209,7 +209,15 @@ const updateProposal = async (proposal) => {
 const deleteProposal = async (proposal_id) => {
   return getJson(
     fetch(SERVER_URL + "/proposals/" + proposal_id, {
-      method: "DELETE",
+      method: "DELETE"
+    })
+  );
+};
+
+const getUserInfo = async () => {
+  return getJson(
+    fetch(SERVER_URL + "/sessions/current", {
+      credentials: "include"
     })
   );
 };
@@ -222,14 +230,15 @@ const API = {
   getProposals,
   getProposalsByDegree,
   getProposalsByTeacher,
+  getUserInfo,
   insertApplication,
   getApplicationsByTeacher,
   getApplicationsByStudent,
   evaluateApplication,
-  logIn, 
+  logIn,
   getNotificationsByStudent,
   updateProposal,
-  deleteProposal,
+  deleteProposal
 };
 
 export default API;

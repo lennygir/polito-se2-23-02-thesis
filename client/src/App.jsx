@@ -63,33 +63,6 @@ function Main() {
     severity: "success"
   });
 
-  const handleLogin = async (credentials) => {
-    try {
-      const user = await API.logIn(credentials);
-      setUser(user);
-      setDirty(true);
-      navigate("/proposals");
-      setAlert({
-        message: "Welcome, " + user.name + "!",
-        severity: "success"
-      });
-      await fetchStaticData();
-    } catch (err) {
-      handleErrors(err);
-    }
-  };
-
-  const handleLogout = () => {
-    setUser(undefined);
-    navigate("/");
-    setTeachers([]);
-    setGroups([]);
-    setDegrees([]);
-    setProposals([]);
-    setApplications([]);
-    setNotifications([]);
-  };
-
   const handleErrors = (err) => {
     let errMsg;
     if (err.errors && err.errors[0] && err.errors[0].msg) {
@@ -102,17 +75,6 @@ function Main() {
       errMsg = JSON.stringify(err);
     }
     setAlert({ message: errMsg, severity: "error" });
-  };
-
-  const fetchStaticData = async () => {
-    try {
-      const [teachers, groups, degrees] = await Promise.all([API.getTeachers(), API.getGroups(), API.getDegrees()]);
-      setTeachers(teachers);
-      setGroups(groups);
-      setDegrees(degrees);
-    } catch (err) {
-      return handleErrors(err);
-    }
   };
 
   const fetchDynamicData = async () => {
@@ -164,6 +126,36 @@ function Main() {
     }
   };
 
+  // At launch only
+  useEffect(() => {
+    const fetchStaticData = async () => {
+      try {
+        const [teachers, groups, degrees] = await Promise.all([API.getTeachers(), API.getGroups(), API.getDegrees()]);
+        setTeachers(teachers);
+        setGroups(groups);
+        setDegrees(degrees);
+      } catch (err) {
+        return handleErrors(err);
+      }
+    };
+
+    // Check if user is logged in
+    API.getUserInfo()
+      .then((user) => {
+        setUser(user);
+        setDirty(true);
+        navigate("/proposals");
+        setAlert({
+          message: "Welcome, " + user.name + "!",
+          severity: "success"
+        });
+        fetchStaticData();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
+
   // Re-fetch dynamic data when needed
   useEffect(() => {
     if (dirty) {
@@ -189,15 +181,15 @@ function Main() {
       <ErrorContext.Provider value={{ handleErrors }}>
         <Routes>
           {/* prettier-ignore */}
-          <Route path="/" element={user ? <RootPage loading={loading} currentDate={currentDate} logout={handleLogout} fetchProposals={fetchProposals} fetchApplications={fetchApplications} /> : <LoginPage login={handleLogin} />}>
-            <Route path="proposals" element={user ? <ProposalsPage currentDate={currentDate} proposals={proposals} applications={applications} teachers={teachers} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
-            <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} getTeacherById={getTeacherById} getDegreeById={getDegreeById} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
-            <Route path="add-proposal" element={user ? <CreateProposalPage fetchProposals={fetchProposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
-            <Route path="applications" element={user ? <ApplicationsPage applications={applications} /> : <Navigate replace to="/" /> } />
-            <Route path="applications/:applicationId" element={user ? <ViewApplicationPage fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
-            <Route path="notifications" element={user ? <NotificationsPage notifications={notifications} fetchNotifications={fetchNotifications} /> : <Navigate replace to="/" />} />
-            <Route path="settings" element={user ? <SettingsPage currentDate={currentDate} setCurrentDate={setCurrentDate} /> : <Navigate replace to="/" />} />
-          </Route>
+          <Route path="/" element={user ? <RootPage loading={loading} currentDate={currentDate} fetchProposals={fetchProposals} fetchApplications={fetchApplications} /> : <LoginPage />}>
+              <Route path="proposals" element={user ? <ProposalsPage currentDate={currentDate} proposals={proposals} applications={applications} teachers={teachers} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
+              <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} getTeacherById={getTeacherById} getDegreeById={getDegreeById} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
+              <Route path="add-proposal" element={user ? <CreateProposalPage fetchProposals={fetchProposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
+              <Route path="applications" element={user ? <ApplicationsPage applications={applications} /> : <Navigate replace to="/" /> } />
+              <Route path="applications/:applicationId" element={user ? <ViewApplicationPage fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
+              <Route path="notifications" element={user ? <NotificationsPage notifications={notifications} fetchNotifications={fetchNotifications} /> : <Navigate replace to="/" />} />
+              <Route path="settings" element={user ? <SettingsPage currentDate={currentDate} setCurrentDate={setCurrentDate} /> : <Navigate replace to="/" />} />
+            </Route>
           <Route path="*" element={<ErrorPage />} />
         </Routes>
         <Snackbar
