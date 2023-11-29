@@ -404,7 +404,7 @@ router.get(
   (req, res) => {
     const result = validationResult(req);
     if (!result.isEmpty()) {
-      return res.status(400).json({ message: "Invalid application content" });
+      return res.status(400).json({ message: "Invalid student content" });
     }
     try {
       if (req.query.student !== undefined) {
@@ -415,11 +415,6 @@ router.get(
           });
         }
         const notifications = getNotificationsOfStudent(student.id);
-        if (notifications.length === 0) {
-          return res.status(404).json({
-            message: `No notification found for student ${req.query.student}`,
-          });
-        }
         return res.status(200).json(notifications);
       }
     } catch (e) {
