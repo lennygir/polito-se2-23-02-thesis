@@ -172,6 +172,14 @@ const getApplicationsByStudent = async (student_id) => {
   return getJson(fetch(SERVER_URL + "/applications?student=" + student_id));
 };
 
+const getUserInfo = async () => {
+  return getJson(
+    fetch(SERVER_URL + "/sessions/current", {
+      credentials: "include"
+    })
+  );
+};
+
 const API = {
   createProposal,
   getDegrees,
@@ -180,6 +188,7 @@ const API = {
   getProposals,
   getProposalsByDegree,
   getProposalsByTeacher,
+  getUserInfo,
   insertApplication,
   getApplicationsByTeacher,
   getApplicationsByStudent,
