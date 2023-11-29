@@ -28,6 +28,8 @@ function RootPage(props) {
       props.fetchProposals();
     } else if (tabId === "applications") {
       props.fetchApplications();
+    } else if (tabId === "notifications") {
+      props.fetchNotifications();
     }
   };
 
