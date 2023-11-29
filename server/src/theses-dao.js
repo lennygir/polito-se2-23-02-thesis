@@ -178,10 +178,10 @@ exports.getProposalsByDegree = (cds) => {
     .all(cds);
 };
 
-exports.cancelPendingApplications = (of_proposal, except_for_student) => {
+exports.cancelPendingApplications = (of_proposal) => {
   db.prepare(
-    "update APPLICATIONS set state = 'canceled' where proposal_id = ? AND state = 'pending' AND student_id != ?",
-  ).run(of_proposal, except_for_student);
+    "update APPLICATIONS set state = 'canceled' where proposal_id = ? AND state = 'pending'",
+  ).run(of_proposal);
 };
 
 exports.updateApplication = (id, state) => {
@@ -341,42 +341,7 @@ exports.getNotificationsOfStudent = (student_id) => {
 };
 
 exports.deleteProposal = (proposal_id) => {
-  try {
-    // Check if proposal_id exists in APPLICATIONS table
-    const checkApplications = db.prepare("SELECT COUNT(*) AS count FROM APPLICATIONS WHERE proposal_id = ?");
-    const applicationsCount = checkApplications.get(proposal_id).count;
-
-    if (applicationsCount === 0) {
-      throw { status: 404, message: "Proposal ID not found in APPLICATIONS table. Deletion unsuccessful." };
-    }
-
-    // Check if proposal_id exists in PROPOSALS table
-    const checkProposals = db.prepare("SELECT COUNT(*) AS count FROM PROPOSALS WHERE id = ?");
-    const proposalsCount = checkProposals.get(proposal_id).count;
-
-    if (proposalsCount === 0) {
-      throw { status: 404, message: "Proposal ID not found in PROPOSALS table. Deletion unsuccessful." };
-    }
-
-    const deleteProposals = db.prepare("DELETE FROM PROPOSALS WHERE id = ?");
-    const proposalsResult = deleteProposals.run([proposal_id]);
-
-    if (proposalsResult.changes === 0) {
-      throw { status: 404, message: "No rows were deleted. Deletion unsuccessful." };
-    } else {
-      console.log("Deletions were successful");
-    }
-
-    db.prepare(
-      "UPDATE applications SET state = 'canceled' WHERE proposal_id IS NULL;",
-    ).run();
-
-    
-  } catch (err) {
-    console.error("Error deleting:", err);
-    // Re-throw the error to propagate it to the caller
-    throw err;
-  }
+  db.prepare("DELETE FROM PROPOSALS WHERE id = ?").run(proposal_id);
 };
 
 exports.updateProposal = (id, setValues) => {

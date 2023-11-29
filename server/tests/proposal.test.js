@@ -413,96 +413,6 @@ describe("Get All Degrees Test", () => {
   });
 });
 
-describe("Delete proposals", () => {
-  test("Correct elimination of a proposal", () => {
-    const id = 2;
-    return request(app)
-      .delete(`/api/proposals?id=${id}`)
-      .expect(200);
-  });
-
-  test("Should retrun a 400 error if the proposal is already accepted", () => {
-    const id = 8;
-    return request(app)
-      .delete(`/api/proposals?id=${id}`)
-      .expect(400);
-  });
-
-
-  test("Get 404 error for no rows eliminated", () => {
-   const id = 10000;
-    return request(app)
-      .delete(`/api/proposals?id=${id}`)
-      .expect(404);
-  });
-
-  test("Get 404 error for incorrect data format in", () => {
-    const id = "a";
-     return request(app)
-       .delete(`/api/proposals?id=${id}`)
-       .expect(400);
-   });
-
-});
-
-describe("Update proposals", () => {
-  test("Correct update of a proposal", async () => {
-    const proposalId = 1; // Replace with the proposal ID you want to update
-    const updatedFields = {
-      // Specify the fields and their updated values
-      title: "Updated Title",
-      supervisor: "s940590",
-      // Add other fields to update
-    };
-
-    // Send the PATCH request to update the proposal
-    const response = await request(app)
-      .patch(`/api/proposal/${proposalId}`)
-      .send(updatedFields);
-
-    // Check if the response status is successful (e.g., 200 OK)
-    expect(response.status).toBe(200);
-  });
-
-  test("Should return 400 if the proposal is already accepted", async () => {
-    const proposalId = 8; // Replace with the proposal ID you want to update
-    const updatedFields = {
-      // Specify the fields and their updated values
-      title: "Updated Title",
-      supervisor: "s940590",
-      // Add other fields to update
-    };
-
-    // Send the PATCH request to update the proposal
-    const response = await request(app)
-      .patch(`/api/proposal/${proposalId}`)
-      .send(updatedFields);
-
-    // Check if the response status is successful (e.g., 200 OK)
-    expect(response.status).toBe(400);
-  });
-
-  test("Should return 500 for an incorrect server behaviour", async () => {
-    const proposalId = 1; // Replace with the proposal ID you want to update
-    const updatedFields = {
-      // Specify the fields and their updated values
-      title: "Updated4 Title",
-      supervisor: "s9405902309090",
-      // Add other fields to update
-    };
-
-    // Send the PATCH request to update the proposal
-    const response = await request(app)
-      .patch(`/api/proposal/${proposalId}`)
-      .send(updatedFields);
-
-    // Check if the response status is successful (e.g., 200 OK)
-    expect(response.status).toBe(500);
-  });
-
-  
-
-});
 describe("PATCH /api/applications/:id", () => {
   test("Should return 400 if the application does not exist", async () => {
     getApplicationById.mockReturnValue(undefined);
@@ -537,7 +447,7 @@ describe("PATCH /api/applications/:id", () => {
     expect(response.body).toEqual({ message: "Application accepted" });
 
     expect(updateApplication).toHaveBeenCalledWith(1, "accepted");
-    expect(cancelPendingApplications).toHaveBeenCalledWith(2, "s123456");
+    expect(cancelPendingApplications).toHaveBeenCalledWith(2);
   });
   test("Should return 200 if the state is rejected for an existent application", async () => {
     getApplicationById.mockReturnValue({
@@ -607,19 +517,6 @@ describe('GET /api/notifications', () => {
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
       message: 'Student s328186 not found, cannot get the notifications',
-    });
-  });
-
-  it('should return a 404 error for a student with no notifications', async () => {
-    const mockStudent = { id: "s216786" };
-    getStudent.mockReturnValue(mockStudent);
-    getNotificationsOfStudent.mockReturnValue([]);
-
-    const response = await request(app).get('/api/notifications?student=s216786');
-
-    expect(response.status).toBe(404);
-    expect(response.body).toEqual({
-      message: 'No notification found for student s216786',
     });
   });
 

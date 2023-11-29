@@ -15,15 +15,12 @@ const {
   getProposalsByDegree,
   updateApplication,
   getProposal,
-  findAcceptedProposal,
   insertApplication,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   getProposals,
-<<<<<<< HEAD
   deleteProposal,
-  updateProposal
-=======
+  updateProposal,
   getApplicationById,
   getTeacherByEmail,
   getApplications,
@@ -33,7 +30,6 @@ const {
   findRejectedApplication,
   notifyApplicationDecision,
   getNotificationsOfStudent,
->>>>>>> main
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -391,7 +387,6 @@ router.patch(
       if (state === "accepted") {
         cancelPendingApplications(
           application.proposal_id,
-          application.student_id,
         );
       }
       return res.status(200).json({ message: `Application ${state}` });
@@ -428,8 +423,9 @@ router.get(
     }
   },
 );
+
 router.patch(
-  "/api/proposal/:id",
+  "/api/proposals/:id",
   (req, res) => {
     try {
       const {
@@ -482,7 +478,7 @@ router.patch(
   },
 );
 
-router.delete('/api/proposals',
+router.delete('/api/proposals/:id',
   [ check('id').isInt() ],
   async (req, res) => {
     try {
@@ -490,19 +486,22 @@ router.delete('/api/proposals',
       if (!result.isEmpty()) {
         return res.status(400).send({ message: "Invalid proposal content" });
       }
-
-      if (findAcceptedProposal(req.query.id)) {
+      const proposal = getProposal(req.params.id);
+        if (proposal === undefined) {
+          return res.status(404).json({
+            message: `Proposal ${req.query.id} not found`,
+          });
+        }
+      if (findAcceptedProposal(req.params.id)) {
         return res.status(400).json({
-          message: `The proposal ${req.query.id} is already accepted for another student`,
+          message: `The proposal ${req.params.id} is already accepted for another student`,
         });
       }
-
-      await deleteProposal(req.query.id);
+      cancelPendingApplications(req.params.id);
+      deleteProposal(req.params.id);
       return res.status(200).send('Proposal deleted successfully.');
     } catch (err) {
-      if (err.status === 404) {
-        return res.status(404).json({ message: err.message });
-      }
+      console.error(`Error deleting proposal: ${err.message}`);
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
