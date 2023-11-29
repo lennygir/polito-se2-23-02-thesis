@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect} from "react";
+import { useContext, useState } from "react";
 import dayjs from "dayjs";
 import validator from "validator";
 import Autocomplete from "@mui/material/Autocomplete";
@@ -14,62 +14,27 @@ import UserContext from "../contexts/UserContext";
 import { DatePicker } from "@mui/x-date-pickers";
 import { LEVELS, TYPES } from "../utils/constants";
 import { Tooltip } from "@mui/material";
+import Chip from '@mui/material/Chip';
 
-function ProposalForm(props) {
+function ProposalUpdateForm(props) {
   const user = useContext(UserContext);
   const [teachers, setTeachers] = useState(props.teachers.map((teacher) => teacher.email));
   const [availableGroups, setAvailableGroups] = useState([user.cod_group]);
-
-  const [formData, setFormData] = useState(props.fillData === null ? {
-    title: "",
-    supervisor: user ? user.email : "",
-    coSupervisors: [],
+  const [formData, setFormData] = useState({
+    title: props.editProposal[0].title,
+    supervisor: props.editProposal[0].supervisor,
+    coSupervisors: props.editProposal[0].co_supervisors.split(','),
     externalCoSupervisor: "",
-    expirationDate: null,
-    type: [],
-    level: "",
-    groups: [],
-    description: "",
-    requiredKnowledge: "",
-    keywords: "",
-    notes: "",
-    cds: ""
-  }:{
-    title: props.fillData['title'],
-    supervisor: props.fillData['supervisor'],
-    coSupervisors: props.fillData['coSupervisors'].trim().split(','),
-    externalCoSupervisor: "",
-    expirationDate: props.fillData['expirationDate'],
-    type: props.fillData['type'].split(','),
-    level: props.fillData['level']=== "BSC" ? "Bachelor Degree" : "Master Degree",
-    groups: props.fillData['groups'].split(','),
-    description: props.fillData['description'],
-    requiredKnowledge: props.fillData['requiredKnowledge'],
-    keywords: props.fillData['keywords'],
-    notes: props.fillData['notes'],
-    cds: props.fillData['cds']
+    expirationDate: props.editProposal[0].expiration_date,
+    type: props.editProposal[0].type.split(','),
+    level: props.editProposal[0].level=== "BSC" ? "Bachelor Degree" : "Master Degree",
+    groups: props.editProposal[0].groups.split(','),
+    description: props.editProposal[0].description,
+    requiredKnowledge: props.editProposal[0].required_knowledge,
+    keywords: props.editProposal[0].keywords,
+    notes: props.editProposal[0].notes,
+    cds: props.editProposal[0].cds
   });
-
-  useEffect(() => {
-    if(props.fillData != null){
-          setFormData(
-        {
-          title: props.fillData['title'],
-          supervisor: props.fillData['supervisor'],
-          coSupervisors: props.fillData['coSupervisors'].trim().split(','),
-          externalCoSupervisor: "",
-          expirationDate: props.fillData['expirationDate'],
-          type: props.fillData['type'].split(','),
-          level: props.fillData['level']=== "BSC" ? "Bachelor Degree" : "Master Degree",
-          groups: props.fillData['groups'].split(','),
-          description: props.fillData['description'],
-          requiredKnowledge: props.fillData['requiredKnowledge'],
-          keywords: props.fillData['keywords'],
-          notes: props.fillData['notes'],
-          cds: props.fillData['cds']
-          });
-        }
-  }, [props.fillData]);
 
   const [formErrors, setFormErrors] = useState({
     title: "",
@@ -89,8 +54,9 @@ function ProposalForm(props) {
 
   // Handle input change
   const handleFormInputChange = (field, value) => {
+    
     if (field === "coSupervisors") {
-      getAvailableGroups(value);
+       getAvailableGroups(value);
     }
     const newFormData = field === "level" ? { [field]: value, cds: "" } : { [field]: value };
     setFormData((prevFormData) => ({
@@ -204,13 +170,12 @@ function ProposalForm(props) {
       return;
     } else {
       // Parse data and send the form
-      
       const data = {
         title: formData.title,
         supervisor: user.id,
         co_supervisors: formData.coSupervisors.map(item => item.trim()),
         groups: formData.groups.map(item => item.trim()),
-        keywords: formData.keywords.split("\n").map((keyword) => keyword.trim()),
+        keywords: formData.keywords.split("\n").map((keyword) => keyword.trim()).join("\n"),
         types: formData.type.map(item => item.trim()),
         description: formData.description,
         required_knowledge: formData.requiredKnowledge,
@@ -219,8 +184,8 @@ function ProposalForm(props) {
         level: formData.level === "Bachelor Degree" ? "BSC" : "MSC",
         cds: formData.cds
       };
-   
-     props.createProposal(data);
+      
+      props.updateProposal(data, props.editProposal[0].id);
     }
   };
 
@@ -263,17 +228,20 @@ function ProposalForm(props) {
           />
         </FormControl>
         {/* Co-supervisors field */}
-        <FormControl fullWidth>
+        <FormControl>
           <Autocomplete
             multiple
             name="coSupervisors"
             options={teachers}
             value={formData.coSupervisors}
-            onChange={(event, value) => handleFormInputChange("coSupervisors", value)}
+            onChange={(event, value) => handleFormInputChange('coSupervisors', value)}
             filterSelectedOptions
             PaperComponent={CustomPaper}
             renderInput={(params) => (
-              <TextField {...params} label="Co-supervisors" placeholder="Email" margin="normal" />
+              <TextField {...params} label="Co-supervisors" 
+              placeholder="Email"
+              margin="normal" 
+              />
             )}
           />
         </FormControl>
@@ -502,10 +470,10 @@ function ProposalForm(props) {
         />
       </FormControl>
       <Button fullWidth type="submit" variant="contained" sx={{ mt: 4, mb: 2 }}>
-        Create Proposal
+        Update Proposal
       </Button>
     </Box>
   );
 }
 
-export default ProposalForm;
+export default ProposalUpdateForm;

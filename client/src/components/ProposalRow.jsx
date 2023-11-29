@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { useContext, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate} from "react-router-dom";
 import { IconButton, Chip, Link, MenuItem, Popover, Stack, TableCell, TableRow } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
@@ -10,13 +10,17 @@ import BusinessIcon from "@mui/icons-material/Business";
 import PublicIcon from "@mui/icons-material/Public";
 import ScienceIcon from "@mui/icons-material/Science";
 import UserContext from "../contexts/UserContext";
+import ConfirmationDialog from "./ConfirmationDialog"
 
 function ProposalRow(props) {
+  const dialogMessage = "Are you sure you want to delete this thesis proposal?"
   const user = useContext(UserContext);
   const proposal = props.proposal;
   const teacher = user?.role === "student" ? props.getTeacherById(proposal.supervisor) : null;
 
   const [open, setOpen] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const navigate = useNavigate();
 
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
@@ -25,6 +29,28 @@ function ProposalRow(props) {
   const handleCloseMenu = () => {
     setOpen(null);
   };
+
+  const handleEdit = (idProposal) => {
+    setOpen(null);
+    navigate('/edit-proposal/'+idProposal, { replace: true });
+  };
+
+  const handleDelete = (idProposal) => {
+    setOpen(null);
+    setOpenDialog(true)
+  };
+
+  const handleCloseDialog = () => {
+    setOpen(null);
+    setOpenDialog(false)
+  };
+
+  const handleDeleteSubmit = (idProposal) => {
+    setOpen(null);
+    setOpenDialog(false);
+    props.deleteProposal(idProposal)
+  };
+
 
   const renderType = (type) => {
     switch (type) {
@@ -85,15 +111,21 @@ function ProposalRow(props) {
           sx: { width: 140 }
         }}
       >
-        <MenuItem onClick={handleCloseMenu}>
+        <MenuItem onClick={()=>handleEdit(proposal.id)}>
           <ModeEditIcon sx={{ mr: 2 }} />
           Edit
         </MenuItem>
-        <MenuItem onClick={handleCloseMenu} sx={{ color: "error.main" }}>
+        <MenuItem onClick={() => handleDelete(proposal.id)} sx={{ color: "error.main" }}>
           <DeleteIcon sx={{ mr: 2 }} />
           Delete
         </MenuItem>
       </Popover>
+      <ConfirmationDialog
+          message={dialogMessage}
+          open={openDialog}
+          handleClose={handleCloseDialog}
+          handleSubmit={()=>handleDeleteSubmit(proposal.id)}
+        />
     </>
   );
 }
