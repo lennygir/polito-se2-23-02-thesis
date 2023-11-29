@@ -21,100 +21,103 @@ beforeEach(() => {
     notes: "Bella raga",
     expiration_date: "2019-01-25T02:00:00.000Z",
     level: "MSC",
-    cds: "LM-32 (DM270)",
+    cds: "L-8-F",
   };
   application = {
     student: "s309618",
     proposal: 8,
   };
 });
-it("Insertion of a correct proposal", () => {
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(200);
-});
-it("Insertion of a proposal with no notes", () => {
-  proposal.notes = null;
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(200);
-});
-it("Insertion of a proposal with a non existent supervisor", () => {
-  proposal.supervisor = "s000000";
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(400)
-    .then((response) => {
-      expect(response.body.message).toBe("Invalid proposal content");
-    });
-});
-it("Insertion with an invalid date", () => {
-  proposal.expiration_date = "0";
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(400)
-    .then((response) => {
-      expect(response.body.message).toBe("Invalid proposal content");
-    });
-});
-it("Insertion of a proposal with wrong level format", () => {
-  proposal.level = "wrong-level";
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(400)
-    .then((response) => {
-      expect(response.body.message).toBe("Invalid proposal content");
-    });
-});
-it("Insertion of a proposal with an invalid group", () => {
-  proposal.groups.push("WRONG GROUP");
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(400)
-    .then((response) => {
-      expect(response.body.message).toBe("Invalid proposal content");
-    });
-});
-it("Insertion of a proposal with a single keyword (no array)", () => {
-  proposal.keywords = "SOFTWARE ENGINEERING";
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(400)
-    .then((response) => {
-      expect(response.body.message).toBe("Invalid proposal content");
-    });
-});
-it("Return 200 correct get of all application of a selected teacher", () => {
-  const teacher = "s123456";
-  return request(app)
-    .get(`/api/applications?teacher=${teacher}`)
-    .set("Content-Type", "application/json")
-    .expect(200);
-});
 
-it("Return 200 correct get of all application of a selected teacher", () => {
-  const teacher = "s123456";
-  return request(app)
-    .get(`/api/applications?teacher=${teacher}`)
-    .set("Content-Type", "application/json")
-    .expect(200);
+describe("Proposal Insertion Tests", () => {
+  it("Insertion of a correct proposal", () => {
+    return request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(200);
+  });
+  it("Insertion of a proposal with no notes", () => {
+    proposal.notes = null;
+    return request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(200);
+  });
+  it("Insertion of a proposal with a non existent supervisor", () => {
+    proposal.supervisor = "s000000";
+    return request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Invalid proposal content");
+      });
+  });
+  it("Insertion with an invalid date", () => {
+    proposal.expiration_date = "0";
+    return request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Invalid proposal content");
+      });
+  });
+  it("Insertion of a proposal with wrong level format", () => {
+    proposal.level = "wrong-level";
+    return request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Invalid proposal content");
+      });
+  });
+  it("Insertion of a proposal with an invalid group", () => {
+    proposal.groups.push("WRONG GROUP");
+    return request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Invalid proposal content");
+      });
+  });
+  it("Insertion of a proposal with a single keyword (no array)", () => {
+    proposal.keywords = "SOFTWARE ENGINEERING";
+    return request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Invalid proposal content");
+      });
+  });
 });
 
 describe("Get Application From Teacher", () => {
+  it("Return 200 correct get of all application of a selected teacher", () => {
+    const teacher = "s123456";
+    return request(app)
+      .get(`/api/applications?teacher=${teacher}`)
+      .set("Content-Type", "application/json")
+      .expect(200);
+  });
+  
+  it("Return 200 correct get of all application of a selected teacher", () => {
+    const teacher = "s123456";
+    return request(app)
+      .get(`/api/applications?teacher=${teacher}`)
+      .set("Content-Type", "application/json")
+      .expect(200);
+  });
   it("Return 404 for empty list of application of that teacher", () => {
     const teacher = "s789012";
     return request(app)
@@ -124,7 +127,7 @@ describe("Get Application From Teacher", () => {
   });
 
   it("Return 404 for emply list of application of that student", () => {
-    const student = "s319823";
+    const student = "s320987";
     return request(app)
       .get(`/api/applications?student=${student}`)
       .set("Content-Type", "application/json")
@@ -140,7 +143,7 @@ describe("Get Application From Teacher", () => {
   });
 
   it("Return 200 correct get of all application of a selected student", () => {
-    const student = "s317743";
+    const student = "s319823";
     return request(app)
       .get(`/api/applications?student=${student}`)
       .set("Content-Type", "application/json")
@@ -150,7 +153,7 @@ describe("Get Application From Teacher", () => {
 
 describe("Proposal Retrieval Tests", () => {
   it("Get all the proposals from a specific field of study", () => {
-    const cds = "LM-32 (DM270)";
+    const cds = "L-8-F";
     return request(app)
       .get(`/api/proposals?cds=${cds}`)
       .set("Content-Type", "application/json")
