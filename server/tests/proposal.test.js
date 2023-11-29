@@ -2,75 +2,40 @@
 
 const request = require("supertest");
 const app = require("../src/server");
-const { getGroups, getTeachers, getDegrees } = require("../src/theses-dao");
+const {
+  getGroups,
+  getTeachers,
+  getDegrees,
+  updateApplication,
+  getApplicationById,
+  getTeacherByEmail,
+  getTeacher,
+  getGroup,
+  getApplications,
+  cancelPendingApplications,
+  getProposal,
+  getStudent,
+  getPendingOrAcceptedApplicationsOfStudent,
+  findAcceptedProposal,
+  findRejectedApplication,
+  getNotificationsOfStudent,
+} = require("../src/theses-dao");
 
-jest.mock("../src/theses-dao.js", () => {
-  const theses_dao = jest.requireActual("../src/theses-dao.js");
-  return {
-    ...theses_dao,
-    getTeachers: jest.fn(),
-    getGroups: jest.fn(),
-    getDegrees: jest.fn(),
-  };
-});
+jest.mock("../src/theses-dao");
+
+const application = {
+  student: "s309618",
+  proposal: 8,
+};
 
 beforeEach(() => {
-  jest.resetAllMocks();
   jest.clearAllMocks();
+  application.student = "s309618";
+  application.proposal = 8;
 });
-const { deleteApplication } = require("../src/theses-dao");
 
 describe("Application Insertion Tests", () => {
-  const application = {
-    student: "s309618",
-    proposal: 8,
-  };
-  it("Insertion of a correct application", async () => {
-    await deleteApplication(application.student, application.proposal);
-    return request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send(application)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          student_id: "s309618",
-          proposal_id: 8,
-          state: "pending",
-        });
-      });
-  });
-  it("Insertion of an application already existent", async () => {
-    await deleteApplication(application.student, application.proposal);
-    await request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send(application);
-    return request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send(application)
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          message: "Application already present",
-        });
-      });
-  });
-  it("Insertion of an application from a wrong student", () => {
-    application.student = "s000000";
-    return request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send(application)
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          message: "Invalid application content",
-        });
-      });
-  });
-  it("Insertion of an application with a wrong proposal", () => {
+  test("Insertion of an application with a wrong proposal", () => {
     application.proposal = -5;
     return request(app)
       .post("/api/applications")
@@ -83,14 +48,136 @@ describe("Application Insertion Tests", () => {
         });
       });
   });
+  test("Insertion of an application with a proposal that does not exist", () => {
+    getProposal.mockReturnValue(undefined);
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: "Invalid application content",
+        });
+      });
+  });
+  test("Insertion of an application with a student that does not exist", () => {
+    getProposal.mockReturnValue({
+      proposal: "proposal",
+    });
+    getStudent.mockReturnValue(undefined);
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: "Invalid application content",
+        });
+      });
+  });
+  test("There is already a pending or accepted application for the student", () => {
+    getProposal.mockReturnValue({
+      proposal: "something",
+    });
+    getStudent.mockReturnValue({
+      student: "something",
+    });
+    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([
+      {
+        student_id: "s309618",
+        proposal_id: "4",
+        state: "pending",
+      },
+    ]);
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: `The student ${application.student} has already applied to a proposal`,
+        });
+      });
+  });
+  test("The proposal of the application is accepted for another student", () => {
+    getProposal.mockReturnValue({
+      proposal: "something",
+    });
+    getStudent.mockReturnValue({
+      student: "something",
+    });
+    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([]);
+    findAcceptedProposal.mockReturnValue({
+      proposal: "proposal",
+    });
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: `The proposal ${application.proposal} is already accepted for another student`,
+        });
+      });
+  });
+  test("There same application was already rejected for the student", () => {
+    getProposal.mockReturnValue({
+      proposal: "something",
+    });
+    getStudent.mockReturnValue({
+      student: "something",
+    });
+    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([]);
+    findAcceptedProposal.mockReturnValue(undefined);
+    findRejectedApplication.mockReturnValue({
+      student: "s309618",
+      proposal: 8,
+      state: "rejected",
+    });
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message:
+            "The student has already applied for this application and it was rejected",
+        });
+      });
+  });
+  test("Correct insertion of a right application", () => {
+    getProposal.mockReturnValue({
+      proposal: "something",
+    });
+    getStudent.mockReturnValue({
+      student: "something",
+    });
+    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([]);
+    findAcceptedProposal.mockReturnValue(undefined);
+    findRejectedApplication.mockReturnValue(undefined);
+    return request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send(application)
+      .expect(200);
+  });
 });
 describe("Proposal Insertion Tests", () => {
-  it("Insertion of a correct proposal", () => {
+  test("Insertion of a proposal with groups that are not related to any (co)supervisor", () => {
     const proposal = {
       title: "Proposta di tesi fighissima",
       supervisor: "s345678",
-      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
-      groups: ["ELITE", "SOFTENG"],
+      co_supervisors: [
+        "maurizio.morisio@polito.it",
+        "s122349@gmail.com",
+        "s298399@outlook.com",
+      ],
+      groups: ["ELITE", "SOFTENG", "FUNDIT"],
       keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
       types: ["EXPERIMENTAL", "RESEARCH"],
       description: "Accetta questa tesi che e' una bomba",
@@ -100,251 +187,128 @@ describe("Proposal Insertion Tests", () => {
       level: "MSC",
       cds: "LM-32 (DM270)",
     };
-    return request(app)
-      .post("/api/proposals")
-      .set("Content-Type", "application/json")
-      .send(proposal)
-      .expect(200);
-  });
-  it("Insertion of a proposal with no notes", () => {
-    const proposal = {
-      title: "Proposta di tesi fighissima",
-      supervisor: "s345678",
-      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
-      groups: ["ELITE", "SOFTENG"],
-      keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
-      types: ["EXPERIMENTAL", "RESEARCH"],
-      description: "Accetta questa tesi che e' una bomba",
-      required_knowledge: "non devi sapere nulla",
-      expiration_date: "2019-01-25T02:00:00.000Z",
-      level: "MSC",
-      cds: "LM-32 (DM270)",
-    };
-    return request(app)
-      .post("/api/proposals")
-      .set("Content-Type", "application/json")
-      .send(proposal)
-      .expect(200);
-  });
-  it("Insertion of a proposal with a non existent supervisor", () => {
-    const proposal = {
-      title: "Proposta di tesi fighissima",
-      supervisor: "s000000",
-      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
-      groups: ["ELITE", "SOFTENG"],
-      keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
-      types: ["EXPERIMENTAL", "RESEARCH"],
-      description: "Accetta questa tesi che e' una bomba",
-      required_knowledge: "non devi sapere nulla",
-      expiration_date: "2019-01-25T02:00:00.000Z",
-      level: "MSC",
-      cds: "LM-32 (DM270)",
-    };
+    getTeacher.mockReturnValue({
+      id: "s345678",
+      name: "Luigi",
+      surname: "De Russis",
+      email: "luigi.derussis@polito.it",
+      cod_group: "ELITE",
+      cod_department: "DAUIN",
+    });
+    getGroup.mockReturnValueOnce({
+      cod_group: "ELITE",
+      name_group: "Intelligent and Interactive Systems",
+      cod_department: "DAUIN",
+    });
+    getGroup.mockReturnValueOnce({
+      cod_group: "SOFTENG",
+      name_group: "Software Engineering Group",
+      cod_department: "DAUIN",
+    });
+    getGroup.mockReturnValueOnce({
+      cod_group: "FUNDIT",
+      name_group: "Physics of Fundamental Interactions",
+      cod_department: "DISAT",
+    });
+    getTeacherByEmail.mockReturnValueOnce({
+      id: "s234567",
+      surname: "Morisio",
+      name: "Maurizio",
+      email: "maurizio.morisio@polito.it",
+      cod_group: "SOFTENG",
+      cod_department: "DAUIN",
+    });
     return request(app)
       .post("/api/proposals")
       .set("Content-Type", "application/json")
       .send(proposal)
       .expect(400)
       .then((response) => {
-        expect(response.body.message).toBe("Invalid proposal content");
-      });
-  });
-  it("Insertion with an invalid date", () => {
-    const proposal = {
-      title: "Proposta di tesi fighissima",
-      supervisor: "s345678",
-      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
-      groups: ["ELITE", "SOFTENG"],
-      keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
-      types: ["EXPERIMENTAL", "RESEARCH"],
-      description: "Accetta questa tesi che e' una bomba",
-      required_knowledge: "non devi sapere nulla",
-      expiration_date: "0",
-      level: "MSC",
-      cds: "LM-32 (DM270)",
-    };
-    return request(app)
-      .post("/api/proposals")
-      .set("Content-Type", "application/json")
-      .send(proposal)
-      .expect(400)
-      .then((response) => {
-        expect(response.body.message).toBe("Invalid proposal content");
-      });
-  });
-  it("Insertion of a proposal with wrong level format", () => {
-    const proposal = {
-      title: "Proposta di tesi fighissima",
-      supervisor: "s345678",
-      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
-      groups: ["ELITE", "SOFTENG"],
-      keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
-      types: ["EXPERIMENTAL", "RESEARCH"],
-      description: "Accetta questa tesi che e' una bomba",
-      required_knowledge: "non devi sapere nulla",
-      expiration_date: "2019-01-25",
-      level: "wrong-level",
-      cds: "LM-32 (DM270)",
-    };
-    return request(app)
-      .post("/api/proposals")
-      .set("Content-Type", "application/json")
-      .send(proposal)
-      .expect(400)
-      .then((response) => {
-        expect(response.body.message).toBe("Invalid proposal content");
-      });
-  });
-  it("Insertion of a proposal with an invalid group", () => {
-    const proposal = {
-      title: "Proposta di tesi fighissima",
-      supervisor: "s345678",
-      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
-      groups: ["ELITE", "SOFTENG", "WRONG GROUP"],
-      keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
-      types: ["EXPERIMENTAL", "RESEARCH"],
-      description: "Accetta questa tesi che e' una bomba",
-      required_knowledge: "non devi sapere nulla",
-      expiration_date: "2019-01-25",
-      level: "MSC",
-      cds: "LM-32 (DM270)",
-    };
-    return request(app)
-      .post("/api/proposals")
-      .set("Content-Type", "application/json")
-      .send(proposal)
-      .expect(400)
-      .then((response) => {
-        expect(response.body.message).toBe("Invalid proposal content");
-      });
-  });
-  it("Insertion of a proposal with a single keyword (no array)", () => {
-    const proposal = {
-      title: "Proposta di tesi fighissima",
-      supervisor: "s345678",
-      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
-      groups: ["ELITE", "SOFTENG"],
-      keywords: "SOFTWARE ENGINEERING",
-      types: ["EXPERIMENTAL", "RESEARCH"],
-      description: "Accetta questa tesi che e' una bomba",
-      required_knowledge: "non devi sapere nulla",
-      expiration_date: "2019-01-25",
-      level: "MSC",
-      cds: "LM-32 (DM270)",
-    };
-    return request(app)
-      .post("/api/proposals")
-      .set("Content-Type", "application/json")
-      .send(proposal)
-      .expect(400)
-      .then((response) => {
-        expect(response.body.message).toBe("Invalid proposal content");
+        expect(response.body.message).toBe("Invalid groups");
       });
   });
 });
 
-describe("Proposal Retrieval Tests", () => {
-  test("Get all the proposals from a specific field of study", () => {
-    const cds = "LM-32 (DM270)";
-    return request(app)
-      .get(`/api/proposals?cds=${cds}`)
-      .set("Content-Type", "application/json")
-      .expect(200)
-      .then((response) => {
-        response.body.forEach((proposal) => {
-          expect(proposal.cds).toBe(cds);
-        });
-      });
-  });
-
-  test("Get all the proposals from a specific supervisor", () => {
-    const supervisor = "s123456";
-    return request(app)
-      .get(`/api/proposals?supervisor=${supervisor}`)
-      .set("Content-Type", "application/json")
-      .expect(200);
-  });
-
-  test("Return 404 for a non-existing supervisor", () => {
-    const supervisor = "s000000";
-    return request(app)
-      .get(`/api/proposals?supervisor=${supervisor}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  test("Return 400 for a invalid format of supervisor", () => {
-    const supervisor = 0;
-    return request(app)
-      .get(`/api/proposals?supervisor=${supervisor}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  test("Get all the proposals from a field of study that doesn't exists", () => {
-    const cds = "aaaaaaaaaaaaaaaaaaaaaaaaa";
-    return request(app)
-      .get(`/api/proposals?cds=${cds}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-});
-
-describe("Get Application From Teacher", () => {
-  test("Return 404 for a teacher that doesn't exist", () => {
+describe("Applications retrieval tests", () => {
+  test("Return 400 for a teacher that doesn't exist", () => {
     const teacher = 0;
     return request(app)
       .get(`/api/applications?teacher=${teacher}`)
       .set("Content-Type", "application/json")
-      .expect(404);
+      .expect(400);
   });
-
-  test("Return 404 for emply list of application of that teacher", () => {
-    const teacher = "s789012";
+  test("Get all the applications", () => {
+    getApplications.mockReturnValue([
+      {
+        id: 1,
+        proposal_id: 1,
+        student_id: "s317743",
+        state: "rejected",
+        student_name: "Francesco",
+        student_surname: "Baracco",
+        teacher_name: "Marco",
+        teacher_surname: "Torchiano",
+        title: "Gamification di attività di modellazione UML",
+      },
+      {
+        id: 2,
+        proposal_id: 2,
+        student_id: "s317743",
+        state: "pending",
+        student_name: "Francesco",
+        student_surname: "Baracco",
+        teacher_name: "Marco",
+        teacher_surname: "Torchiano",
+        title: "Analisi empirica dei difetti in R Markdown",
+      },
+      {
+        id: 3,
+        proposal_id: 3,
+        student_id: "s317743",
+        state: "pending",
+        student_name: "Francesco",
+        student_surname: "Baracco",
+        teacher_name: "Marco",
+        teacher_surname: "Torchiano",
+        title:
+          "Data-centric AI: Dataset augmentation techniques for bias and data quality improvement",
+      },
+      {
+        id: 4,
+        proposal_id: 4,
+        student_id: "s317743",
+        state: "pending",
+        student_name: "Francesco",
+        student_surname: "Baracco",
+        teacher_name: "Marco",
+        teacher_surname: "Torchiano",
+        title:
+          "Detecting the risk discrimination in classifiers with imbalance measures",
+      },
+      {
+        id: 37,
+        proposal_id: 8,
+        student_id: "s309618",
+        state: "pending",
+        student_name: "Lorenzo",
+        student_surname: "Bertetto",
+        teacher_name: "Maurizio",
+        teacher_surname: "Morisio",
+        title:
+          "Analisi della qualità del codice e della sicurezza delle librerie software nell ambito dell IoT: un approccio basato sull analisi statica",
+      },
+    ]);
     return request(app)
-      .get(`/api/applications?teacher=${teacher}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  test("Return 200 correct get of all application of a selected teacher", () => {
-    const teacher = "s123456";
-    return request(app)
-      .get(`/api/applications?teacher=${teacher}`)
+      .get("/api/applications")
       .set("Content-Type", "application/json")
       .expect(200);
   });
-
-  test("Return 200 correct get of all application of a selected teacher", () => {
-    const teacher = "s123456";
+  test("No applications", () => {
+    getApplications.mockReturnValue([]);
     return request(app)
-      .get(`/api/applications?teacher=${teacher}`)
-      .set("Content-Type", "application/json")
-      .expect(200);
-  });
-
-  test("Return 404 for emply list of application of that student", () => {
-    const student = "s319823";
-    return request(app)
-      .get(`/api/applications?student=${student}`)
+      .get("/api/applications")
       .set("Content-Type", "application/json")
       .expect(404);
-  });
-
-  test("Return 404 for no student found", () => {
-    const student = "s999999";
-    return request(app)
-      .get(`/api/applications?student=${student}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  test("Return 200 correct get of all application of a selected student", () => {
-    const student = "s317743";
-    return request(app)
-      .get(`/api/applications?student=${student}`)
-      .set("Content-Type", "application/json")
-      .expect(200);
   });
 });
 describe("Get All Teachers Test", () => {
@@ -369,12 +333,10 @@ describe("Get All Teachers Test", () => {
       .expect(200)
       .then((response) => {
         // Assuming the response body is an array
-        console.log(response.body);
         expect(Array.isArray(response.body)).toBe(true);
         // todo: Add more specific checks on the response body if needed
       });
   });
-
   test("Get 404 for an empty group table db", () => {
     getTeachers.mockReturnValue([]);
     return request(app)
@@ -382,7 +344,6 @@ describe("Get All Teachers Test", () => {
       .expect("Content-Type", /json/)
       .expect(404);
   });
-
   test("Get 500 for an internal server error", () => {
     getTeachers.mockImplementation(() => {
       throw "SQLITE_ERROR_SOMETHING";
@@ -405,7 +366,6 @@ describe("Get All Groups Test", () => {
       .expect("Content-Type", /json/)
       .expect(200);
   });
-
   test("Get 404 for an empty group table db", () => {
     getGroups.mockReturnValue([]);
     return request(app)
@@ -413,7 +373,6 @@ describe("Get All Groups Test", () => {
       .expect("Content-Type", /json/)
       .expect(404);
   });
-
   test("Get 500 for an internal server error", () => {
     getGroups.mockImplementation(() => {
       throw "SQLITE_ERROR_SOMETHING";
@@ -436,7 +395,6 @@ describe("Get All Degrees Test", () => {
       .expect("Content-Type", /json/)
       .expect(200);
   });
-
   test("Get 404 for an empty degree table db", () => {
     getDegrees.mockReturnValue([]);
     return request(app)
@@ -444,7 +402,6 @@ describe("Get All Degrees Test", () => {
       .expect("Content-Type", /json/)
       .expect(404);
   });
-
   test("Get 500 for an internal server error", () => {
     getDegrees.mockImplementation(() => {
       throw "SQLITE_ERROR_SOMETHING";
@@ -545,4 +502,126 @@ describe("Update proposals", () => {
 
   
 
+});
+describe("PATCH /api/applications/:id", () => {
+  test("Should return 400 if the application does not exist", async () => {
+    getApplicationById.mockReturnValue(undefined);
+
+    const response = await request(app)
+      .patch("/api/applications/1")
+      .send({ state: "accepted" });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ message: "Application not existent" });
+  });
+  test("should return 400 if the state value is not correct", async () => {
+    const response = await request(app)
+      .patch("/api/applications/1")
+      .send({ state: "wrong" });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ message: "Invalid proposal content" });
+  });
+  test("Should return 200 if the state is accepted for an existent application", async () => {
+    getApplicationById.mockReturnValue({
+      id: 1,
+      proposal_id: 2,
+      student_id: "s123456",
+      state: "pending",
+    });
+    const response = await request(app)
+      .patch("/api/applications/1")
+      .send({ state: "accepted" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ message: "Application accepted" });
+
+    expect(updateApplication).toHaveBeenCalledWith(1, "accepted");
+    expect(cancelPendingApplications).toHaveBeenCalledWith(2, "s123456");
+  });
+  test("Should return 200 if the state is rejected for an existent application", async () => {
+    getApplicationById.mockReturnValue({
+      id: 1,
+      proposal_id: 2,
+      student_id: "s123456",
+      state: "pending",
+    });
+    const response = await request(app)
+      .patch("/api/applications/1")
+      .send({ state: "rejected" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ message: "Application rejected" });
+
+    expect(updateApplication).toHaveBeenCalledWith(1, "rejected");
+    expect(cancelPendingApplications).toHaveBeenCalledTimes(0);
+  });
+  test("It should return 500 in case of database error", () => {
+    getApplicationById.mockImplementation(() => {
+      throw "SQLITE_ERROR_SOMETHING";
+    });
+    return request(app)
+      .patch("/api/applications/1")
+      .send({ state: "accepted" })
+      .expect(500)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: "Internal Server Error",
+        });
+      });
+  });
+  test("It should not modify an application not pending", () => {
+    getApplicationById.mockReturnValue({
+      id: 1,
+      student_id: "s309618",
+      proposal_id: 3,
+      state: "accepted",
+    });
+    return request(app)
+      .patch("/api/applications/1")
+      .send({ state: "rejected" })
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message:
+            "You cannot modify an application already accepted or rejected",
+        });
+      });
+  });
+});
+
+describe('GET /api/notifications', () => {
+  it('should return notifications for a valid student', async () => {
+    const mockStudent = { id: "s295923"  };
+    const mockNotifications = [{ id: 1, message: 'Notification 1' }];
+    getStudent.mockReturnValue(mockStudent);
+    getNotificationsOfStudent.mockReturnValue(mockNotifications);
+    const response = await request(app).get('/api/notifications?student=s295923');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(mockNotifications);
+  });
+
+  it('should return a 404 error for a non-existing student', async () => {
+    getStudent.mockReturnValue(undefined);
+    const response = await request(app).get('/api/notifications?student=s328186');
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      message: 'Student s328186 not found, cannot get the notifications',
+    });
+  });
+
+  it('should return a 404 error for a student with no notifications', async () => {
+    const mockStudent = { id: "s216786" };
+    getStudent.mockReturnValue(mockStudent);
+    getNotificationsOfStudent.mockReturnValue([]);
+
+    const response = await request(app).get('/api/notifications?student=s216786');
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      message: 'No notification found for student s216786',
+    });
+  });
+
+  // Add more test cases for validation errors, server errors, etc.
 });

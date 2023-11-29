@@ -4,7 +4,7 @@
 
 - Route `/`: login page
 - Route `/proposals`: students see the list of proposals for their cds, teachers see the list of their proposals
-- Route `/proposals/:proposalId`: students see the the details of a proposal and can apply to it, teachers can only see the proposal details
+- Route `/proposals/:proposalId`: students see the details of a proposal and can apply to it, teachers can only see the proposal details
 - Route `/add-proposal`: teachers can create a new proposal
 - Route `/applications`: students see the list of their applications, teachers see the list of applications to their proposals
 - Route `/applications/:applicationId`: students see the check the details of an applications, teachers can also accept or reject an application
@@ -65,7 +65,7 @@
     cds: Computer Engineering
   ```
 
-  - return the list of proposal related to a teacher id or cds
+  - return the list of proposals related to a teacher id or cds
   - return 200 for correct behavior
   - return 404 for no proposal related to that teacher or cds
   - return 400 for invalid teacher id or cds
@@ -156,7 +156,7 @@
     }
   ]
   ```
-- GET `/api/proposals?cds=LM-32 (DM270)`
+  - GET `/api/proposals?cds=LM-32 (DM270)`
   - returned json
   ```
   [
@@ -193,16 +193,25 @@
   ]
   ```
 - GET `/api/proposals/:cds`
-  - return the list of active proposals for a specific cds
+  - return the list of active proposals for specific cds
   - request body content example
   ```
   {
     "cds": "Computer Engineering"
   }
   ```
+- PATCH `/api/applications/:id`
+  - accept or reject a specific application. If the application is accepted, all the pending applications for that proposal are set as 'cancelled'
+  - request body content example
+  ```
+  {
+    "state": "pending"
+  }
+  ```
 - POST `/api/applications`
   - notes
     - the initial state is always `pending`
+    - will not work if the student already applied for a proposal
   - request body content example
   ```
   {
@@ -224,7 +233,7 @@
     teacher: s345678
     student: s317743
   ```
-  - return the list of proposal related to a teacher id or student
+  - return the list of proposals related to a teacher id or student
   - return 200 for correct behavior
   - return 404 for no proposal related to that teacher or student
   - return 400 for invalid teacher id or cds
@@ -233,40 +242,47 @@
   ```
     [
       {
+        id: 5,
         proposal_id: 1,
         student_id: 's309618',
         state: 'rejected',
         student_name: 'Lorenzo',
         student_surname: 'Bertetto',
         teacher_name: 'Marco',
-        teacher_surname: 'Torchiano'
+        teacher_surname: 'Torchiano',
+        title: 'Gamification di attività di modellazione UML'
       },
       {
+        id: 6,
         proposal_id: 1,
         student_id: 's317743',
         state: 'rejected',
         student_name: 'Francesco',
         student_surname: 'Baracco',
         teacher_name: 'Marco',
-        teacher_surname: 'Torchiano'
-      },
+        teacher_surname: 'Torchiano',
+        title: 'Analisi empirica dei difetti in R Markdown'
+      }
+    ]
+  ```
+
+  - GET `/api/notifications`
+  - params in query ()
+  ```
+    student: s317743
+  ```
+  - return the list of notifications related to a student
+  - return 200 for correct behavior
+  - return 404 for no notifications related to that student
+  - return 400 for invalid student id
+  - return 500 for internal server error
+  - example of return value
+  ```
+    [
       {
-        proposal_id: 2,
-        student_id: 's317743',
-        state: 'pending',
-        student_name: 'Francesco',
-        student_surname: 'Baracco',
-        teacher_name: 'Marco',
-        teacher_surname: 'Torchiano'
-      },
-      {
-        proposal_id: 3,
-        student_id: 's317743',
-        state: 'pending',
-        student_name: 'Francesco',
-        student_surname: 'Baracco',
-        teacher_name: 'Marco',
-        teacher_surname: 'Torchiano'
+        object: 'New decision on your thesis application',
+        content: 'Dear Tortore Luca,' || char(10) || 'your application for the thesis Gamification di attività di modellazione UML has been rejected.' || char(10) || 'Best regards,' || char(10) || 'the Thesis Managment system'
+        student_id: 's319823',
       }
     ]
   ```

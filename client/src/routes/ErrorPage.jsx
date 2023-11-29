@@ -17,7 +17,7 @@ function ErrorPage() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
+            justifyContent: "center"
           }}
         >
           <Box marginBottom={4}>
@@ -25,27 +25,15 @@ function ErrorPage() {
               src={logo}
               alt="PoliLogo"
               style={{
-                filter:
-                  mode === "dark" ? "brightness(0) invert(1)" : "invert(0)",
+                filter: mode === "dark" ? "brightness(0) invert(1)" : "invert(0)"
               }}
               height={100}
             />
           </Box>
-          <Typography
-            component="h1"
-            variant="h2"
-            align="center"
-            color="text.primary"
-            gutterBottom
-          >
+          <Typography component="h1" variant="h2" align="center" color="text.primary" gutterBottom>
             Oops...
           </Typography>
-          <Typography
-            variant="h5"
-            align="center"
-            color="text.secondary"
-            component="p"
-          >
+          <Typography variant="h5" align="center" color="text.secondary" component="p">
             This is not the route you're looking for.
           </Typography>
           <Box marginTop={4}>

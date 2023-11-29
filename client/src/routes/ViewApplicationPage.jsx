@@ -1,3 +1,4 @@
+import { useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -6,12 +7,27 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ApplicationDetails from "../components/ApplicationDetails";
+import ErrorContext from "../contexts/ErrorContext";
+import API from "../utils/API";
 
 function ViewApplicationPage(props) {
   const location = useLocation();
+  const { handleErrors } = useContext(ErrorContext);
 
   const application = location.state?.application;
   const proposal = location.state?.proposal;
+
+  const evaluateApplication = (application) => {
+    API.evaluateApplication(application)
+      .then(() => {
+        props.setAlert({
+          message: "Application evaluated successfully",
+          severity: "success"
+        });
+        props.fetchApplications();
+      })
+      .catch((err) => handleErrors(err));
+  };
 
   return (
     <div id="view-application-page">
@@ -32,18 +48,17 @@ function ViewApplicationPage(props) {
           Back
         </Button>
       </Stack>
-      <Typography
-        variant="h4"
-        sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}
-      >
+      <Typography variant="h4" sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}>
         Application Details
       </Typography>
-      <Paper
-        elevation={1}
-        sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}
-      >
+      <Paper elevation={1} sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
-          <ApplicationDetails application={application} proposal={proposal} />
+          <ApplicationDetails
+            application={application}
+            proposal={proposal}
+            evaluateApplication={evaluateApplication}
+            applications={props.applications}
+          />
         </Box>
       </Paper>
       <Box height={3} />

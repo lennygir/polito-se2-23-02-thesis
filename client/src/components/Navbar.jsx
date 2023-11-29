@@ -6,6 +6,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
+import EditCalendarIcon from "@mui/icons-material/EditCalendar";
 import { useThemeContext } from "../theme/ThemeContextProvider";
 import { useContext } from "react";
 import { Link } from "react-router-dom";
@@ -20,7 +21,7 @@ function Navbar(props) {
       position="fixed"
       sx={{
         width: { sm: `calc(100% - ${props.drawerWidth}px)` },
-        ml: { sm: `${props.drawerWidth}px` },
+        ml: { sm: `${props.drawerWidth}px` }
       }}
     >
       <Toolbar>
@@ -43,6 +44,7 @@ function Navbar(props) {
           onClick={() => props.handleTabSelection("settings")}
           color={mode === "dark" ? "inherit" : "inherit"}
           variant="outlined"
+          startIcon={<EditCalendarIcon />}
         >
           {dayjs(props.currentDate).format("DD/MM/YYYY")}
         </Button>

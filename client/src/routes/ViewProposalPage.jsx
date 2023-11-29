@@ -4,7 +4,7 @@ import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ProposalDetails from "../components/ProposalDetails";
 import ErrorContext from "../contexts/ErrorContext";
-import API from "../API";
+import API from "../utils/API";
 
 function ViewProposalPage(props) {
   const navigate = useNavigate();
@@ -19,16 +19,12 @@ function ViewProposalPage(props) {
       .then(() => {
         props.setAlert({
           message: "Application sent successfully",
-          severity: "success",
+          severity: "success"
         });
         props.setDirty(true);
       })
       .catch((err) => handleErrors(err));
   };
-
-  // TODO: Get applications of a student
-  // If a student has already applied to a proposal, then
-  // shouldn't be able to re-send an application
 
   return (
     <div id="view-proposal-page">
@@ -48,16 +44,10 @@ function ViewProposalPage(props) {
           Back
         </Button>
       </Stack>
-      <Typography
-        variant="h4"
-        sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}
-      >
+      <Typography variant="h4" sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}>
         Thesis Proposal
       </Typography>
-      <Paper
-        elevation={1}
-        sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}
-      >
+      <Paper elevation={1} sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
         {/* TODO: if applications.find(proposal.id === proposal.id) => disable button */}
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
           <ProposalDetails

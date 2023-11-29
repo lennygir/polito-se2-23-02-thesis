@@ -13,15 +13,27 @@ const {
   insertProposal,
   getProposalsBySupervisor,
   getProposalsByDegree,
+  updateApplication,
   getProposal,
   findAcceptedProposal,
   insertApplication,
-  getApplication,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   getProposals,
+<<<<<<< HEAD
   deleteProposal,
   updateProposal
+=======
+  getApplicationById,
+  getTeacherByEmail,
+  getApplications,
+  cancelPendingApplications,
+  getPendingOrAcceptedApplicationsOfStudent,
+  findAcceptedProposal,
+  findRejectedApplication,
+  notifyApplicationDecision,
+  getNotificationsOfStudent,
+>>>>>>> main
 } = require("./theses-dao");
 const dayjs = require("dayjs");
 
@@ -129,36 +141,43 @@ router.post(
         level,
         cds,
       } = req.body;
-      const teacher = getTeacher(supervisor);
-      if (teacher === undefined) {
+      const teacher_supervisor = getTeacher(supervisor);
+      if (teacher_supervisor === undefined) {
         return res.status(400).send({ message: "Invalid proposal content" });
-      } else {
-        for (const group of groups) {
-          if (getGroup(group) === undefined) {
-            return res
-              .status(400)
-              .send({ message: "Invalid proposal content" });
-          }
-        }
-        if (level !== "MSC" && level !== "BSC") {
+      }
+      for (const group of groups) {
+        if (getGroup(group) === undefined) {
           return res.status(400).send({ message: "Invalid proposal content" });
         }
-        const teacher = insertProposal(
-          title,
-          supervisor,
-          co_supervisors.join(", "),
-          groups.join(", "),
-          keywords.join(", "),
-          types.join(", "),
-          description,
-          required_knowledge,
-          notes,
-          dayjs(expiration_date).format("YYYY-MM-DD"),
-          level,
-          cds,
-        );
-        return res.status(200).json(teacher);
       }
+      if (level !== "MSC" && level !== "BSC") {
+        return res.status(400).send({ message: "Invalid proposal content" });
+      }
+      const legal_groups = [teacher_supervisor.cod_group];
+      for (const co_supervisor_email of co_supervisors) {
+        const co_supervisor = getTeacherByEmail(co_supervisor_email);
+        if (co_supervisor !== undefined) {
+          legal_groups.push(co_supervisor.cod_group);
+        }
+      }
+      if (!groups.every((group) => legal_groups.includes(group))) {
+        return res.status(400).send({ message: "Invalid groups" });
+      }
+      const teacher = insertProposal(
+        title,
+        supervisor,
+        co_supervisors.join(", "),
+        groups.join(", "),
+        keywords.join(", "),
+        types.join(", "),
+        description,
+        required_knowledge,
+        notes,
+        dayjs(expiration_date).format("YYYY-MM-DD"),
+        level,
+        cds,
+      );
+      return res.status(200).json(teacher);
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }
@@ -262,12 +281,25 @@ router.post(
       const db_proposal = getProposal(proposal);
       if (db_student === undefined || db_proposal === undefined) {
         return res.status(400).json({ message: "Invalid application content" });
-      } else if (getApplication(student, proposal)) {
-        return res.status(400).json({ message: "Application already present" });
-      } else {
-        const application = insertApplication(proposal, student, "pending");
-        return res.status(200).json(application);
       }
+      if (getPendingOrAcceptedApplicationsOfStudent(student).length !== 0) {
+        return res.status(400).json({
+          message: `The student ${student} has already applied to a proposal`,
+        });
+      }
+      if (findAcceptedProposal(proposal)) {
+        return res.status(400).json({
+          message: `The proposal ${proposal} is already accepted for another student`,
+        });
+      }
+      if (findRejectedApplication(proposal, student)) {
+        return res.status(400).json({
+          message:
+            "The student has already applied for this application and it was rejected",
+        });
+      }
+      const application = insertApplication(proposal, student, "pending");
+      return res.status(200).json(application);
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
     }
@@ -276,9 +308,19 @@ router.post(
 
 router.get(
   "/api/applications",
-  check("teacher").isAlphanumeric().isLength({ min: 7, max: 7 }),
-  check("student").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  check("teacher")
+    .isAlphanumeric()
+    .isLength({ min: 7, max: 7 })
+    .optional({ values: undefined }),
+  check("student")
+    .isAlphanumeric()
+    .isLength({ min: 7, max: 7 })
+    .optional({ values: undefined }),
   (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).json({ message: "Invalid application content" });
+    }
     try {
       if (req.query.teacher !== undefined && req.query.student === undefined) {
         const teacher = getTeacher(req.query.teacher);
@@ -286,34 +328,100 @@ router.get(
           return res.status(404).json({
             message: `Teacher ${req.query.teacher} not found, cannot get the applications`,
           });
-        } else {
-          const applications = getApplicationsOfTeacher(teacher.id);
-          if (applications.length === 0) {
-            return res.status(404).json({
-              message: `No application found for teacher ${req.query.teacher}`,
-            });
-          } else {
-            return res.status(200).json(applications);
-          }
         }
+        const applications = getApplicationsOfTeacher(teacher.id);
+        if (applications.length === 0) {
+          return res.status(404).json({
+            message: `No application found for teacher ${req.query.teacher}`,
+          });
+        }
+        return res.status(200).json(applications);
       }
       if (req.query.student !== undefined && req.query.teacher === undefined) {
         const student = getStudent(req.query.student);
-
         if (student === undefined) {
           return res.status(404).json({
             message: `Student ${req.query.student} not found, cannot get the applications`,
           });
-        } else {
-          const applications = getApplicationsOfStudent(student.id);
-          if (applications.length === 0) {
-            return res.status(404).json({
-              message: `No application found for student ${req.query.student}`,
-            });
-          } else {
-            return res.status(200).json(applications);
-          }
         }
+        const applications = getApplicationsOfStudent(student.id);
+        if (applications.length === 0) {
+          return res.status(404).json({
+            message: `No application found for student ${req.query.student}`,
+          });
+        }
+        return res.status(200).json(applications);
+      }
+      if (req.query.student === undefined && req.query.teacher === undefined) {
+        const applications = getApplications();
+        if (applications.length === 0) {
+          return res.status(404).json({ message: "No application found" });
+        }
+        return res.status(200).json(applications);
+      }
+    } catch (e) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+
+router.patch(
+  "/api/applications/:id",
+  check("state").isIn(["accepted", "rejected"]),
+  check("id").isInt({ min: 1 }),
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ message: "Invalid proposal content" });
+    }
+    try {
+      const state = req.body.state;
+      const application = getApplicationById(req.params.id);
+      if (application === undefined) {
+        return res.status(400).json({ message: "Application not existent" });
+      }
+      if (application.state !== "pending") {
+        return res.status(400).json({
+          message:
+            "You cannot modify an application already accepted or rejected",
+        });
+      }
+      updateApplication(application.id, state);
+      notifyApplicationDecision(application.id, state);
+      if (state === "accepted") {
+        cancelPendingApplications(
+          application.proposal_id,
+          application.student_id,
+        );
+      }
+      return res.status(200).json({ message: `Application ${state}` });
+    } catch (err) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+
+router.get(
+  "/api/notifications",
+  check("student")
+    .isAlphanumeric()
+    .isLength({ min: 7, max: 7 })
+    .optional({ values: undefined }),
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).json({ message: "Invalid student content" });
+    }
+    try {
+      if (req.query.student !== undefined) {
+        const student = getStudent(req.query.student);
+        if (student === undefined) {
+          return res.status(404).json({
+            message: `Student ${req.query.student} not found, cannot get the notifications`,
+          });
+        }
+        const notifications = getNotificationsOfStudent(student.id);
+        return res.status(200).json(notifications);
       }
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
