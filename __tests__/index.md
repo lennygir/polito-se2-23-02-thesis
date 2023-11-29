@@ -17,6 +17,11 @@ and it is the most efficient way to test the application.
     - [\[2\] Proposals - creation](#2-proposals---creation)
     - [\[3\] Application - creation](#3-application---creation)
     - [\[4\] Virtual clock - change date](#4-virtual-clock---change-date)
+    - [\[5\] Application/Notification - accept or reject an application](#5-applicationnotification---accept-or-reject-an-application)
+    - [\[6\] Application - browse application decisions](#6-application---browse-application-decisions)
+    - [\[7\] Proposal - update a proposal](#7-proposal---update-a-proposal)
+    - [\[8\] Proposal - delete a proposal](#8-proposal---delete-a-proposal)
+    - [\[9\] Proposal - copy a proposal](#9-proposal---copy-a-proposal)
 
 
 ## Prerequisites
@@ -97,3 +102,60 @@ In this test we will check if the virtual clock is working properly.
 3. Change the date within the "current date" field
 4. Go back to the theses page
    - Verify that the date displayed in the top right corner is the one you just entered
+
+### [5] Application/Notification - accept or reject an application
+
+In this test we will check if the well application is accepted or rejected when a professor 
+clicks on the corresponding button.
+
+1. Login as a professor
+2. Click on the "Applications" button
+3. Press any applicatio with the status "pending"
+4. Click reject
+   - Verify that the application is rejected and that you received a confirmation message
+5. Login as a student
+6. Click on the "Notifications" button
+   - Verify that there is a new notification in the list
+   - Verify that an email has been sent to the student
+
+### [6] Application - browse application decisions
+
+In this test we will check if the student can see the decision of the professor.
+
+1. Login as a student
+2. Click on the "Theses" button
+3. Select a proposal
+5. Click on the "Send application" button
+6. Click on the "Submit" button
+7. Click the "application" button
+   - Verify that there is a new application with the status "pending"
+8. Login as a professor that created the proposal
+9. Click on the "Applications" button
+10. Press the application
+11. Click accept
+12. Login as the same student
+13. Click the "application" button
+   - Verify that the status of the application is "accepted"
+
+### [7] Proposal - update a proposal
+
+In this test we will check if the proposal is updated when a professor clicks on the 
+corresponding button and fill the form.
+
+1. Login as a professor
+2. Click on the "Theses" button
+3. Click on the tree dots button of a proposal
+4. Click on the "Edit" button
+... TODO
+
+### [8] Proposal - delete a proposal
+
+In this test we will check that the professor can delete a proposal he owns.
+
+... TODO
+
+### [9] Proposal - copy a proposal
+
+In this test we will check if the proposal is copy of a proposal is working properly.
+
+... TODO
