@@ -14,6 +14,7 @@ const {
   getProposalsBySupervisor,
   getProposalsByDegree,
   getProposal,
+  findAcceptedProposal,
   insertApplication,
   getApplication,
   getApplicationsOfTeacher,
@@ -340,6 +341,12 @@ router.patch(
 
       const id = req.params.id
 
+      if (findAcceptedProposal(id)) {
+        return res.status(400).json({
+          message: `The proposal ${id} is already accepted for another student`,
+        });
+      }
+
       const fieldsToUpdate = [
         { field: "title", value: title },
         { field: "supervisor", value: supervisor },
@@ -375,6 +382,13 @@ router.delete('/api/proposals',
       if (!result.isEmpty()) {
         return res.status(400).send({ message: "Invalid proposal content" });
       }
+
+      if (findAcceptedProposal(req.query.id)) {
+        return res.status(400).json({
+          message: `The proposal ${req.query.id} is already accepted for another student`,
+        });
+      }
+
       await deleteProposal(req.query.id);
       return res.status(200).send('Proposal deleted successfully.');
     } catch (err) {

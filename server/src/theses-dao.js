@@ -184,6 +184,17 @@ exports.getStudent = (id) => {
   //  });
 };
 
+//to delete
+exports.findAcceptedProposal = (proposal_id) => {
+  return db
+    .prepare(
+      `select * from APPLICATIONS where proposal_id = ? and state = 'accepted'`,
+    )
+    .get(proposal_id);
+};
+
+
+
 exports.getGroup = (cod_group) => {
   return db.prepare("select * from GROUPS where cod_group = ?").get(cod_group);
   //  return new Promise((resolve, reject) => {
@@ -436,18 +447,20 @@ exports.deleteProposal = (proposal_id) => {
       throw { status: 404, message: "Proposal ID not found in PROPOSALS table. Deletion unsuccessful." };
     }
 
-    // Delete rows from APPLICATIONS and PROPOSALS tables
-    const deleteApplications = db.prepare("DELETE FROM APPLICATIONS WHERE proposal_id = ?");
-    const applicationsResult = deleteApplications.run([proposal_id]);
-
     const deleteProposals = db.prepare("DELETE FROM PROPOSALS WHERE id = ?");
     const proposalsResult = deleteProposals.run([proposal_id]);
 
-    if (applicationsResult.changes === 0 || proposalsResult.changes === 0) {
+    if (proposalsResult.changes === 0) {
       throw { status: 404, message: "No rows were deleted. Deletion unsuccessful." };
     } else {
       console.log("Deletions were successful");
     }
+
+    db.prepare(
+      "UPDATE applications SET state = 'canceled' WHERE proposal_id IS NULL;",
+    ).run();
+
+    
   } catch (err) {
     console.error("Error deleting:", err);
     // Re-throw the error to propagate it to the caller

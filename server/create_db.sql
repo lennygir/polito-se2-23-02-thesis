@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS APPLICATIONS (
   student_id TEXT,
   state TEXT,
 --PRIMARY KEY (proposal_id, student_id),
-  FOREIGN KEY (proposal_id) REFERENCES PROPOSALS (id),
+  FOREIGN KEY (proposal_id) REFERENCES PROPOSALS (id) ON DELETE SET NULL,
   FOREIGN KEY (student_id) REFERENCES STUDENT (id)
 );
 
