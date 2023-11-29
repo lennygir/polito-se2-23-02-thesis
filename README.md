@@ -156,7 +156,7 @@
     }
   ]
   ```
-- GET `/api/proposals?cds=LM-32 (DM270)`
+  - GET `/api/proposals?cds=LM-32 (DM270)`
   - returned json
   ```
   [
@@ -262,6 +262,27 @@
         teacher_name: 'Marco',
         teacher_surname: 'Torchiano',
         title: 'Analisi empirica dei difetti in R Markdown'
+      }
+    ]
+  ```
+
+  - GET `/api/notifications`
+  - params in query ()
+  ```
+    student: s317743
+  ```
+  - return the list of notifications related to a student
+  - return 200 for correct behavior
+  - return 404 for no notifications related to that student
+  - return 400 for invalid student id
+  - return 500 for internal server error
+  - example of return value
+  ```
+    [
+      {
+        object: 'New decision on your thesis application',
+        content: 'Dear Tortore Luca,' || char(10) || 'your application for the thesis Gamification di attività di modellazione UML has been rejected.' || char(10) || 'Best regards,' || char(10) || 'the Thesis Managment system'
+        student_id: 's319823',
       }
     ]
   ```

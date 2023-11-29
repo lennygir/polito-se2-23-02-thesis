@@ -31,6 +31,21 @@ export const TYPES = ["RESEARCH", "COMPANY", "EXPERIMENTAL", "ABROAD"];
 export const LEVELS = ["Bachelor Degree", "Master Degree"];
 
 /**
+ * The list of filters available to a teacher
+ * @constant
+ */
+export const TEACHER_PROPOSALS_FILTERS = [
+  {
+    id: "all",
+    label: "ALL"
+  },
+  {
+    id: "active",
+    label: "ACTIVE"
+  }
+];
+
+/**
  * Color Palette
  */
 export const NAVY = {

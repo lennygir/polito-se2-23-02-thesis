@@ -242,3 +242,18 @@ describe("Application Insertion Tests", () => {
       });
   });
 });
+
+describe("Notifications Retrieval Tests", () => {
+  it("Get all the notifications from a specific student", () => {
+    const student_id = "s319823";
+    return request(app)
+      .get(`/api/notifications?student=${student_id}`)
+      .set("Content-Type", "application/json")
+      .expect(200)
+      .then((response) => {
+        response.body.forEach((notification) => {
+          expect(notification.student_id).toBe(student_id);
+        });
+      });
+  });
+});

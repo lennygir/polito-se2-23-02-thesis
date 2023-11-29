@@ -18,6 +18,7 @@ const {
   getPendingOrAcceptedApplicationsOfStudent,
   findAcceptedProposal,
   findRejectedApplication,
+  getNotificationsOfStudent,
 } = require("../src/theses-dao");
 
 jest.mock("../src/theses-dao");
@@ -497,4 +498,40 @@ describe("PATCH /api/applications/:id", () => {
         });
       });
   });
+});
+
+describe('GET /api/notifications', () => {
+  it('should return notifications for a valid student', async () => {
+    const mockStudent = { id: "s295923"  };
+    const mockNotifications = [{ id: 1, message: 'Notification 1' }];
+    getStudent.mockReturnValue(mockStudent);
+    getNotificationsOfStudent.mockReturnValue(mockNotifications);
+    const response = await request(app).get('/api/notifications?student=s295923');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(mockNotifications);
+  });
+
+  it('should return a 404 error for a non-existing student', async () => {
+    getStudent.mockReturnValue(undefined);
+    const response = await request(app).get('/api/notifications?student=s328186');
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      message: 'Student s328186 not found, cannot get the notifications',
+    });
+  });
+
+  it('should return a 404 error for a student with no notifications', async () => {
+    const mockStudent = { id: "s216786" };
+    getStudent.mockReturnValue(mockStudent);
+    getNotificationsOfStudent.mockReturnValue([]);
+
+    const response = await request(app).get('/api/notifications?student=s216786');
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      message: 'No notification found for student s216786',
+    });
+  });
+
+  // Add more test cases for validation errors, server errors, etc.
 });

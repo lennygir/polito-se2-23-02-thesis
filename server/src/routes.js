@@ -28,6 +28,7 @@ const {
   findAcceptedProposal,
   findRejectedApplication,
   notifyApplicationDecision,
+  getNotificationsOfStudent,
   getStudentByEmail,
 } = require("./theses-dao");
 
@@ -47,7 +48,7 @@ router.get(
   }),
   (_req, res) => {
     return res.redirect("http://localhost:5173");
-  },
+  }
 );
 
 /** Endpoint called by Auth0 using Passport */
@@ -59,7 +60,7 @@ router.post(
   }),
   (_req, res) => {
     return res.redirect("http://localhost:5173");
-  },
+  }
 );
 
 /** Check for user authentication
@@ -246,13 +247,13 @@ router.post(
         notes,
         dayjs(expiration_date).format("YYYY-MM-DD"),
         level,
-        cds,
+        cds
       );
       return res.status(200).json(teacher);
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }
-  },
+  }
 );
 
 // endpoint to get all teachers {id, surname, name, email}
@@ -334,7 +335,7 @@ router.get(
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  },
+  }
 );
 
 router.post(
@@ -374,7 +375,7 @@ router.post(
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
     }
-  },
+  }
 );
 
 router.get(
@@ -433,7 +434,7 @@ router.get(
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  },
+  }
 );
 
 router.patch(
@@ -462,14 +463,51 @@ router.patch(
       if (state === "accepted") {
         cancelPendingApplications(
           application.proposal_id,
-          application.student_id,
+          application.student_id
         );
       }
       return res.status(200).json({ message: `Application ${state}` });
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  },
+  }
 );
+
+router.get(
+  "/api/notifications",
+  check("student")
+    .isAlphanumeric()
+    .isLength({ min: 7, max: 7 })
+    .optional({ values: undefined }),
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).json({ message: "Invalid student content" });
+    }
+    try {
+      if (req.query.student !== undefined) {
+        const student = getStudent(req.query.student);
+        if (student === undefined) {
+          return res.status(404).json({
+            message: `Student ${req.query.student} not found, cannot get the notifications`,
+          });
+        }
+        const notifications = getNotificationsOfStudent(student.id);
+        return res.status(200).json(notifications);
+      }
+    } catch (e) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
+
+// ==================================================
+// Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS
+// ==================================================
+router.use(function (req, res) {
+  res.status(404).json({
+    message: "Endpoint not found, make sure you used the correct URL / Method",
+  });
+});
 
 module.exports = router;
