@@ -407,7 +407,7 @@ router.get(
       return res.status(400).json({ message: "Invalid application content" });
     }
     try {
-      if (req.query.student !== undefined && req.query.teacher === undefined) {
+      if (req.query.student !== undefined) {
         const student = getStudent(req.query.student);
         if (student === undefined) {
           return res.status(404).json({
