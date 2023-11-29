@@ -130,6 +130,10 @@ exports.getStudent = (id) => {
   return db.prepare("select * from STUDENT where id = ?").get(id);
 };
 
+exports.getStudentByEmail = (email) => {
+  return db.prepare("select * from STUDENT where email = ?").get(email);
+};
+
 exports.getGroup = (cod_group) => {
   return db.prepare("select * from GROUPS where cod_group = ?").get(cod_group);
 };
@@ -203,11 +207,15 @@ exports.findRejectedApplication = (proposal_id, student_id) => {
 
 exports.notifyApplicationDecision = async (applicationId, decision) => {
   // Send email to student
-  const applicationJoined = db.prepare("SELECT P.title, S.email, S.surname, S.name \
+  const applicationJoined = db
+    .prepare(
+      "SELECT P.title, S.email, S.surname, S.name \
     FROM APPLICATIONS A \
     JOIN PROPOSALS P ON P.id = A.proposal_id \
     JOIN STUDENT S ON S.id = A.student_id \
-    WHERE A.id = ?").get(applicationId);
+    WHERE A.id = ?",
+    )
+    .get(applicationId);
   try {
     await nodemailer.sendMail({
       to: applicationJoined.email,
@@ -216,10 +224,10 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
         name: applicationJoined.surname + " " + applicationJoined.name,
         thesis: applicationJoined.title,
         decision: decision,
-      })
+      }),
     });
   } catch (e) {
-    console.log('[mail service]', e);
+    console.log("[mail service]", e);
   }
 
   // Save email in DB

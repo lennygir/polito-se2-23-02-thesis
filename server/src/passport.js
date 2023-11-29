@@ -17,22 +17,24 @@ passport.deserializeUser((user, done) => {
   done(null, user);
 });
 
-passport.use(
-  new Strategy(
-    {
-      issuer: "http://localhost:3000",
-      protocol: "http://",
-      path: "/login/callback",
-      entryPoint:
-        "https://dev-26427425.okta.com/app/dev-26427425_thesesmanagement_1/exkdiotop7RPuz9yv5d7/sso/saml",
-      cert: fs.readFileSync("./src/saml.pem", "utf-8"),
-    },
-    (user, done) => {
-      if (!users.includes(user)) {
-        users.push(user);
-      }
+const strategy = new Strategy(
+  {
+    issuer: "http://localhost:3000",
+    protocol: "http://",
+    path: "/login/callback",
+    entryPoint:
+      "https://dev-b1bmu6tyqbve3iwg.us.auth0.com/samlp/OhrX6zAdWHcVxRMXFfkK2MBarmyzzMf0",
+    cert: fs.readFileSync("./src/saml.pem", "utf-8"),
+  },
+  (user, done) => {
+    if (!users.includes(user)) {
+      users.push(user);
+    }
 
-      return done(null, user);
-    },
-  ),
+    return done(null, user);
+  },
 );
+
+passport.use(strategy);
+
+exports.strategy = strategy;

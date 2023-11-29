@@ -18,13 +18,13 @@ app.use(
   session({
     secret: "Alright, then, keep your secrets.",
     resave: false,
-    saveUninitialized: true, // false
+    saveUninitialized: false,
   }),
 );
 
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(express.urlencoded({ extended: false })); // maybe can be removed
+app.use(express.urlencoded({ extended: false }));
 
 app.use(function (req, res, next) {
   console.log(
