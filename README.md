@@ -1,5 +1,52 @@
 # Theses Management System
 
+## Run in production
+
+### Prerequisites
+
+- Docker
+
+### Run
+
+You can either retrieve the image from the docker hub either build it yourself.
+
+If you want to build it execute the following commands:
+```bash
+
+# Build the frontend 
+cd client && npm run build && cd ..
+
+# Build the docker image 
+docker build -t s321503/polito-thesis .
+
+```
+
+You can run the application by executing with the following command (don't forget to change the "SMTP password" variable) :
+
+```bash
+
+docker run \
+  -p 80:80 -p 3000:3000 \
+  --name polito-thesis \
+  --rm \
+  -e SMTP_HOST='smtp.gmail.com' \
+  -e SMTP_PORT=465 \
+  -e SMTP_USERNAME='thesis.se2.02@gmail.com' \
+  -e SMTP_PASSWORD='<<SMTP password>>' \
+  s321503/polito-thesis
+
+```
+
+and stop it with:
+
+```bash
+
+docker stop polito-thesis
+
+```
+
+Once the docker container is running you can access the application using [localhost:80](http://localhost:80).
+
 ## React Client Application Routes
 
 - Route `/`: login page

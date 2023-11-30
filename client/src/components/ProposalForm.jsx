@@ -50,7 +50,7 @@ function ProposalForm(props) {
     description: proposal ? proposal.description : "",
     requiredKnowledge: proposal ? proposal.required_knowledge : "",
     keywords: proposal ? proposal.keywords.replace(/, /g, "\n") : "",
-    notes: proposal ? proposal.notes : "",
+    notes: proposal && proposal.notes !== null ? proposal.notes : "",
     cds: proposal ? proposal.cds : ""
   });
 
