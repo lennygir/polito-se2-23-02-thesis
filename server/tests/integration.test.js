@@ -21,10 +21,10 @@ beforeEach(() => {
     notes: "Bella raga",
     expiration_date: "2019-01-25T02:00:00.000Z",
     level: "MSC",
-    cds: "LM-32 (DM270)",
+    cds: "L-8-F",
   };
   application = {
-    student: "s309618",
+    student: "s317743",
     proposal: 8,
   };
 });
@@ -35,6 +35,13 @@ it("Insertion of a correct proposal", () => {
     .send(proposal)
     .expect(200);
 });
+/*it("Deletion of a proposal", () => {
+  return request(app)
+    .delete("/api/proposals/31")
+    .set("Content-Type", "application/json")
+    .expect(200);
+});*/
+
 it("Insertion of a proposal with no notes", () => {
   proposal.notes = null;
   return request(app)
@@ -43,6 +50,15 @@ it("Insertion of a proposal with no notes", () => {
     .send(proposal)
     .expect(200);
 });
+/*it("Update of a proposal", () => {
+  proposal.title='update';
+  return request(app)
+    .put("/api/proposals/32")
+    .set("Content-Type", "application/json")
+    .send(proposal)
+    .expect(200);
+});*/
+
 it("Insertion of a proposal with a non existent supervisor", () => {
   proposal.supervisor = "s000000";
   return request(app)
@@ -124,7 +140,7 @@ describe("Get Application From Teacher", () => {
   });
 
   it("Return 404 for emply list of application of that student", () => {
-    const student = "s319823";
+    const student = "s320987";
     return request(app)
       .get(`/api/applications?student=${student}`)
       .set("Content-Type", "application/json")
@@ -140,7 +156,7 @@ describe("Get Application From Teacher", () => {
   });
 
   it("Return 200 correct get of all application of a selected student", () => {
-    const student = "s317743";
+    const student = "s319823";
     return request(app)
       .get(`/api/applications?student=${student}`)
       .set("Content-Type", "application/json")
@@ -150,7 +166,7 @@ describe("Get Application From Teacher", () => {
 
 describe("Proposal Retrieval Tests", () => {
   it("Get all the proposals from a specific field of study", () => {
-    const cds = "LM-32 (DM270)";
+    const cds = "L-8-F";
     return request(app)
       .get(`/api/proposals?cds=${cds}`)
       .set("Content-Type", "application/json")
@@ -217,7 +233,7 @@ describe("Application Insertion Tests", () => {
       .expect(200)
       .then((response) => {
         expect(response.body).toStrictEqual({
-          student_id: "s309618",
+          student_id: "s317743",
           proposal_id: 8,
           state: "pending",
         });

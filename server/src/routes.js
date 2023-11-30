@@ -175,7 +175,7 @@ router.post(
       );
       return res.status(200).json(teacher);
     } catch (e) {
-      console.error(`Error deleting proposal: ${err.message}`);
+      console.error(`Error inserting proposal: ${err.message}`);
       return res.status(500).send({ message: "Internal server error" });
     }
   },
