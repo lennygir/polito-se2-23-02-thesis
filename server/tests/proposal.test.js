@@ -447,7 +447,7 @@ describe("PATCH /api/applications/:id", () => {
     expect(response.body).toEqual({ message: "Application accepted" });
 
     expect(updateApplication).toHaveBeenCalledWith(1, "accepted");
-    expect(cancelPendingApplications).toHaveBeenCalledWith(2, "s123456");
+    expect(cancelPendingApplications).toHaveBeenCalledWith(2);
   });
   test("Should return 200 if the state is rejected for an existent application", async () => {
     getApplicationById.mockReturnValue({
@@ -517,19 +517,6 @@ describe('GET /api/notifications', () => {
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
       message: 'Student s328186 not found, cannot get the notifications',
-    });
-  });
-
-  it('should return a 404 error for a student with no notifications', async () => {
-    const mockStudent = { id: "s216786" };
-    getStudent.mockReturnValue(mockStudent);
-    getNotificationsOfStudent.mockReturnValue([]);
-
-    const response = await request(app).get('/api/notifications?student=s216786');
-
-    expect(response.status).toBe(404);
-    expect(response.body).toEqual({
-      message: 'No notification found for student s216786',
     });
   });
 

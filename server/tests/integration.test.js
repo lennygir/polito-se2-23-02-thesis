@@ -22,10 +22,10 @@ beforeEach(() => {
     notes: "Bella raga",
     expiration_date: "2019-01-25T02:00:00.000Z",
     level: "MSC",
-    cds: "LM-32 (DM270)",
+    cds: "L-8-F",
   };
   application = {
-    student: "s309618",
+    student: "s317743",
     proposal: 8,
   };
 });
@@ -36,6 +36,13 @@ it("Insertion of a correct proposal", () => {
     .send(proposal)
     .expect(200);
 });
+/*it("Deletion of a proposal", () => {
+  return request(app)
+    .delete("/api/proposals/31")
+    .set("Content-Type", "application/json")
+    .expect(200);
+});*/
+
 it("Insertion of a proposal with no notes", () => {
   proposal.notes = null;
   return request(app)
@@ -44,6 +51,15 @@ it("Insertion of a proposal with no notes", () => {
     .send(proposal)
     .expect(200);
 });
+/*it("Update of a proposal", () => {
+  proposal.title='update';
+  return request(app)
+    .put("/api/proposals/32")
+    .set("Content-Type", "application/json")
+    .send(proposal)
+    .expect(200);
+});*/
+
 it("Insertion of a proposal with a non existent supervisor", () => {
   proposal.supervisor = "s000000";
   return request(app)
@@ -125,7 +141,7 @@ describe("Get Application From Teacher", () => {
   });
 
   it("Return 404 for emply list of application of that student", () => {
-    const student = "s319823";
+    const student = "s320987";
     return request(app)
       .get(`/api/applications?student=${student}`)
       .set("Content-Type", "application/json")
@@ -141,7 +157,7 @@ describe("Get Application From Teacher", () => {
   });
 
   it("Return 200 correct get of all application of a selected student", () => {
-    const student = "s317743";
+    const student = "s319823";
     return request(app)
       .get(`/api/applications?student=${student}`)
       .set("Content-Type", "application/json")
@@ -151,7 +167,7 @@ describe("Get Application From Teacher", () => {
 
 describe("Proposal Retrieval Tests", () => {
   it("Get all the proposals from a specific field of study", () => {
-    const cds = "LM-32 (DM270)";
+    const cds = "L-8-F";
     return request(app)
       .get(`/api/proposals?cds=${cds}`)
       .set("Content-Type", "application/json")
@@ -218,7 +234,7 @@ describe("Application Insertion Tests", () => {
       .expect(200)
       .then((response) => {
         expect(response.body).toStrictEqual({
-          student_id: "s309618",
+          student_id: "s317743",
           proposal_id: 8,
           state: "pending",
         });
@@ -257,3 +273,91 @@ describe("Notifications Retrieval Tests", () => {
       });
   });
 });
+
+/*describe("Delete proposals", () => {
+  test("Correct elimination of a proposal", () => {
+    const id = 2;
+    return request(app)
+      .delete(`/api/proposals/${id}`)
+      .expect(200);
+  });
+
+  test("Should retrun a 400 error if the proposal is already accepted", () => {
+    const id = 8;
+    return request(app)
+      .delete(`/api/proposals/${id}`)
+      .expect(400);
+  });
+
+
+  test("Get 404 error for no rows eliminated", () => {
+   const id = 10000;
+    return request(app)
+      .delete(`/api/proposals/${id}`)
+      .expect(404);
+  });
+
+  test("Get 404 error for incorrect data format in", () => {
+    const id = "a";
+     return request(app)
+       .delete(`/api/proposals/${id}`)
+       .expect(400);
+   });
+
+});*/
+
+/*describe("Update proposals", () => {
+  test("Correct update of a proposal", async () => {
+    const proposalId = 1; // Replace with the proposal ID you want to update
+    const updatedFields = {
+      // Specify the fields and their updated values
+      title: "Updated Title",
+      supervisor: "s940590",
+      // Add other fields to update
+    };
+
+    // Send the PATCH request to update the proposal
+    const response = await request(app)
+      .patch(`/api/proposals/${proposalId}`)
+      .send(updatedFields);
+
+    // Check if the response status is successful (e.g., 200 OK)
+    expect(response.status).toBe(200);
+  });
+
+  test("Should return 400 if the proposal is already accepted", async () => {
+    const proposalId = 8; // Replace with the proposal ID you want to update
+    const updatedFields = {
+      // Specify the fields and their updated values
+      title: "Updated Title",
+      supervisor: "s940590",
+      // Add other fields to update
+    };
+
+    // Send the PATCH request to update the proposal
+    const response = await request(app)
+      .patch(`/api/proposals/${proposalId}`)
+      .send(updatedFields);
+
+    // Check if the response status is successful (e.g., 200 OK)
+    expect(response.status).toBe(400);
+  });
+
+  test("Should return 500 for an incorrect server behaviour", async () => {
+    const proposalId = 1; // Replace with the proposal ID you want to update
+    const updatedFields = {
+      // Specify the fields and their updated values
+      title: "Updated4 Title",
+      supervisor: "s9405902309090",
+      // Add other fields to update
+    };
+
+    // Send the PATCH request to update the proposal
+    const response = await request(app)
+      .patch(`/api/proposals/${proposalId}`)
+      .send(updatedFields);
+
+    // Check if the response status is successful (e.g., 200 OK)
+    expect(response.status).toBe(500);
+  });
+});*/

@@ -293,6 +293,46 @@
       }
     ]
   ```
+- PATCH `/api/proposal/:id`
+  - Request Body: Accepts JSON containing fields to update for a proposal, each field is optional.
+    ```
+      {
+        "title": "Updated Title",
+        "supervisor": "Updated Supervisor",
+        "co_supervisors": ["Co-Supervisor 1", "Co-Supervisor 2"],
+        "groups": ["Group A", "Group B"],
+        "keywords": ["Keyword 1", "Keyword 2"],
+        "types": ["Type 1", "Type 2"],
+        "description": "Updated Description",
+        "required_knowledge": "Updated Required Knowledge",
+        "notes": "Updated Notes",
+        "expiration_date": "Updated Expiration Date",
+        "level": "Updated Level",
+        "cds": "Updated CDS"
+      }
+
+    ```
+  - update the proposal with the new field, only do the update if there aren't application with   state = 'accepted'
+  - 200 OK: Proposal updated successfully.
+  - 400 Bad Request: If the proposal is already accepted for another student.
+  - return 500 for internal server error
+  
+- DELETE /api/proposals
+  - Parameters:
+    - id: Integer value representing the proposal ID to be deleted.
+  - Query Parameter:
+    - id: Integer (required)
+  - if there are application with state = 'pending' sets them as 'canceled'.
+  - if there are application with state = 'accepted', doesn't delete.
+  - 200 OK: Proposal deleted successfully.
+  - 400 Bad Request: If the provided proposal content is invalid or if the proposal is already accepted for another student.
+  - 404 Not Found: If the specified proposal ID is not found.
+  - 500 Internal Server Error: If there's an internal server error.
+  
+- POST `/api/something`
+  - request parameters and request body content
+  - response body content
+- ...
 
 ## Users Credentials
 

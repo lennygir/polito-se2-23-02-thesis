@@ -134,6 +134,15 @@ exports.getStudentByEmail = (email) => {
   return db.prepare("select * from STUDENT where email = ?").get(email);
 };
 
+//to delete
+exports.findAcceptedProposal = (proposal_id) => {
+  return db
+    .prepare(
+      `select * from APPLICATIONS where proposal_id = ? and state = 'accepted'`
+    )
+    .get(proposal_id);
+};
+
 exports.getGroup = (cod_group) => {
   return db.prepare("select * from GROUPS where cod_group = ?").get(cod_group);
 };
@@ -171,10 +180,10 @@ exports.getProposalsByDegree = (cds) => {
     .all(cds);
 };
 
-exports.cancelPendingApplications = (of_proposal, except_for_student) => {
+exports.cancelPendingApplications = (of_proposal) => {
   db.prepare(
-    "update APPLICATIONS set state = 'canceled' where proposal_id = ? AND state = 'pending' AND student_id != ?"
-  ).run(of_proposal, except_for_student);
+    "update APPLICATIONS set state = 'canceled' where proposal_id = ? AND state = 'pending'"
+  ).run(of_proposal);
 };
 
 exports.updateApplication = (id, state) => {
@@ -338,4 +347,72 @@ exports.getNotificationsOfStudent = (student_id) => {
   return db
     .prepare("SELECT * FROM NOTIFICATIONS WHERE student_id = ?")
     .all(student_id);
+};
+
+exports.deleteProposal = (proposal_id) => {
+  db.prepare("DELETE FROM PROPOSALS WHERE id = ?").run(proposal_id);
+};
+
+/*exports.updateProposal = (id, setValues) => {
+
+  const params = [];
+  const sqlParams = [];
+  for (const key in setValues) {
+    const value = setValues[key];
+    // Check if the value is of a supported type for SQLite3 bindings
+    if (
+      typeof value === 'number' || 
+      typeof value === 'string' ||
+      value instanceof Buffer ||
+      value === null
+    ) {
+      sqlParams.push(`${key} = ?`);
+      params.push(value);
+    } else {
+      sqlParams.push(`${key} = ?`);
+      params.push(JSON.stringify(value)); 
+    }
+  }
+
+  const sqlQuery = `UPDATE PROPOSALS SET ${sqlParams.join(', ')} WHERE id = ?`;
+  params.push(id);
+
+  const stmt = db.prepare(sqlQuery);
+  stmt.run(params)
+}*/
+
+exports.updateProposal = (
+  proposal_id,
+  title,
+  supervisor,
+  co_supervisors,
+  groups,
+  keywords,
+  types,
+  description,
+  required_knowledge,
+  notes,
+  expiration_date,
+  level,
+  cds
+) => {
+  return db
+    .prepare(
+      "UPDATE PROPOSALS SET title = ?, supervisor = ?, co_supervisors = ?, keywords = ?, type = ?, groups = ?, description = ?, required_knowledge = ?, notes = ?, expiration_date = ?, level = ?, cds = ? WHERE id = ?"
+    )
+    .run(
+      title,
+      supervisor,
+      co_supervisors,
+      keywords,
+      types,
+      groups,
+      description,
+      required_knowledge,
+      notes,
+      expiration_date,
+      level,
+      cds,
+      proposal_id
+    );
 };

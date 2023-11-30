@@ -20,6 +20,8 @@ const {
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   getProposals,
+  deleteProposal,
+  updateProposal,
   getApplicationById,
   getTeacherByEmail,
   getApplications,
@@ -251,6 +253,7 @@ router.post(
       );
       return res.status(200).json(teacher);
     } catch (e) {
+      console.error(`Error inserting proposal: ${err.message}`);
       return res.status(500).send({ message: "Internal server error" });
     }
   }
@@ -461,10 +464,7 @@ router.patch(
       updateApplication(application.id, state);
       notifyApplicationDecision(application.id, state);
       if (state === "accepted") {
-        cancelPendingApplications(
-          application.proposal_id,
-          application.student_id
-        );
+        cancelPendingApplications(application.proposal_id);
       }
       return res.status(200).json({ message: `Application ${state}` });
     } catch (err) {
@@ -501,6 +501,177 @@ router.get(
   }
 );
 
+router.patch("/api/proposals/:id", (req, res) => {
+  try {
+    const {
+      title,
+      supervisor,
+      co_supervisors,
+      groups,
+      keywords,
+      types,
+      description,
+      required_knowledge,
+      notes,
+      expiration_date,
+      level,
+      cds,
+    } = req.body;
+
+    const id = req.params.id;
+
+    if (findAcceptedProposal(id)) {
+      return res.status(400).json({
+        message: `The proposal ${id} is already accepted for another student`,
+      });
+    }
+
+    const fieldsToUpdate = [
+      { field: "title", value: title },
+      { field: "supervisor", value: supervisor },
+      { field: "co_supervisors", value: co_supervisors },
+      { field: "groups", value: groups },
+      { field: "keywords", value: keywords },
+      { field: "types", value: types },
+      { field: "description", value: description },
+      { field: "required_knowledge", value: required_knowledge },
+      { field: "notes", value: notes },
+      { field: "expiration_date", value: expiration_date },
+      { field: "level", value: level },
+      { field: "cds", value: cds },
+    ].filter((field) => field.value !== undefined);
+
+    const setValues = {};
+    fieldsToUpdate.forEach((field) => {
+      setValues[field.field] = field.value;
+    });
+    updateProposal(id, setValues);
+    return res.status(200).send("Proposal updated successfully.");
+  } catch (e) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.put(
+  "/api/proposals/:id",
+  check("id").isInt(),
+  check("title").isString(),
+  check("supervisor").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  check("co_supervisors").isArray(),
+  check("co_supervisors.*").isEmail(),
+  check("groups").isArray(),
+  check("groups.*").isString(),
+  check("keywords").isArray(),
+  check("keywords.*").isString(),
+  check("types").isArray(),
+  check("types.*").isString(),
+  check("description").isString(),
+  check("required_knowledge").isString(),
+  check("notes").isString().optional({ values: "null" }),
+  check("expiration_date").isISO8601().toDate(),
+  check("level").isString().isLength({ min: 3, max: 3 }),
+  check("cds").isString(),
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ message: "Invalid proposal content" });
+    }
+    try {
+      const {
+        title,
+        supervisor,
+        co_supervisors,
+        groups,
+        keywords,
+        types,
+        description,
+        required_knowledge,
+        notes,
+        expiration_date,
+        level,
+        cds,
+      } = req.body;
+      const proposal_id = req.params.id;
+      const proposal = getProposal(proposal_id);
+      if (proposal === undefined) {
+        return res.status(404).json({
+          message: `Proposal ${proposal_id} not found`,
+        });
+      }
+      if (findAcceptedProposal(proposal_id)) {
+        return res.status(400).json({
+          message: `The proposal ${proposal_id} is already accepted for another student`,
+        });
+      }
+      const teacher_supervisor = getTeacher(supervisor);
+      if (teacher_supervisor === undefined) {
+        return res.status(400).send({ message: "Invalid proposal content" });
+      }
+      for (const group of groups) {
+        if (getGroup(group) === undefined) {
+          return res.status(400).send({ message: "Invalid proposal content" });
+        }
+      }
+      if (level !== "MSC" && level !== "BSC") {
+        return res.status(400).send({ message: "Invalid proposal content" });
+      }
+      const legal_groups = [teacher_supervisor.cod_group];
+      for (const co_supervisor_email of co_supervisors) {
+        const co_supervisor = getTeacherByEmail(co_supervisor_email);
+        if (co_supervisor !== undefined) {
+          legal_groups.push(co_supervisor.cod_group);
+        }
+      }
+      if (!groups.every((group) => legal_groups.includes(group))) {
+        return res.status(400).send({ message: "Invalid groups" });
+      }
+      updateProposal(
+        proposal_id,
+        title,
+        supervisor,
+        co_supervisors.join(", "),
+        groups.join(", "),
+        keywords.join(", "),
+        types.join(", "),
+        description,
+        required_knowledge,
+        notes,
+        dayjs(expiration_date).format("YYYY-MM-DD"),
+        level,
+        cds
+      );
+      return res.status(200).send("Proposal updated successfully");
+    } catch (e) {
+      return res.status(500).send({ message: "Internal server error" });
+    }
+  }
+);
+
+router.delete("/api/proposals/:id", [check("id").isInt()], async (req, res) => {
+  try {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ message: "Invalid proposal content" });
+    }
+    const proposal = getProposal(req.params.id);
+    if (proposal === undefined) {
+      return res.status(404).json({
+        message: `Proposal ${req.query.id} not found`,
+      });
+    }
+    if (findAcceptedProposal(req.params.id)) {
+      return res.status(400).json({
+        message: `The proposal ${req.params.id} is already accepted for another student`,
+      });
+    }
+    cancelPendingApplications(req.params.id);
+    deleteProposal(req.params.id);
+    return res.status(200).send("Proposal deleted successfully.");
+  } catch (err) {
+    console.error(`Error deleting proposal: ${err.message}`);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 // ==================================================
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS
 // ==================================================
