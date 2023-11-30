@@ -16,7 +16,7 @@ if "%imageTag%"=="" (
 )
 
 docker run ^
-  -p 80:80 -p 3000:3000 ^
+  -p 80:80 -p 3000:3000 -p 5173:80 ^
   --name polito-thesis ^
   --rm ^
   -e SMTP_HOST='smtp.gmail.com' ^
