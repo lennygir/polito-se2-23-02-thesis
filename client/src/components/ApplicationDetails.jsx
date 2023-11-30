@@ -8,15 +8,15 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import UserContext from "../contexts/UserContext";
-import dayjs from "dayjs";
 import ConfirmationDialog from "./ConfirmationDialog";
 import { useThemeContext } from "../theme/ThemeContextProvider";
 
 function ApplicationDetails(props) {
   const user = useContext(UserContext);
   const { theme } = useThemeContext();
-  const { application, proposal } = props;
+  const { application } = props;
 
   const [decision, setDecision] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
@@ -61,6 +61,10 @@ function ApplicationDetails(props) {
     return props.applications.some((a) => a.id === application.id && a.state === "rejected");
   };
 
+  const isApplicationCanceled = () => {
+    return props.applications.some((a) => a.id === application.id && a.state === "canceled");
+  };
+
   const renderActionButton = () => {
     if (isApplicationAccepted()) {
       return (
@@ -78,6 +82,16 @@ function ApplicationDetails(props) {
           <HighlightOffIcon color="error" />
           <Typography variant="h6" fontWeight={700} style={{ color: theme.palette.error.main }}>
             APPLICATION REJECTED
+          </Typography>
+        </Box>
+      );
+    }
+    if (isApplicationCanceled()) {
+      return (
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <ErrorOutlineIcon color="warning" />
+          <Typography variant="h6" fontWeight={700} style={{ color: theme.palette.warning.main }}>
+            APPLICATION CANCELED
           </Typography>
         </Box>
       );
@@ -163,11 +177,7 @@ function ApplicationDetails(props) {
       <Divider variant="middle" />
       <Typography variant="body1" gutterBottom paddingTop={2}>
         <span style={{ fontWeight: "bold" }}>Title: </span>
-        {proposal?.title}
-      </Typography>
-      <Typography variant="body1" gutterBottom>
-        <span style={{ fontWeight: "bold" }}>Expiration date: </span>
-        {dayjs(proposal?.expiration_date).format("MMMM D, YYYY")}
+        {application.title}
       </Typography>
       <Box paddingTop={4} sx={{ display: "flex", justifyContent: "center" }}>
         {renderActionButton()}

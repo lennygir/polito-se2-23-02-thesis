@@ -7,7 +7,7 @@ import UserContext from "../contexts/UserContext";
 
 function ApplicationsPage(props) {
   const user = useContext(UserContext);
-  const { applications, proposals } = props;
+  const { applications } = props;
 
   const studentView = (
     <>
@@ -16,7 +16,7 @@ function ApplicationsPage(props) {
           My Applications
         </Typography>
       </Stack>
-      <ApplicationTable applications={applications} proposals={proposals} />
+      <ApplicationTable applications={applications} />
       <Box height={5} marginTop={3} />
     </>
   );
@@ -28,7 +28,7 @@ function ApplicationsPage(props) {
           Applications
         </Typography>
       </Stack>
-      <ApplicationTable applications={applications} proposals={proposals} />
+      <ApplicationTable applications={applications} />
       <Box height={5} marginTop={3} />
     </>
   );

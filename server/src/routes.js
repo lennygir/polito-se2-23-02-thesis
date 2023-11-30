@@ -1,7 +1,8 @@
 "use strict";
 
 const router = require("express").Router();
-const userDao = require("./user-dao");
+const passport = require("passport");
+const dayjs = require("dayjs");
 const { check, validationResult } = require("express-validator");
 const {
   getTeacher,
@@ -19,6 +20,8 @@ const {
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   getProposals,
+  deleteProposal,
+  updateProposal,
   getApplicationById,
   getTeacherByEmail,
   getApplications,
@@ -27,8 +30,9 @@ const {
   findAcceptedProposal,
   findRejectedApplication,
   notifyApplicationDecision,
+  getNotificationsOfStudent,
+  getStudentByEmail,
 } = require("./theses-dao");
-const dayjs = require("dayjs");
 
 // ==================================================
 // Routes
@@ -37,6 +41,83 @@ const dayjs = require("dayjs");
 router.get("/api", (req, res) => {
   return res.status(200).json({ message: "API home page" });
 });
+
+router.get(
+  "/login",
+  passport.authenticate("saml", {
+    failureFlash: true,
+    failureRedirect: "/login",
+  }),
+  (_req, res) => {
+    return res.redirect("http://localhost:5173");
+  }
+);
+
+/** Endpoint called by Auth0 using Passport */
+router.post(
+  "/login/callback",
+  passport.authenticate("saml", {
+    failureFlash: true,
+    failureRedirect: "/login",
+  }),
+  (_req, res) => {
+    return res.redirect("http://localhost:5173");
+  }
+);
+
+/** Check for user authentication
+ * If user authenticated return user
+ */
+router.get("/api/sessions/current", (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  } else {
+    const email =
+      req.user[
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+      ];
+    const student = getStudentByEmail(email);
+    const teacher = getTeacherByEmail(email);
+    if (student && !teacher) {
+      return res.status(200).json({ ...student, role: "student" });
+    } else if (teacher) {
+      return res.status(200).json({ ...teacher, role: "teacher" });
+    } else {
+      return res.status(500).json({ message: "database error" });
+    }
+  }
+});
+
+router.get("/logout", (req, res) => {
+  if (req.isAuthenticated()) {
+    req.logout((err) => {
+      if (!err) {
+        return res.redirect("http://localhost:5173");
+      }
+    });
+  } else {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  }
+});
+//  strategy.logout(req, (err, req) => {
+//    if (!err) {
+//      console.log(req);
+//      return res.redirect(req);
+//    }
+//  });
+//});
+//
+//router.post("/logout/callback", (req, res) => {
+//  req.logout((err) => {
+//    if (!err) {
+//      return res.redirect("http://localhost:5173");
+//    }
+//  });
+//});
 
 // login endpoint
 /**
@@ -67,34 +148,34 @@ router.get("/api", (req, res) => {
         "DepartmentID":     text (maybe integer)
     }
 */
-router.post(
-  "/api/sessions",
-  check("email").isEmail(),
-  check("password").isLength({ min: 7, max: 7 }),
-  (req, res) => {
-    try {
-      const { email, password } = req.body;
-      const valid = userDao.checkUser(email, password);
-      if (valid) {
-        const teacher = userDao.getTeacher(email);
-        const student = userDao.getStudent(email);
-        if (teacher) {
-          teacher.role = "teacher";
-          return res.status(200).send(teacher);
-        } else if (student) {
-          student.role = "student";
-          return res.status(200).send(student);
-        } else {
-          return res.status(500).send({ message: "Unknown error" });
-        }
-      } else {
-        return res.status(404).send({ message: "Invalid login credentials" });
-      }
-    } catch (e) {
-      return res.status(500).send({ message: e.message });
-    }
-  },
-);
+//router.post(
+//  "/api/sessions",
+//  check("email").isEmail(),
+//  check("password").isLength({ min: 7, max: 7 }),
+//  (req, res) => {
+//    try {
+//      const { email, password } = req.body;
+//      const valid = userDao.checkUser(email, password);
+//      if (valid) {
+//        const teacher = userDao.getTeacher(email);
+//        const student = userDao.getStudent(email);
+//        if (teacher) {
+//          teacher.role = "teacher";
+//          return res.status(200).send(teacher);
+//        } else if (student) {
+//          student.role = "student";
+//          return res.status(200).send(student);
+//        } else {
+//          return res.status(500).send({ message: "Unknown error" });
+//        }
+//      } else {
+//        return res.status(404).send({ message: "Invalid login credentials" });
+//      }
+//    } catch (e) {
+//      return res.status(500).send({ message: e.message });
+//    }
+//  },
+//);
 
 router.post(
   "/api/proposals",
@@ -168,13 +249,14 @@ router.post(
         notes,
         dayjs(expiration_date).format("YYYY-MM-DD"),
         level,
-        cds,
+        cds
       );
       return res.status(200).json(teacher);
     } catch (e) {
+      console.error(`Error inserting proposal: ${err.message}`);
       return res.status(500).send({ message: "Internal server error" });
     }
-  },
+  }
 );
 
 // endpoint to get all teachers {id, surname, name, email}
@@ -256,7 +338,7 @@ router.get(
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  },
+  }
 );
 
 router.post(
@@ -296,7 +378,7 @@ router.post(
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
     }
-  },
+  }
 );
 
 router.get(
@@ -355,7 +437,7 @@ router.get(
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  },
+  }
 );
 
 router.patch(
@@ -382,18 +464,214 @@ router.patch(
       updateApplication(application.id, state);
       notifyApplicationDecision(application.id, state);
       if (state === "accepted") {
-        cancelPendingApplications(
-          application.proposal_id,
-          application.student_id,
-        );
+        cancelPendingApplications(application.proposal_id);
       }
       return res.status(200).json({ message: `Application ${state}` });
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  },
+  }
 );
 
+router.get(
+  "/api/notifications",
+  check("student")
+    .isAlphanumeric()
+    .isLength({ min: 7, max: 7 })
+    .optional({ values: undefined }),
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).json({ message: "Invalid student content" });
+    }
+    try {
+      if (req.query.student !== undefined) {
+        const student = getStudent(req.query.student);
+        if (student === undefined) {
+          return res.status(404).json({
+            message: `Student ${req.query.student} not found, cannot get the notifications`,
+          });
+        }
+        const notifications = getNotificationsOfStudent(student.id);
+        return res.status(200).json(notifications);
+      }
+    } catch (e) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
+
+router.patch("/api/proposals/:id", (req, res) => {
+  try {
+    const {
+      title,
+      supervisor,
+      co_supervisors,
+      groups,
+      keywords,
+      types,
+      description,
+      required_knowledge,
+      notes,
+      expiration_date,
+      level,
+      cds,
+    } = req.body;
+
+    const id = req.params.id;
+
+    if (findAcceptedProposal(id)) {
+      return res.status(400).json({
+        message: `The proposal ${id} is already accepted for another student`,
+      });
+    }
+
+    const fieldsToUpdate = [
+      { field: "title", value: title },
+      { field: "supervisor", value: supervisor },
+      { field: "co_supervisors", value: co_supervisors },
+      { field: "groups", value: groups },
+      { field: "keywords", value: keywords },
+      { field: "types", value: types },
+      { field: "description", value: description },
+      { field: "required_knowledge", value: required_knowledge },
+      { field: "notes", value: notes },
+      { field: "expiration_date", value: expiration_date },
+      { field: "level", value: level },
+      { field: "cds", value: cds },
+    ].filter((field) => field.value !== undefined);
+
+    const setValues = {};
+    fieldsToUpdate.forEach((field) => {
+      setValues[field.field] = field.value;
+    });
+    updateProposal(id, setValues);
+    return res.status(200).send("Proposal updated successfully.");
+  } catch (e) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.put(
+  "/api/proposals/:id",
+  check("id").isInt(),
+  check("title").isString(),
+  check("supervisor").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  check("co_supervisors").isArray(),
+  check("co_supervisors.*").isEmail(),
+  check("groups").isArray(),
+  check("groups.*").isString(),
+  check("keywords").isArray(),
+  check("keywords.*").isString(),
+  check("types").isArray(),
+  check("types.*").isString(),
+  check("description").isString(),
+  check("required_knowledge").isString(),
+  check("notes").isString().optional({ values: "null" }),
+  check("expiration_date").isISO8601().toDate(),
+  check("level").isString().isLength({ min: 3, max: 3 }),
+  check("cds").isString(),
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ message: "Invalid proposal content" });
+    }
+    try {
+      const {
+        title,
+        supervisor,
+        co_supervisors,
+        groups,
+        keywords,
+        types,
+        description,
+        required_knowledge,
+        notes,
+        expiration_date,
+        level,
+        cds,
+      } = req.body;
+      const proposal_id = req.params.id;
+      const proposal = getProposal(proposal_id);
+      if (proposal === undefined) {
+        return res.status(404).json({
+          message: `Proposal ${proposal_id} not found`,
+        });
+      }
+      if (findAcceptedProposal(proposal_id)) {
+        return res.status(400).json({
+          message: `The proposal ${proposal_id} is already accepted for another student`,
+        });
+      }
+      const teacher_supervisor = getTeacher(supervisor);
+      if (teacher_supervisor === undefined) {
+        return res.status(400).send({ message: "Invalid proposal content" });
+      }
+      for (const group of groups) {
+        if (getGroup(group) === undefined) {
+          return res.status(400).send({ message: "Invalid proposal content" });
+        }
+      }
+      if (level !== "MSC" && level !== "BSC") {
+        return res.status(400).send({ message: "Invalid proposal content" });
+      }
+      const legal_groups = [teacher_supervisor.cod_group];
+      for (const co_supervisor_email of co_supervisors) {
+        const co_supervisor = getTeacherByEmail(co_supervisor_email);
+        if (co_supervisor !== undefined) {
+          legal_groups.push(co_supervisor.cod_group);
+        }
+      }
+      if (!groups.every((group) => legal_groups.includes(group))) {
+        return res.status(400).send({ message: "Invalid groups" });
+      }
+      updateProposal(
+        proposal_id,
+        title,
+        supervisor,
+        co_supervisors.join(", "),
+        groups.join(", "),
+        keywords.join(", "),
+        types.join(", "),
+        description,
+        required_knowledge,
+        notes,
+        dayjs(expiration_date).format("YYYY-MM-DD"),
+        level,
+        cds
+      );
+      return res.status(200).send({ message: "Proposal updated successfully" });
+    } catch (e) {
+      return res.status(500).send({ message: "Internal server error" });
+    }
+  }
+);
+
+router.delete("/api/proposals/:id", [check("id").isInt()], async (req, res) => {
+  try {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ message: "Invalid proposal content" });
+    }
+    const proposal = getProposal(req.params.id);
+    if (proposal === undefined) {
+      return res.status(404).json({
+        message: `Proposal ${req.query.id} not found`,
+      });
+    }
+    if (findAcceptedProposal(req.params.id)) {
+      return res.status(400).json({
+        message: `The proposal ${req.params.id} is already accepted for another student`,
+      });
+    }
+    cancelPendingApplications(req.params.id);
+    deleteProposal(req.params.id);
+    return res.status(200).send({ message: "Proposal deleted successfully." });
+  } catch (err) {
+    console.error(`Error deleting proposal: ${err.message}`);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 // ==================================================
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS
 // ==================================================

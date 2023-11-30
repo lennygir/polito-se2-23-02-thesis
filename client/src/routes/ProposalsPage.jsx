@@ -1,25 +1,33 @@
 import dayjs from "dayjs";
 import { useContext, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import Fab from "@mui/material/Fab";
 import Hidden from "@mui/material/Hidden";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
+import ErrorContext from "../contexts/ErrorContext";
 import UserContext from "../contexts/UserContext";
 import ProposalTable from "../components/ProposalTable";
 import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
 import CreateIcon from "@mui/icons-material/Create";
 import ProposalFilters from "../components/ProposalFilters";
+import { TEACHER_PROPOSALS_FILTERS } from "../utils/constants";
+import API from "../utils/API";
 
 function ProposalsPage(props) {
+  const navigate = useNavigate();
   const proposals = props.proposals;
+  const applications = props.applications;
+  const currentDate = props.currentDate;
   const user = useContext(UserContext);
+  const { handleErrors } = useContext(ErrorContext);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [filterValues, setFilterValues] = useState({
@@ -28,6 +36,11 @@ function ProposalsPage(props) {
     startDate: null,
     endDate: null
   });
+  const [selectedTeacherFilter, setSelectedTeacherFilter] = useState("all");
+
+  const handleTeacherFilterChange = (selectedFilter) => {
+    setSelectedTeacherFilter(selectedFilter);
+  };
 
   const toggleDrawer = () => {
     setIsDrawerOpen(!isDrawerOpen);
@@ -53,7 +66,7 @@ function ProposalsPage(props) {
     });
   };
 
-  const filteredProposals = proposals
+  const filteredStudentProposals = proposals
     .filter((proposal) => {
       const { title, co_supervisors, keywords, description, required_knowledge, notes } = proposal;
 
@@ -87,8 +100,10 @@ function ProposalsPage(props) {
 
       // Check if proposal matches the filter values
       const proposalTypeArray = proposal.type.split(",").map((type) => type.trim());
+      const proposalGroupsArray = proposal.groups.split(",").map((group) => group.trim());
+
       const typeMatch = type.length === 0 || proposalTypeArray.some((t) => type.includes(t));
-      const groupsMatch = groups.length === 0 || groups.includes(proposal.groups);
+      const groupsMatch = groups.length === 0 || proposalGroupsArray.some((g) => groups.includes(g));
       const expirationDate = dayjs(proposal.expiration_date);
       let isExpirationDateInRange = true;
       if (startDate !== null && endDate !== null) {
@@ -111,7 +126,8 @@ function ProposalsPage(props) {
           display: "flex",
           justifyContent: "space-between",
           height: 96,
-          marginX: { md: 3, xs: -1 }
+          marginTop: { md: -3, xs: 0 },
+          marginX: { md: 3, xs: -2 }
         }}
       >
         <OutlinedInput
@@ -134,10 +150,37 @@ function ProposalsPage(props) {
           resetMenuFilters={resetMenuFilters}
         />
       </Toolbar>
-      <ProposalTable data={filteredProposals} getTeacherById={props.getTeacherById} />
+      <ProposalTable data={filteredStudentProposals} getTeacherById={props.getTeacherById} />
       <Box height={5} marginTop={3} />
     </>
   );
+
+  const filteredTeacherProposals = proposals.filter((proposal) => {
+    if (selectedTeacherFilter === "all") {
+      return true;
+    }
+    if (selectedTeacherFilter === "active") {
+      const isNotExpired = dayjs(proposal.expiration_date).isAfter(currentDate);
+      const hasAcceptedApplications = applications.some(
+        (application) => application.proposal_id === proposal.id && application.state === "accepted"
+      );
+      return isNotExpired && !hasAcceptedApplications;
+    }
+    return true;
+  });
+
+  const deleteProposal = (proposalId) => {
+    API.deleteProposal(proposalId)
+      .then(() => {
+        props.setAlert({
+          message: "Proposal deleted successfully",
+          severity: "success"
+        });
+        props.setDirty(true);
+        navigate("/proposals");
+      })
+      .catch((err) => handleErrors(err));
+  };
 
   const teacherView = (
     <>
@@ -151,7 +194,27 @@ function ProposalsPage(props) {
           </Button>
         </Hidden>
       </Stack>
-      <ProposalTable data={proposals} />
+      <Toolbar
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginX: 3,
+          marginY: -2
+        }}
+      >
+        <Stack direction="row" spacing={1}>
+          {TEACHER_PROPOSALS_FILTERS.map((filter) => (
+            <Chip
+              key={filter.id}
+              label={filter.label}
+              variant={selectedTeacherFilter === filter.id ? "filled" : "outlined"}
+              onClick={() => handleTeacherFilterChange(filter.id)}
+              sx={{ height: 30 }}
+            />
+          ))}
+        </Stack>
+      </Toolbar>
+      <ProposalTable data={filteredTeacherProposals} deleteProposal={deleteProposal} />
       <Box height={5} marginTop={3} />
       <Hidden smUp>
         <Stack

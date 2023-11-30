@@ -7,6 +7,18 @@
 export const SERVER_URL = "http://localhost:3000/api";
 
 /**
+ * The URL for calling the login endpoint.
+ * @constant
+ */
+export const LOGIN_URL = "http://localhost:3000/login";
+
+/**
+ * The URL for calling the logout endpoint.
+ * @constant
+ */
+export const LOGOUT_URL = "http://localhost:3000/logout";
+
+/**
  * The list of types available for a thesis proposal
  * @constant
  */
@@ -17,6 +29,21 @@ export const TYPES = ["RESEARCH", "COMPANY", "EXPERIMENTAL", "ABROAD"];
  * @constant
  */
 export const LEVELS = ["Bachelor Degree", "Master Degree"];
+
+/**
+ * The list of filters available to a teacher
+ * @constant
+ */
+export const TEACHER_PROPOSALS_FILTERS = [
+  {
+    id: "all",
+    label: "ALL"
+  },
+  {
+    id: "active",
+    label: "ACTIVE"
+  }
+];
 
 /**
  * Color Palette

@@ -6,6 +6,7 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import ApplicationRow from "./ApplicationRow";
 import UserContext from "../contexts/UserContext";
 
@@ -13,12 +14,8 @@ const TEACHER_HEADERS = ["Student", "Proposal", "Status", "Open"];
 const STUDENT_HEADERS = ["Teacher", "Proposal", "Status", "Open"];
 
 function ApplicationTable(props) {
-  const { applications, proposals } = props;
+  const { applications } = props;
   const user = useContext(UserContext);
-
-  const getProposalById = (proposalId) => {
-    return proposals.find((proposal) => proposal.id === proposalId);
-  };
 
   return (
     <Card
@@ -36,24 +33,22 @@ function ApplicationTable(props) {
             <TableRow>
               {user?.role === "student" &&
                 STUDENT_HEADERS.map((headCell) => (
-                  <TableCell key={headCell} align={headCell === "Status" ? "center" : "inherit"}>
-                    {headCell}
+                  <TableCell key={headCell} align={headCell === "Status" ? "center" : "inherit"} variant="head">
+                    <Typography fontWeight={700}>{headCell}</Typography>
                   </TableCell>
                 ))}
               {user?.role === "teacher" &&
                 TEACHER_HEADERS.map((headCell) => (
-                  <TableCell key={headCell} align={headCell === "Status" ? "center" : "inherit"}>
-                    {headCell}
+                  <TableCell key={headCell} align={headCell === "Status" ? "center" : "inherit"} variant="head">
+                    <Typography fontWeight={700}>{headCell}</Typography>
                   </TableCell>
                 ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {applications.map((application) => {
-              // Get the proposal object for the current application
-              const proposal = getProposalById(application.proposal_id);
-              return <ApplicationRow key={application.id} application={application} proposal={proposal} />;
-            })}
+            {applications.map((application) => (
+              <ApplicationRow key={application.id} application={application} />
+            ))}
           </TableBody>
         </Table>
       </TableContainer>

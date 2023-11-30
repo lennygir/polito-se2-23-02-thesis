@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { useContext, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { IconButton, Chip, Link, MenuItem, Popover, Stack, TableCell, TableRow } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
@@ -24,6 +24,11 @@ function ProposalRow(props) {
 
   const handleCloseMenu = () => {
     setOpen(null);
+  };
+
+  const handleDelete = () => {
+    handleCloseMenu();
+    props.deleteProposal(proposal.id);
   };
 
   const renderType = (type) => {
@@ -57,7 +62,7 @@ function ProposalRow(props) {
             color="inherit"
             underline="hover"
             component={NavLink}
-            to={"/proposals/" + proposal.id}
+            to={`/proposals/${proposal.id}`}
             state={{ proposal: proposal }}
           >
             {proposal.title}
@@ -85,11 +90,19 @@ function ProposalRow(props) {
           sx: { width: 140 }
         }}
       >
-        <MenuItem onClick={handleCloseMenu}>
+        <MenuItem
+          component={NavLink}
+          color="inherit"
+          underline="none"
+          to={`/edit-proposal/${proposal.id}`}
+          state={{ proposal: proposal }}
+          onClick={handleCloseMenu}
+        >
           <ModeEditIcon sx={{ mr: 2 }} />
           Edit
         </MenuItem>
-        <MenuItem onClick={handleCloseMenu} sx={{ color: "error.main" }}>
+
+        <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
           <DeleteIcon sx={{ mr: 2 }} />
           Delete
         </MenuItem>

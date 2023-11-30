@@ -1,4 +1,4 @@
-exports.applicationDecisionTemplate = function(variables) {
+const applicationDecisionHtmlTemplate = (variables) => {
     return `
         <html>
             <body>
@@ -10,3 +10,12 @@ exports.applicationDecisionTemplate = function(variables) {
         </html>
     `;
 };
+
+const applicationDecisionTextTemplate = (variables) => {
+    return `Dear ${variables.name},\nyour application for the thesis ${variables.thesis} has been ${variables.decision}.\nBest regards,\nthe Thesis Managment system`;
+};
+
+exports.applicationDecisionTemplate = (variables) => ({
+    html: applicationDecisionHtmlTemplate(variables),
+    text: applicationDecisionTextTemplate(variables)
+});

@@ -203,7 +203,7 @@ Once the docker container is running you can access the application using [local
     }
   ]
   ```
-- GET `/api/proposals?cds=LM-32 (DM270)`
+  - GET `/api/proposals?cds=LM-32 (DM270)`
   - returned json
   ```
   [
@@ -275,17 +275,21 @@ Once the docker container is running you can access the application using [local
   }
   ```
 - GET `/api/applications`
+
   - params in query ()
+
   ```one of this two
     teacher: s345678
     student: s317743
   ```
+
   - return the list of proposals related to a teacher id or student
   - return 200 for correct behavior
   - return 404 for no proposal related to that teacher or student
   - return 400 for invalid teacher id or cds
   - return 500 for internal server error
   - example of return value
+
   ```
     [
       {
@@ -313,7 +317,72 @@ Once the docker container is running you can access the application using [local
     ]
   ```
 
+  - GET `/api/notifications`
+  - params in query ()
+
+  ```
+    student: s317743
+  ```
+
+  - return the list of notifications related to a student
+  - return 200 for correct behavior
+  - return 404 for no notifications related to that student
+  - return 400 for invalid student id
+  - return 500 for internal server error
+  - example of return value
+
+  ```
+    [
+      {
+        object: 'New decision on your thesis application',
+        content: 'Dear Tortore Luca,' || char(10) || 'your application for the thesis Gamification di attività di modellazione UML has been rejected.' || char(10) || 'Best regards,' || char(10) || 'the Thesis Managment system'
+        student_id: 's319823',
+      }
+    ]
+  ```
+- PATCH `/api/proposal/:id`
+  - Request Body: Accepts JSON containing fields to update for a proposal, each field is optional.
+    ```
+      {
+        "title": "Updated Title",
+        "supervisor": "Updated Supervisor",
+        "co_supervisors": ["Co-Supervisor 1", "Co-Supervisor 2"],
+        "groups": ["Group A", "Group B"],
+        "keywords": ["Keyword 1", "Keyword 2"],
+        "types": ["Type 1", "Type 2"],
+        "description": "Updated Description",
+        "required_knowledge": "Updated Required Knowledge",
+        "notes": "Updated Notes",
+        "expiration_date": "Updated Expiration Date",
+        "level": "Updated Level",
+        "cds": "Updated CDS"
+      }
+
+    ```
+  - update the proposal with the new field, only do the update if there aren't application with   state = 'accepted'
+  - 200 OK: Proposal updated successfully.
+  - 400 Bad Request: If the proposal is already accepted for another student.
+  - return 500 for internal server error
+  
+- DELETE /api/proposals
+  - Parameters:
+    - id: Integer value representing the proposal ID to be deleted.
+  - Query Parameter:
+    - id: Integer (required)
+  - if there are application with state = 'pending' sets them as 'canceled'.
+  - if there are application with state = 'accepted', doesn't delete.
+  - 200 OK: Proposal deleted successfully.
+  - 400 Bad Request: If the provided proposal content is invalid or if the proposal is already accepted for another student.
+  - 404 Not Found: If the specified proposal ID is not found.
+  - 500 Internal Server Error: If there's an internal server error.
+  
+- POST `/api/something`
+  - request parameters and request body content
+  - response body content
+- ...
+
 ## Users Credentials
 
-- TEACHER ACCOUNT: email: marco.torchiano@polito.it, password: s123456
+- TEACHER ACCOUNT: email: marco.torchiano@teacher.it, password: s123456
 - STUDENT ACCOUNT: email: s309618@studenti.polito.it, password: s309618
+- STUDENT ACCOUNT: email: s308747@studenti.polito.it, password: s308747

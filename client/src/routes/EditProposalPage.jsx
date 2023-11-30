@@ -1,37 +1,33 @@
 import { useContext } from "react";
-import { Link, useLocation } from "react-router-dom";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ApplicationDetails from "../components/ApplicationDetails";
+import ProposalForm from "../components/ProposalForm";
 import ErrorContext from "../contexts/ErrorContext";
 import API from "../utils/API";
 
-function ViewApplicationPage(props) {
-  const location = useLocation();
+function EditProposalPage(props) {
   const { handleErrors } = useContext(ErrorContext);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const application = location.state?.application;
   const proposal = location.state?.proposal;
 
-  const evaluateApplication = (application) => {
-    API.evaluateApplication(application)
+  const editProposal = (proposal) => {
+    API.updateProposal(proposal)
       .then(() => {
         props.setAlert({
-          message: "Application evaluated successfully",
+          message: "Proposal updated successfully",
           severity: "success"
         });
-        props.fetchApplications();
-        props.fetchNotifications();
+        props.fetchProposals();
+        navigate("/proposals");
       })
       .catch((err) => handleErrors(err));
   };
 
   return (
-    <div id="view-application-page">
+    <div id="edit-proposal-page">
       <Stack
         paddingTop={4}
         sx={{ pt: { md: 4, xs: 0 } }}
@@ -41,7 +37,7 @@ function ViewApplicationPage(props) {
       >
         <Button
           component={Link}
-          to="/applications"
+          to="/proposals"
           variant="outlined"
           startIcon={<ArrowBackIcon />}
           sx={{ ml: { md: 4, xs: 0 } }}
@@ -50,15 +46,17 @@ function ViewApplicationPage(props) {
         </Button>
       </Stack>
       <Typography variant="h4" sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}>
-        Application Details
+        Edit Proposal
       </Typography>
       <Paper elevation={1} sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
-          <ApplicationDetails
-            application={application}
+          <ProposalForm
+            mode="update"
+            teachers={props.teachers}
+            groups={props.groups}
+            degrees={props.degrees}
             proposal={proposal}
-            evaluateApplication={evaluateApplication}
-            applications={props.applications}
+            editProposal={editProposal}
           />
         </Box>
       </Paper>
@@ -67,4 +65,4 @@ function ViewApplicationPage(props) {
   );
 }
 
-export default ViewApplicationPage;
+export default EditProposalPage;
