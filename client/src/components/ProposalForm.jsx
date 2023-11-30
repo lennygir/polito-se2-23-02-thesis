@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import dayjs from "dayjs";
 import validator from "validator";
 import Autocomplete from "@mui/material/Autocomplete";
@@ -17,23 +17,41 @@ import { Tooltip } from "@mui/material";
 
 function ProposalForm(props) {
   const user = useContext(UserContext);
-  const [teachers, setTeachers] = useState(props.teachers.map((teacher) => teacher.email));
-  const [availableGroups, setAvailableGroups] = useState([user.cod_group]);
+  const proposal = props.proposal || null;
 
+  const coSupervisorsGroups = proposal
+    ? proposal.co_supervisors
+        .split(", ")
+        .map((email) => email.trim())
+        .map((email) => {
+          const teacher = props.teachers.find((teacher) => teacher.email === email);
+          return teacher ? teacher.cod_group : null;
+        })
+    : null;
+
+  const [teachers, setTeachers] = useState(props.teachers.map((teacher) => teacher.email));
+  const [availableGroups, setAvailableGroups] = useState(
+    proposal ? [user.cod_group, ...coSupervisorsGroups].filter((group) => group !== null) : [user.cod_group]
+  );
   const [formData, setFormData] = useState({
-    title: "",
+    title: proposal ? proposal.title : "",
     supervisor: user ? user.email : "",
-    coSupervisors: [],
+    coSupervisors: proposal ? proposal.co_supervisors.split(", ") : [],
     externalCoSupervisor: "",
-    expirationDate: null,
-    type: [],
-    level: "",
-    groups: [],
-    description: "",
-    requiredKnowledge: "",
-    keywords: "",
-    notes: "",
-    cds: ""
+    expirationDate: proposal ? proposal.expiration_date : null,
+    type: proposal ? proposal.type.split(",") : [],
+    level:
+      proposal && proposal.level === "MSC"
+        ? "Master Degree"
+        : proposal && proposal.level === "BCS"
+          ? "Bachelor Degree"
+          : "",
+    groups: proposal ? proposal.groups.split(", ") : [],
+    description: proposal ? proposal.description : "",
+    requiredKnowledge: proposal ? proposal.required_knowledge : "",
+    keywords: proposal ? proposal.keywords.replace(/, /g, "\n") : "",
+    notes: proposal ? proposal.notes : "",
+    cds: proposal ? proposal.cds : ""
   });
 
   const [formErrors, setFormErrors] = useState({
@@ -51,6 +69,32 @@ function ProposalForm(props) {
     notes: "",
     cds: ""
   });
+
+  useEffect(() => {
+    if (proposal) {
+      // Set the form
+      setFormData({
+        title: proposal ? proposal.title : "",
+        supervisor: user ? user.email : "",
+        coSupervisors: proposal ? proposal.co_supervisors.split(", ") : [],
+        externalCoSupervisor: "",
+        expirationDate: proposal ? proposal.expiration_date : null,
+        type: proposal ? proposal.type.split(",") : [],
+        level:
+          proposal && proposal.level === "MSC"
+            ? "Master Degree"
+            : proposal && proposal.level === "BCS"
+              ? "Bachelor Degree"
+              : "",
+        groups: proposal ? proposal.groups.split(", ") : [],
+        description: proposal ? proposal.description : "",
+        requiredKnowledge: proposal ? proposal.required_knowledge : "",
+        keywords: proposal ? proposal.keywords.replace(/, /g, "\n") : "",
+        notes: proposal ? proposal.notes : "",
+        cds: proposal ? proposal.cds : ""
+      });
+    }
+  }, [proposal]);
 
   // Handle input change
   const handleFormInputChange = (field, value) => {
@@ -167,22 +211,25 @@ function ProposalForm(props) {
       // Set the errors in the form
       setFormErrors(errors);
       return;
-    } else {
-      // Parse data and send the form
-      const data = {
-        title: formData.title,
-        supervisor: user.id,
-        co_supervisors: formData.coSupervisors,
-        groups: formData.groups,
-        keywords: formData.keywords.split("\n").map((keyword) => keyword.trim()),
-        types: formData.type,
-        description: formData.description,
-        required_knowledge: formData.requiredKnowledge,
-        notes: formData.notes,
-        expiration_date: formData.expirationDate,
-        level: formData.level === "Bachelor Degree" ? "BSC" : "MSC",
-        cds: formData.cds
-      };
+    }
+    const data = {
+      title: formData.title,
+      supervisor: user.id,
+      co_supervisors: formData.coSupervisors,
+      groups: formData.groups,
+      keywords: formData.keywords.split("\n").map((keyword) => keyword.trim()),
+      types: formData.type,
+      description: formData.description,
+      required_knowledge: formData.requiredKnowledge,
+      notes: formData.notes,
+      expiration_date: formData.expirationDate,
+      level: formData.level === "Bachelor Degree" ? "BSC" : "MSC",
+      cds: formData.cds
+    };
+    if (props.mode === "update") {
+      data.id = proposal.id;
+      props.editProposal(data);
+    } else if (props.mode === "create") {
       props.createProposal(data);
     }
   };
@@ -465,7 +512,7 @@ function ProposalForm(props) {
         />
       </FormControl>
       <Button fullWidth type="submit" variant="contained" sx={{ mt: 4, mb: 2 }}>
-        Create Proposal
+        {props.mode === "edit" ? "Update Proposal" : "Create Proposal"}
       </Button>
     </Box>
   );

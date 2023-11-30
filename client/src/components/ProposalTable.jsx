@@ -21,7 +21,7 @@ function ProposalTable(props) {
       sx={{
         marginTop: { md: 1, sm: 0 },
         marginX: { md: 4, sm: 0 },
-        maxHeight: user?.role === "student" ? "60vh" : "70vh",
+        maxHeight: "60vh",
         overflowY: "auto",
         borderRadius: 4
       }}
@@ -54,7 +54,12 @@ function ProposalTable(props) {
           </TableHead>
           <TableBody>
             {props.data.map((proposal) => (
-              <ProposalRow key={proposal.id} proposal={proposal} getTeacherById={props.getTeacherById} />
+              <ProposalRow
+                key={proposal.id}
+                proposal={proposal}
+                deleteProposal={props.deleteProposal}
+                getTeacherById={props.getTeacherById}
+              />
             ))}
           </TableBody>
         </Table>

@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { useContext, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -11,6 +11,7 @@ import OutlinedInput from "@mui/material/OutlinedInput";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
+import ErrorContext from "../contexts/ErrorContext";
 import UserContext from "../contexts/UserContext";
 import ProposalTable from "../components/ProposalTable";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -18,12 +19,15 @@ import SearchIcon from "@mui/icons-material/Search";
 import CreateIcon from "@mui/icons-material/Create";
 import ProposalFilters from "../components/ProposalFilters";
 import { TEACHER_PROPOSALS_FILTERS } from "../utils/constants";
+import API from "../utils/API";
 
 function ProposalsPage(props) {
+  const navigate = useNavigate();
   const proposals = props.proposals;
   const applications = props.applications;
   const currentDate = props.currentDate;
   const user = useContext(UserContext);
+  const { handleErrors } = useContext(ErrorContext);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [filterValues, setFilterValues] = useState({
@@ -165,6 +169,19 @@ function ProposalsPage(props) {
     return true;
   });
 
+  const deleteProposal = (proposalId) => {
+    API.deleteProposal(proposalId)
+      .then(() => {
+        props.setAlert({
+          message: "Proposal created successfully",
+          severity: "success"
+        });
+        props.setDirty(true);
+        navigate("/proposals");
+      })
+      .catch((err) => handleErrors(err));
+  };
+
   const teacherView = (
     <>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -197,7 +214,7 @@ function ProposalsPage(props) {
           ))}
         </Stack>
       </Toolbar>
-      <ProposalTable data={filteredTeacherProposals} />
+      <ProposalTable data={filteredTeacherProposals} deleteProposal={deleteProposal} />
       <Box height={5} marginTop={3} />
       <Hidden smUp>
         <Stack
