@@ -175,6 +175,7 @@ router.post(
       );
       return res.status(200).json(teacher);
     } catch (e) {
+      console.error(`Error deleting proposal: ${err.message}`);
       return res.status(500).send({ message: "Internal server error" });
     }
   },
@@ -566,7 +567,7 @@ router.put(
         level,
         cds,
       );
-      return res.status(200).json(teacher);
+      return res.status(200).send('Proposal updated successfully');
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }
