@@ -173,7 +173,7 @@ function ProposalsPage(props) {
     API.deleteProposal(proposalId)
       .then(() => {
         props.setAlert({
-          message: "Proposal created successfully",
+          message: "Proposal deleted successfully",
           severity: "success"
         });
         props.setDirty(true);

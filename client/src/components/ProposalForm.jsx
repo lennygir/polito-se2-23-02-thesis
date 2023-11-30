@@ -85,7 +85,7 @@ function ProposalForm(props) {
         description: proposal.description,
         requiredKnowledge: proposal.required_knowledge,
         keywords: proposal.keywords.replace(/, /g, "\n"),
-        notes: proposal.notes,
+        notes: proposal.notes === null ? "" : proposal.notes,
         cds: proposal.cds
       });
     }
