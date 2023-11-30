@@ -7,6 +7,18 @@
 export const SERVER_URL = "http://localhost:3000/api";
 
 /**
+ * The URL for calling the login endpoint.
+ * @constant
+ */
+export const LOGIN_URL = "http://localhost:3000/login";
+
+/**
+ * The URL for calling the logout endpoint.
+ * @constant
+ */
+export const LOGOUT_URL = "http://localhost:3000/logout";
+
+/**
  * The list of types available for a thesis proposal
  * @constant
  */

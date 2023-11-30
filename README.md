@@ -228,17 +228,21 @@
   }
   ```
 - GET `/api/applications`
+
   - params in query ()
+
   ```one of this two
     teacher: s345678
     student: s317743
   ```
+
   - return the list of proposals related to a teacher id or student
   - return 200 for correct behavior
   - return 404 for no proposal related to that teacher or student
   - return 400 for invalid teacher id or cds
   - return 500 for internal server error
   - example of return value
+
   ```
     [
       {
@@ -268,15 +272,18 @@
 
   - GET `/api/notifications`
   - params in query ()
+
   ```
     student: s317743
   ```
+
   - return the list of notifications related to a student
   - return 200 for correct behavior
   - return 404 for no notifications related to that student
   - return 400 for invalid student id
   - return 500 for internal server error
   - example of return value
+
   ```
     [
       {
@@ -329,5 +336,6 @@
 
 ## Users Credentials
 
-- TEACHER ACCOUNT: email: marco.torchiano@polito.it, password: s123456
+- TEACHER ACCOUNT: email: marco.torchiano@teacher.it, password: s123456
 - STUDENT ACCOUNT: email: s309618@studenti.polito.it, password: s309618
+- STUDENT ACCOUNT: email: s308747@studenti.polito.it, password: s308747

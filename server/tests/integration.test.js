@@ -1,3 +1,4 @@
+"use strict";
 const request = require("supertest");
 const app = require("../src/server");
 const { deleteApplicationsOfStudent } = require("../src/theses-dao");
