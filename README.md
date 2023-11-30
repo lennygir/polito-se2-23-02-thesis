@@ -8,6 +8,19 @@
 
 ### Run
 
+#### Using scripts
+
+You can run the application by executing the scripts in the root folder:
+
+```bash
+# Linux and MacOS
+./run_in_container.sh
+
+# Windows
+run_in_container.bat
+```
+
+#### Using docker commands
 You can either retrieve the image from the docker hub either build it yourself.
 
 If you want to build it execute the following commands:
