@@ -640,7 +640,7 @@ router.put(
         level,
         cds
       );
-      return res.status(200).send("Proposal updated successfully");
+      return res.status(200).send({ message: "Proposal updated successfully" });
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }
@@ -666,7 +666,7 @@ router.delete("/api/proposals/:id", [check("id").isInt()], async (req, res) => {
     }
     cancelPendingApplications(req.params.id);
     deleteProposal(req.params.id);
-    return res.status(200).send("Proposal deleted successfully.");
+    return res.status(200).send({ message: "Proposal deleted successfully." });
   } catch (err) {
     console.error(`Error deleting proposal: ${err.message}`);
     return res.status(500).json({ message: "Internal Server Error" });
