@@ -8,12 +8,12 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import logo from "../assets/images/logo.png";
 import { Link } from "react-router-dom";
 import { useThemeContext } from "../theme/ThemeContextProvider";
+import { LogoutButton } from "./Auth";
 
 const sidebarMainTabs = [
   {
@@ -41,12 +41,6 @@ const settingsTab = {
   label: "Settings",
   icon: <SettingsRoundedIcon color="primary" />,
   path: "/settings"
-};
-
-const logoutTab = {
-  id: "logout",
-  label: "Logout",
-  icon: <LogoutRoundedIcon color="primary" />
 };
 
 function Sidebar(props) {
@@ -106,18 +100,8 @@ function Sidebar(props) {
               <ListItemText primary={settingsTab.label} />
             </ListItemButton>
           </ListItem>
-          <ListItem key={logoutTab.id} disablePadding>
-            <ListItemButton
-              selected={props.selectedTab === logoutTab.id}
-              onClick={() => {
-                props.handleTabSelection(logoutTab.id);
-                props.closeDrawer();
-                props.logout();
-              }}
-            >
-              <ListItemIcon>{logoutTab.icon}</ListItemIcon>
-              <ListItemText primary={logoutTab.label} />
-            </ListItemButton>
+          <ListItem key="logout" disablePadding>
+            <LogoutButton />
           </ListItem>
         </List>
       </Box>

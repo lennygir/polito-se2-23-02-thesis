@@ -18,7 +18,7 @@ function getJson(httpResponsePromise) {
             .json()
             .then((json) => resolve(json))
             .catch((err) => {
-              reject({ error: "Cannot parse server response" })
+              reject({ error: "Cannot parse server response" });
             });
         } else {
           // analyzing the cause of error
@@ -26,25 +26,13 @@ function getJson(httpResponsePromise) {
             .json()
             .then((obj) => reject(obj)) // error msg in the response body
             .catch((err) => {
-            reject({ error: "Cannot parse server response" })
-        }); // something else
+              reject({ error: "Cannot parse server response" });
+            }); // something else
         }
       })
       .catch((err) => reject({ error: "Cannot communicate" })); // connection error
   });
 }
-
-const logIn = async (credentials) => {
-  return getJson(
-    fetch(SERVER_URL + "/sessions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(credentials)
-    })
-  );
-};
 
 /**
  * Retrieves the list of all teachers by sending a GET request to the server's teachers endpoint.
@@ -91,18 +79,6 @@ const createProposal = async (proposal) => {
   );
 };
 
-const updateProposal = async (proposal,id) => {
-  return getJson(
-    fetch(SERVER_URL + "/proposal/"+id, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(proposal)
-    })
-  );
-};
-
 /**
  * Retrieves the list of all proposals by sending a GET request to the server's proposals endpoint.
  * @returns {Promise} A promise that resolves to the parsed JSON content of the proposals list response.
@@ -111,16 +87,6 @@ const updateProposal = async (proposal,id) => {
 const getProposals = async () => {
   return getJson(fetch(SERVER_URL + "/proposals"));
 };
-
-const deleteProposal = async(proposalId) => {
-  const response = await fetch(SERVER_URL + '/proposals?id='+proposalId, {
-    method: 'DELETE',
-    headers: {'Content-Type': 'application/json'},
-    // body: JSON.stringify({proposalId})
-  });
-  if (response.ok)
-    return null;
-}
 
 /**
  * Retrieves proposals by degree by sending a GET request to the server's proposals endpoint with a specified degree.
@@ -198,6 +164,56 @@ const getApplicationsByStudent = async (student_id) => {
   return getJson(fetch(SERVER_URL + "/applications?student=" + student_id));
 };
 
+/**
+ * Retrieves notifications by student by sending a GET request to the server's notifications endpoint with a specified student ID.
+ * @param {string} student_id - The ID of the student for whom applications are requested.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the applications list response for the specified student.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
+const getNotificationsByStudent = async (student_id) => {
+  return getJson(fetch(SERVER_URL + "/notifications?student=" + student_id));
+};
+
+/**
+ * Update a proposal by sending a PATCH request to the server's proposals endpoint with only fields to change.
+ * @param {Object} proposal - An object containing the proposal_id and the fields that need to be updated for the proposal.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the updated proposal response.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
+const updateProposal = async (proposal) => {
+  return getJson(
+    fetch(SERVER_URL + "/proposals/" + proposal.id, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(proposal)
+    })
+  );
+};
+
+/**
+ * Deletes a proposal with the specified ID from the server.
+ * @param {number} proposal_id - The ID of the proposal to be deleted.
+ * @returns {Promise} - A promise that resolves with the result of the deletion.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
+const deleteProposal = async (proposal_id) => {
+  return getJson(
+    fetch(SERVER_URL + "/proposals/" + proposal_id, {
+      method: "DELETE"
+    })
+  );
+};
+
+const getUserInfo = async () => {
+  return getJson(
+    fetch(SERVER_URL + "/sessions/current", {
+      credentials: "include"
+    })
+  );
+};
+
 const API = {
   createProposal,
   updateProposal,
@@ -208,11 +224,12 @@ const API = {
   getProposals,
   getProposalsByDegree,
   getProposalsByTeacher,
+  getUserInfo,
   insertApplication,
   getApplicationsByTeacher,
   getApplicationsByStudent,
   evaluateApplication,
-  logIn
+  getNotificationsByStudent
 };
 
 export default API;

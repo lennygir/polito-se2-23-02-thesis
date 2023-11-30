@@ -1,7 +1,8 @@
 "use strict";
 
 const router = require("express").Router();
-const userDao = require("./user-dao");
+const passport = require("passport");
+const dayjs = require("dayjs");
 const { check, validationResult } = require("express-validator");
 const {
   getTeacher,
@@ -28,8 +29,8 @@ const {
   findRejectedApplication,
   notifyApplicationDecision,
   getNotificationsOfStudent,
+  getStudentByEmail,
 } = require("./theses-dao");
-const dayjs = require("dayjs");
 
 // ==================================================
 // Routes
@@ -38,6 +39,83 @@ const dayjs = require("dayjs");
 router.get("/api", (req, res) => {
   return res.status(200).json({ message: "API home page" });
 });
+
+router.get(
+  "/login",
+  passport.authenticate("saml", {
+    failureFlash: true,
+    failureRedirect: "/login",
+  }),
+  (_req, res) => {
+    return res.redirect("http://localhost:5173");
+  }
+);
+
+/** Endpoint called by Auth0 using Passport */
+router.post(
+  "/login/callback",
+  passport.authenticate("saml", {
+    failureFlash: true,
+    failureRedirect: "/login",
+  }),
+  (_req, res) => {
+    return res.redirect("http://localhost:5173");
+  }
+);
+
+/** Check for user authentication
+ * If user authenticated return user
+ */
+router.get("/api/sessions/current", (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  } else {
+    const email =
+      req.user[
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+      ];
+    const student = getStudentByEmail(email);
+    const teacher = getTeacherByEmail(email);
+    if (student && !teacher) {
+      return res.status(200).json({ ...student, role: "student" });
+    } else if (teacher) {
+      return res.status(200).json({ ...teacher, role: "teacher" });
+    } else {
+      return res.status(500).json({ message: "database error" });
+    }
+  }
+});
+
+router.get("/logout", (req, res) => {
+  if (req.isAuthenticated()) {
+    req.logout((err) => {
+      if (!err) {
+        return res.redirect("http://localhost:5173");
+      }
+    });
+  } else {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  }
+});
+//  strategy.logout(req, (err, req) => {
+//    if (!err) {
+//      console.log(req);
+//      return res.redirect(req);
+//    }
+//  });
+//});
+//
+//router.post("/logout/callback", (req, res) => {
+//  req.logout((err) => {
+//    if (!err) {
+//      return res.redirect("http://localhost:5173");
+//    }
+//  });
+//});
 
 // login endpoint
 /**
@@ -68,34 +146,34 @@ router.get("/api", (req, res) => {
         "DepartmentID":     text (maybe integer)
     }
 */
-router.post(
-  "/api/sessions",
-  check("email").isEmail(),
-  check("password").isLength({ min: 7, max: 7 }),
-  (req, res) => {
-    try {
-      const { email, password } = req.body;
-      const valid = userDao.checkUser(email, password);
-      if (valid) {
-        const teacher = userDao.getTeacher(email);
-        const student = userDao.getStudent(email);
-        if (teacher) {
-          teacher.role = "teacher";
-          return res.status(200).send(teacher);
-        } else if (student) {
-          student.role = "student";
-          return res.status(200).send(student);
-        } else {
-          return res.status(500).send({ message: "Unknown error" });
-        }
-      } else {
-        return res.status(404).send({ message: "Invalid login credentials" });
-      }
-    } catch (e) {
-      return res.status(500).send({ message: e.message });
-    }
-  },
-);
+//router.post(
+//  "/api/sessions",
+//  check("email").isEmail(),
+//  check("password").isLength({ min: 7, max: 7 }),
+//  (req, res) => {
+//    try {
+//      const { email, password } = req.body;
+//      const valid = userDao.checkUser(email, password);
+//      if (valid) {
+//        const teacher = userDao.getTeacher(email);
+//        const student = userDao.getStudent(email);
+//        if (teacher) {
+//          teacher.role = "teacher";
+//          return res.status(200).send(teacher);
+//        } else if (student) {
+//          student.role = "student";
+//          return res.status(200).send(student);
+//        } else {
+//          return res.status(500).send({ message: "Unknown error" });
+//        }
+//      } else {
+//        return res.status(404).send({ message: "Invalid login credentials" });
+//      }
+//    } catch (e) {
+//      return res.status(500).send({ message: e.message });
+//    }
+//  },
+//);
 
 router.post(
   "/api/proposals",
@@ -169,13 +247,13 @@ router.post(
         notes,
         dayjs(expiration_date).format("YYYY-MM-DD"),
         level,
-        cds,
+        cds
       );
       return res.status(200).json(teacher);
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }
-  },
+  }
 );
 
 // endpoint to get all teachers {id, surname, name, email}
@@ -257,7 +335,7 @@ router.get(
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  },
+  }
 );
 
 router.post(
@@ -297,7 +375,7 @@ router.post(
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
     }
-  },
+  }
 );
 
 router.get(
@@ -356,7 +434,7 @@ router.get(
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  },
+  }
 );
 
 router.patch(
@@ -385,14 +463,14 @@ router.patch(
       if (state === "accepted") {
         cancelPendingApplications(
           application.proposal_id,
-          application.student_id,
+          application.student_id
         );
       }
       return res.status(200).json({ message: `Application ${state}` });
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  },
+  }
 );
 
 router.get(
@@ -420,7 +498,7 @@ router.get(
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  },
+  }
 );
 
 // ==================================================

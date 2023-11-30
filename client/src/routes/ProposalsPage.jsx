@@ -96,8 +96,10 @@ function ProposalsPage(props) {
 
       // Check if proposal matches the filter values
       const proposalTypeArray = proposal.type.split(",").map((type) => type.trim());
+      const proposalGroupsArray = proposal.groups.split(",").map((group) => group.trim());
+
       const typeMatch = type.length === 0 || proposalTypeArray.some((t) => type.includes(t));
-      const groupsMatch = groups.length === 0 || groups.includes(proposal.groups);
+      const groupsMatch = groups.length === 0 || proposalGroupsArray.some((g) => groups.includes(g));
       const expirationDate = dayjs(proposal.expiration_date);
       let isExpirationDateInRange = true;
       if (startDate !== null && endDate !== null) {
@@ -120,7 +122,8 @@ function ProposalsPage(props) {
           display: "flex",
           justifyContent: "space-between",
           height: 96,
-          marginX: { md: 3, xs: -1 }
+          marginTop: { md: -3, xs: 0 },
+          marginX: { md: 3, xs: -2 }
         }}
       >
         <OutlinedInput
