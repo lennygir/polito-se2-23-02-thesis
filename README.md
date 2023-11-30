@@ -39,7 +39,7 @@ You can run the application by executing with the following command (don't forge
 ```bash
 
 docker run \
-  -p 80:80 -p 3000:3000 \
+  -p 80:80 -p 3000:3000 -p 5173:80 \
   --name polito-thesis \
   --rm \
   -e SMTP_HOST='smtp.gmail.com' \
