@@ -74,24 +74,19 @@ function ProposalForm(props) {
     if (proposal) {
       // Set the form
       setFormData({
-        title: proposal ? proposal.title : "",
-        supervisor: user ? user.email : "",
-        coSupervisors: proposal ? proposal.co_supervisors.split(", ") : [],
+        title: proposal.title,
+        supervisor: user.email,
+        coSupervisors: proposal.co_supervisors.split(", "),
         externalCoSupervisor: "",
-        expirationDate: proposal ? proposal.expiration_date : null,
-        type: proposal ? proposal.type.split(",") : [],
-        level:
-          proposal && proposal.level === "MSC"
-            ? "Master Degree"
-            : proposal && proposal.level === "BCS"
-              ? "Bachelor Degree"
-              : "",
-        groups: proposal ? proposal.groups.split(", ") : [],
-        description: proposal ? proposal.description : "",
-        requiredKnowledge: proposal ? proposal.required_knowledge : "",
-        keywords: proposal ? proposal.keywords.replace(/, /g, "\n") : "",
-        notes: proposal ? proposal.notes : "",
-        cds: proposal ? proposal.cds : ""
+        expirationDate: proposal.expiration_date,
+        type: proposal.type.split(","),
+        level: proposal.level === "MSC" ? "Master Degree" : proposal.level === "BCS" ? "Bachelor Degree" : "",
+        groups: proposal.groups.split(", "),
+        description: proposal.description,
+        requiredKnowledge: proposal.required_knowledge,
+        keywords: proposal.keywords.replace(/, /g, "\n"),
+        notes: proposal.notes,
+        cds: proposal.cds
       });
     }
   }, [proposal]);
@@ -512,7 +507,7 @@ function ProposalForm(props) {
         />
       </FormControl>
       <Button fullWidth type="submit" variant="contained" sx={{ mt: 4, mb: 2 }}>
-        {props.mode === "edit" ? "Update Proposal" : "Create Proposal"}
+        {props.mode === "update" ? "Update Proposal" : "Create Proposal"}
       </Button>
     </Box>
   );
