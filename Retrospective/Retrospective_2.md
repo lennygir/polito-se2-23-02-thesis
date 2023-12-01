@@ -53,14 +53,17 @@ sections:
 ## ASSESSMENT
 
 - What caused your errors in estimation (if any)?
+- Our inexperience in implementing the new requests for the demo and bug fixing of the previous sprint
 
 - What lessons did you learn (both positive and negative) in this sprint?
-
+- In this sprint, I learned how to draft comprehensive and standardized documentation, and I am learning more standardized and efficient programming techniques.
 - Which improvement goals set in the previous retrospective were you able to achieve?
+- we managed to do do a more details and standardized documentation
 - Which ones you were not able to achieve? Why?
 
 - Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
 
   > Propose one or two
+  > - write standard tests for all the backend
 
 - One thing you are proud of as a Team!!
