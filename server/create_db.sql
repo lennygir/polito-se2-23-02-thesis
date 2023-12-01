@@ -1,6 +1,7 @@
 -- TO RUN THIS SCRIPT:
 -- sqlite3 theses_management.db < create_db.sql
 
+DROP TABLE IF EXISTS NOTIFICATIONS;
 DROP TABLE IF EXISTS APPLICATIONS;
 DROP TABLE IF EXISTS CAREER;
 DROP TABLE IF EXISTS STUDENT;
@@ -92,6 +93,15 @@ CREATE TABLE IF NOT EXISTS APPLICATIONS (
 CREATE TABLE IF NOT EXISTS USERS (
   email TEXT NOT NULL,
   password TEXT NOT NULL
+);
+
+CREATE TABLE "NOTIFICATIONS" (
+	"id"	INTEGER PRIMARY KEY AUTOINCREMENT,
+	"date"	TEXT NOT NULL DEFAULT (DATETIME('now')),
+	"object"	TEXT NOT NULL,
+	"content"	TEXT NOT NULL,
+	"student_id"	TEXT NOT NULL,
+	FOREIGN KEY("student_id") REFERENCES "STUDENT"("id")
 );
 
 INSERT INTO DEGREE (cod_degree, title_degree)
@@ -226,7 +236,7 @@ VALUES  ('s319823', 'Tortore', 'Luca', 'Male', 'Italy', 's319823@studenti.polito
         ('s316543', 'Chen', 'Wei', 'Male', 'China', 's316543@studenti.polito.it', 'LM-22-A', 2022);
 
 INSERT INTO TEACHER (id, surname, name, email, cod_group, cod_department)
-VALUES  ('s123456', 'Torchiano', 'Marco', 'marco.torchiano@polito.it', 'SOFTENG', 'DAUIN'),
+VALUES  ('s123456', 'Torchiano', 'Marco', 'marco.torchiano@teacher.it', 'SOFTENG', 'DAUIN'),
         ('s234567', 'Morisio', 'Maurizio', 'maurizio.morisio@polito.it', 'SOFTENG', 'DAUIN'),
         ('s345678', 'De Russis', 'Luigi', 'luigi.derussis@polito.it', 'ELITE', 'DAUIN'),
         ('s456789', 'Corno', 'Fulvio', 'fulvio.corno@polito.it', 'ELITE', 'DAUIN'),
@@ -314,7 +324,7 @@ VALUES  (1, 'Gamification di attività di modellazione UML', 's123456', 'luigi.d
         (30, 'Human-Centric Design of Augmented Reality Interfaces', 's238411', 'antonio.lioy@polito.it, debora.fino@polito.it', 'AUGMENTED REALITY, HUMAN-CENTRIC DESIGN, USER INTERFACE, USER EXPERIENCE', 'RESEARCH, COMPANY', 'TORSEC, EMC', 'The design of augmented reality (AR) interfaces plays a crucial role in user experience and acceptance. This thesis focuses on human-centric design principles for AR interfaces. Students will explore user interface design, interaction techniques, and usability studies in the context of augmented reality. The research may involve the creation of AR prototypes, user studies, and the evaluation of the impact of AR on user experience. The goal is to contribute to the development of AR interfaces that prioritize user needs and preferences.', 'Programming skills (preferably in Unity, C#, or related AR development frameworks), understanding of human-computer interaction, and interest in AR applications.', NULL, '2024-09-01', 'MSC', 'LM-32-D');
 
 INSERT INTO USERS (email, password)
-VALUES ('marco.torchiano@polito.it', 's123456'),
+VALUES ('marco.torchiano@teacher.it', 's123456'),
        ('maurizio.morisio@polito.it', 's234567'),
        ('s319823@studenti.polito.it', 's319823'),
        ('s308747@studenti.polito.it', 's308747'),
@@ -327,6 +337,11 @@ VALUES (1,'s309618','rejected'),
        (4,'s308747','rejected'),
        (1,'s319823','rejected'),
        (2,'s319823','pending');
+
+INSERT INTO NOTIFICATIONS (object, content, student_id)
+VALUES ('New decision on your thesis application', 'Dear Tortore Luca,' || char(10) || 'your application for the thesis Gamification di attività di modellazione UML has been rejected.' || char(10) || 'Best regards,' || char(10) || 'the Thesis Managment system', 's319823'),
+		('New decision on your thesis application', 'Dear Bertetto Lorenzo,' || char(10) || 'your application for the thesis Gamification di attività di modellazione UML has been rejected.' || char(10) || 'Best regards,' || char(10) || 'the Thesis Managment system', 's309618'),
+		('New decision on your thesis application', 'Dear Valeriano Carlos,' || char(10) || 'your application for the thesis Detecting the risk discrimination in classifiers with imbalance measures has been rejected.' || char(10) || 'Best regards,' || char(10) || 'the Thesis Managment system', 's308747');
 
 -- ACTIVATE FOREIGN KEYS
 PRAGMA foreign_keys = ON;

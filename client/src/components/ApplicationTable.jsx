@@ -6,6 +6,7 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import ApplicationRow from "./ApplicationRow";
 import UserContext from "../contexts/UserContext";
 
@@ -32,14 +33,14 @@ function ApplicationTable(props) {
             <TableRow>
               {user?.role === "student" &&
                 STUDENT_HEADERS.map((headCell) => (
-                  <TableCell key={headCell} align={headCell === "Status" ? "center" : "inherit"}>
-                    {headCell}
+                  <TableCell key={headCell} align={headCell === "Status" ? "center" : "inherit"} variant="head">
+                    <Typography fontWeight={700}>{headCell}</Typography>
                   </TableCell>
                 ))}
               {user?.role === "teacher" &&
                 TEACHER_HEADERS.map((headCell) => (
-                  <TableCell key={headCell} align={headCell === "Status" ? "center" : "inherit"}>
-                    {headCell}
+                  <TableCell key={headCell} align={headCell === "Status" ? "center" : "inherit"} variant="head">
+                    <Typography fontWeight={700}>{headCell}</Typography>
                   </TableCell>
                 ))}
             </TableRow>

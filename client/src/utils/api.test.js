@@ -219,7 +219,7 @@ test("getApplicationsByTeacher - should return correct data", async () => {
   expect(result).toEqual(mockApiResponse);
 });
 
-test("evaluateApplication- should return correct update message", async () => {
+test("evaluateApplication - should return correct update message", async () => {
   fetch.mockResolvedValue({
     ok: true,
     json: () => Promise.resolve({ message: "success update" })
@@ -242,3 +242,62 @@ test("evaluateApplication- should return correct update message", async () => {
 
   expect(result).toEqual({ message: "success update" });
 });
+
+test("getNotificationsByStudent - should return correct data", async () => {
+  fetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve(mockApiResponse)
+  });
+  const result = await API.getNotificationsByStudent("student_id");
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/notifications?student=student_id`);
+  expect(result).toEqual(mockApiResponse);
+});
+
+it('updateProposal - should update a proposal successfully and return the result', async () => {
+  const proposalToUpdate = { id: 12345, title: 'Updated Title', description: 'Updated Description' };
+  fetch.mockResolvedValueOnce({
+    ok: true,
+    json: jest.fn().mockResolvedValueOnce({ message: 'Proposal updated successfully' }),
+  });
+  const result = await API.updateProposal(proposalToUpdate);
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/${proposalToUpdate.id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(proposalToUpdate),
+  });
+  expect(result).toEqual({ message: 'Proposal updated successfully' });
+});
+
+describe("Test the deletion of a proposal", () => {
+  it("deleteProposal - should delete a proposal successfully and return a message", async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ message: "Proposal deleted successfully" })
+    });
+    const proposalIdToDelete = 12345;
+    const result = await API.deleteProposal(proposalIdToDelete);
+    expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/${proposalIdToDelete}`, {
+      method: 'DELETE',
+    });
+    expect(result).toEqual({ message: "Proposal deleted successfully" });
+  });
+
+  it("deleteProposal - should handle failed deletion and throw an error", async () => {
+    try{ 
+      fetch.mockResolvedValueOnce({
+          ok: false,
+          json: () => Promise.resolve({ error: "error on deleting the proposal" }),
+        });
+        const proposalIdToDelete = 67890;
+        await API.deleteProposal(proposalIdToDelete);
+        expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/${proposalIdToDelete}`, {
+          method: 'DELETE',
+        });
+    } catch (error) {
+      expect(error).toEqual({ error: "error on deleting the proposal" });
+  }
+  });
+});
+

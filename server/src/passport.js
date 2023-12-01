@@ -6,14 +6,10 @@ const fs = require("fs");
 
 const users = [];
 passport.serializeUser((user, done) => {
-  console.log(user);
-  console.log("serialize user");
   done(null, user);
 });
 
 passport.deserializeUser((user, done) => {
-  console.log(user);
-  console.log("deserialize user");
   done(null, user);
 });
 
@@ -32,7 +28,7 @@ const strategy = new Strategy(
     }
 
     return done(null, user);
-  },
+  }
 );
 
 passport.use(strategy);
