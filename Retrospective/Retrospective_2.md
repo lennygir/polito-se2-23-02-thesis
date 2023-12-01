@@ -17,10 +17,12 @@ sections:
 
 **Remember**a story is done ONLY if it fits the Definition of Done:
 
-- Unit Tests passing
-- Code review completed
-- Code present on VCS
+- Unit Tests passing : 67
+- Code review completed : 14
+- Code present on VCS : Yes (git)
 - End-to-End tests performed
+  - Total : 9
+  - Relative : +5 since the last sprint
 
 > Please refine your DoD if required (you cannot remove items!)
 
