@@ -118,5 +118,6 @@ sections:
 
   > Propose one or two
 
+
 - One thing you are proud of as a Team!!
   - we completed all the stories committed
