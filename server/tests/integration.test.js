@@ -2,10 +2,37 @@
 const request = require("supertest");
 const app = require("../src/server");
 const { deleteApplicationsOfStudent } = require("../src/theses-dao");
+const dayjs = require("dayjs");
+const { db } = require("../src/db");
+
+jest.mock("../src/db");
 
 let proposal;
 let application;
+
 beforeEach(() => {
+  db.prepare("DROP TABLE main.PROPOSALS").run();
+  db.prepare(
+    `
+      CREATE TABLE IF NOT EXISTS PROPOSALS (
+                                               id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                               title TEXT,
+                                               supervisor TEXT,
+                                               co_supervisors TEXT,
+                                               keywords TEXT,
+                                               type TEXT,
+                                               groups TEXT,
+                                               description TEXT,
+                                               required_knowledge TEXT,
+                                               notes TEXT,
+                                               expiration_date DATE,
+                                               level TEXT,
+                                               cds TEXT,
+                                               FOREIGN KEY (supervisor) REFERENCES TEACHER (id),
+                                               FOREIGN KEY (cds) REFERENCES DEGREE (cod_degree)
+      );
+  `,
+  ).run();
   proposal = {
     title: "Proposta di tesi fighissima",
     supervisor: "s345678",
@@ -35,6 +62,72 @@ it("Insertion of a correct proposal", () => {
     .set("Content-Type", "application/json")
     .send(proposal)
     .expect(200);
+});
+
+it("prova", async () => {
+  const proposal_id = (
+    await request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(200)
+  ).body;
+  let expected_proposal = {
+    ...proposal,
+    type: proposal.types.join(", "),
+    id: proposal_id,
+    co_supervisors: proposal.co_supervisors.join(", "),
+    groups: proposal.groups.join(", "),
+    keywords: proposal.keywords.join(", "),
+    expiration_date: dayjs(proposal.expiration_date).format("YYYY-MM-DD"),
+  };
+  delete expected_proposal.types;
+  let returned_proposal = db.prepare("select * from main.PROPOSALS").get();
+  expect(returned_proposal).toStrictEqual(expected_proposal);
+});
+
+it("CRUD on proposal", async () => {
+  const proposal_id = (
+    await request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(200)
+  ).body;
+  let proposals = (await request(app).get("/api/proposals").expect(200)).body;
+  let expected_proposal = {
+    ...proposal,
+    type: proposal.types.join(", "),
+    id: proposal_id,
+    co_supervisors: proposal.co_supervisors.join(", "),
+    groups: proposal.groups.join(", "),
+    keywords: proposal.keywords.join(", "),
+    expiration_date: dayjs(proposal.expiration_date).format("YYYY-MM-DD"),
+  };
+  delete expected_proposal.types;
+  expect(
+    proposals.find((proposal) => proposal.id === proposal_id),
+  ).toStrictEqual(expected_proposal);
+  const update_message = (
+    await request(app)
+      .put(`/api/proposals/${proposal_id}`)
+      .send({
+        ...proposal,
+        title: "Updated title",
+      })
+      .expect(200)
+  ).body;
+  expect(update_message.message).toBe("Proposal updated successfully");
+  expected_proposal.title = "Updated title";
+  proposals = (await request(app).get("/api/proposals").expect(200)).body;
+  expect(
+    proposals.find((proposal) => proposal.id === proposal_id),
+  ).toStrictEqual(expected_proposal);
+  await request(app).delete(`/api/proposals/${proposal_id}`).expect(200);
+  proposals = (await request(app).get("/api/proposals").expect(200)).body;
+  expect(proposals.find((proposal) => proposal.id === proposal_id)).toBe(
+    undefined,
+  );
 });
 /*it("Deletion of a proposal", () => {
   return request(app)

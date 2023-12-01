@@ -50,7 +50,7 @@ router.get(
   }),
   (_req, res) => {
     return res.redirect("http://localhost:5173");
-  }
+  },
 );
 
 /** Endpoint called by Auth0 using Passport */
@@ -62,7 +62,7 @@ router.post(
   }),
   (_req, res) => {
     return res.redirect("http://localhost:5173");
-  }
+  },
 );
 
 /** Check for user authentication
@@ -249,14 +249,13 @@ router.post(
         notes,
         dayjs(expiration_date).format("YYYY-MM-DD"),
         level,
-        cds
+        cds,
       );
       return res.status(200).json(teacher);
     } catch (e) {
-      console.error(`Error inserting proposal: ${err.message}`);
       return res.status(500).send({ message: "Internal server error" });
     }
-  }
+  },
 );
 
 // endpoint to get all teachers {id, surname, name, email}
@@ -338,7 +337,7 @@ router.get(
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  }
+  },
 );
 
 router.post(
@@ -378,7 +377,7 @@ router.post(
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
     }
-  }
+  },
 );
 
 router.get(
@@ -437,14 +436,14 @@ router.get(
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  }
+  },
 );
 
 router.patch(
   "/api/applications/:id",
   check("state").isIn(["accepted", "rejected"]),
   check("id").isInt({ min: 1 }),
-  (req, res) => {
+  async (req, res) => {
     const result = validationResult(req);
     if (!result.isEmpty()) {
       return res.status(400).send({ message: "Invalid proposal content" });
@@ -462,7 +461,7 @@ router.patch(
         });
       }
       updateApplication(application.id, state);
-      notifyApplicationDecision(application.id, state);
+      await notifyApplicationDecision(application.id, state);
       if (state === "accepted") {
         cancelPendingApplications(application.proposal_id);
       }
@@ -470,7 +469,7 @@ router.patch(
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  }
+  },
 );
 
 router.get(
@@ -498,7 +497,7 @@ router.get(
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  }
+  },
 );
 
 router.patch("/api/proposals/:id", (req, res) => {
@@ -638,13 +637,13 @@ router.put(
         notes,
         dayjs(expiration_date).format("YYYY-MM-DD"),
         level,
-        cds
+        cds,
       );
       return res.status(200).send({ message: "Proposal updated successfully" });
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }
-  }
+  },
 );
 
 router.delete("/api/proposals/:id", [check("id").isInt()], async (req, res) => {
