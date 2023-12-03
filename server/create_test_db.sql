@@ -299,8 +299,5 @@ VALUES ('marco.torchiano@teacher.it', 's123456'),
        ('s308747@studenti.polito.it', 's308747'),
        ('s309618@studenti.polito.it', 's309618');
 
-INSERT INTO PROPOSALS (id, title, supervisor, co_supervisors, keywords, type , groups , description, required_knowledge, notes, expiration_date ,level, cds)
-VALUES  (1, 'Gamification di attività di modellazione UML', 's123456', 'luigi.derussis@polito.it, maurizio.morisio@polito.it', 'GAMIFICATION, SOFTWARE ENGINEERING, SOFTWARE QUALITY, UML', 'RESEARCH', 'SOFTENG', 'La gamification è definita come l applicazione di elementi tipici dei videogiochi (punteggi, competizione con altri utenti, regole di gioco, ecc.) a qualsiasi altra attività, in modo da incrementare il coinvolgimento e le prestazioni degli utenti coinvolti. Lobiettivo della tesi è lapplicazione di caratteristiche tipiche della gamification alla pratica della modellazione UML, e la valutazione dei benefici derivanti. La tesi consisterà nello sviluppo di una piattaforma con funzionalità di gaming competitivo della costruzione di diagrammi delle classi UML. I meccanismi di gamification dovranno premiare diversi aspetti di qualità del modello costruito, quali completezza, correttezza, coerenza, minimalità e leggibilità. Il sistema dovrà prevedere funzionalità di mantenimento dello storico dei punteggi, e di visualizzazione della classifica corrente dei giocatori.', 'UML Modeling, Java', NULL, '2023-12-18', 'MSC', 'LM-32-D');
-
 -- ACTIVATE FOREIGN KEYS
 PRAGMA foreign_keys = ON;

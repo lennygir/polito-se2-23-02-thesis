@@ -23,12 +23,18 @@ const strategy = new Strategy(
     cert: fs.readFileSync("./src/saml.pem", "utf-8"),
   },
   (user, done) => {
-    if (!users.includes(user)) {
-      users.push(user);
+    let custom_user = {
+      email:
+        user[
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+        ],
+    };
+    if (!users.includes(custom_user)) {
+      users.push(custom_user);
     }
 
-    return done(null, user);
-  }
+    return done(null, custom_user);
+  },
 );
 
 passport.use(strategy);

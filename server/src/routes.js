@@ -4,6 +4,7 @@ const router = require("express").Router();
 const passport = require("passport");
 const dayjs = require("dayjs");
 const { check, validationResult } = require("express-validator");
+const isLoggedIn = require("./protect-routes");
 const {
   getTeacher,
   getStudent,
@@ -68,25 +69,16 @@ router.post(
 /** Check for user authentication
  * If user authenticated return user
  */
-router.get("/api/sessions/current", (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({
-      message: "Unauthorized",
-    });
+router.get("/api/sessions/current", isLoggedIn, (req, res) => {
+  const { email } = req.user;
+  const student = getStudentByEmail(email);
+  const teacher = getTeacherByEmail(email);
+  if (student && !teacher) {
+    return res.status(200).json({ ...student, role: "student" });
+  } else if (teacher) {
+    return res.status(200).json({ ...teacher, role: "teacher" });
   } else {
-    const email =
-      req.user[
-        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
-      ];
-    const student = getStudentByEmail(email);
-    const teacher = getTeacherByEmail(email);
-    if (student && !teacher) {
-      return res.status(200).json({ ...student, role: "student" });
-    } else if (teacher) {
-      return res.status(200).json({ ...teacher, role: "teacher" });
-    } else {
-      return res.status(500).json({ message: "database error" });
-    }
+    return res.status(500).json({ message: "database error" });
   }
 });
 
@@ -103,79 +95,6 @@ router.get("/logout", (req, res) => {
     });
   }
 });
-//  strategy.logout(req, (err, req) => {
-//    if (!err) {
-//      console.log(req);
-//      return res.redirect(req);
-//    }
-//  });
-//});
-//
-//router.post("/logout/callback", (req, res) => {
-//  req.logout((err) => {
-//    if (!err) {
-//      return res.redirect("http://localhost:5173");
-//    }
-//  });
-//});
-
-// login endpoint
-/**
-    body:
-    {
-        "email": "s123456@studenti.polito.it",
-        "password": "s123456"
-    }
-    returns
-    if user is a student: {
-        "role": "student"
-        "StudentID":	    Integer
-        "Surname":	        Text
-        "Name":	            Text
-        "Gender":	        Text
-        "Nationality":	    Text
-        "Email":	        Text
-        "COD_degree"	    Text
-        "Enrollment_year":	Date
-    }
-    if user is a teacher {
-        "role": "teacher"
-        "TeacherID":        integer
-        "Name":             text
-        "Surname":          text
-        "Email":            text
-        "GroupID":          text (maybe integer)
-        "DepartmentID":     text (maybe integer)
-    }
-*/
-//router.post(
-//  "/api/sessions",
-//  check("email").isEmail(),
-//  check("password").isLength({ min: 7, max: 7 }),
-//  (req, res) => {
-//    try {
-//      const { email, password } = req.body;
-//      const valid = userDao.checkUser(email, password);
-//      if (valid) {
-//        const teacher = userDao.getTeacher(email);
-//        const student = userDao.getStudent(email);
-//        if (teacher) {
-//          teacher.role = "teacher";
-//          return res.status(200).send(teacher);
-//        } else if (student) {
-//          student.role = "student";
-//          return res.status(200).send(student);
-//        } else {
-//          return res.status(500).send({ message: "Unknown error" });
-//        }
-//      } else {
-//        return res.status(404).send({ message: "Invalid login credentials" });
-//      }
-//    } catch (e) {
-//      return res.status(500).send({ message: e.message });
-//    }
-//  },
-//);
 
 router.post(
   "/api/proposals",
@@ -646,7 +565,7 @@ router.put(
   },
 );
 
-router.delete("/api/proposals/:id", [check("id").isInt()], async (req, res) => {
+router.delete("/api/proposals/:id", check("id").isInt(), async (req, res) => {
   try {
     const result = validationResult(req);
     if (!result.isEmpty()) {
@@ -680,4 +599,4 @@ router.use(function (req, res) {
   });
 });
 
-module.exports = router;
+exports.router = router;

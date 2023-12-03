@@ -1,38 +1,18 @@
 "use strict";
 const request = require("supertest");
-const app = require("../src/server");
+const { app } = require("../src/server");
 const { deleteApplicationsOfStudent } = require("../src/theses-dao");
 const dayjs = require("dayjs");
 const { db } = require("../src/db");
+const isLoggedIn = require("../src/protect-routes");
 
 jest.mock("../src/db");
+jest.mock("../src/protect-routes");
 
 let proposal;
 let application;
 
 beforeEach(() => {
-  db.prepare("DROP TABLE main.PROPOSALS").run();
-  db.prepare(
-    `
-      CREATE TABLE IF NOT EXISTS PROPOSALS (
-                                               id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                               title TEXT,
-                                               supervisor TEXT,
-                                               co_supervisors TEXT,
-                                               keywords TEXT,
-                                               type TEXT,
-                                               groups TEXT,
-                                               description TEXT,
-                                               required_knowledge TEXT,
-                                               notes TEXT,
-                                               expiration_date DATE,
-                                               level TEXT,
-                                               cds TEXT,
-                                               FOREIGN KEY (supervisor) REFERENCES TEACHER (id),
-                                               FOREIGN KEY (cds) REFERENCES DEGREE (cod_degree)
-      );
-  `,
-  ).run();
   proposal = {
     title: "Proposta di tesi fighissima",
     supervisor: "s345678",
@@ -56,6 +36,304 @@ beforeEach(() => {
     proposal: 8,
   };
 });
+
+describe("Template for doing protected routes", () => {
+  it("Sets the logged in user", async () => {
+    const email = "marco.torchiano@teacher.it";
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: email,
+      };
+      next();
+    });
+    const user = (await request(app).get("/api/sessions/current").expect(200))
+      .body;
+    expect(user.email).toBe(email);
+  });
+});
+
+describe("Story 12: Archive Proposals", () => {
+  let proposal_body;
+  let inserted_proposal;
+  beforeEach(() => {
+    const email = "marco.torchiano@teacher.it";
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: email,
+      };
+      next();
+    });
+    inserted_proposal = {
+      ...proposal_body,
+      supervisor: email,
+    };
+    proposal_body = {
+      title: "New proposal",
+      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
+      groups: ["SOFTENG"],
+      keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
+      types: ["EXPERIMENTAL", "RESEARCH"],
+      description: "This proposal is used to test the archiving functionality",
+      required_knowledge: "You have to know how to archive the thesis",
+      notes: null,
+      expiration_date: dayjs(),
+      level: "MSC",
+      cds: "L-8-F",
+    };
+  });
+  afterEach(() => {
+    db.prepare("delete from main.PROPOSALS").run();
+    db.prepare("delete from main.APPLICATIONS").run();
+  });
+  it("Create a proposal, then archive it", async () => {
+    proposal_body.expiration_date = dayjs().add(7, "day").format("YYYY-MM-DD");
+
+    // insert proposal as marco.torchiano
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body)
+    ).body;
+
+    const archived_proposal = (
+      await request(app)
+        .patch(`/api/proposals/${inserted_proposal_id}`)
+        .set("Content-Type", "application/json")
+        .send({
+          archived: true,
+        })
+        .expect(200)
+    ).body;
+
+    expect(archived_proposal).toStrictEqual({
+      ...inserted_proposal,
+      archived: true,
+    });
+  });
+  it("Multiple tries should not trigger any errors (idempotency)", async () => {
+    proposal_body.expiration_date = dayjs().add(7, "day").format("YYYY-MM-DD");
+
+    // insert proposal
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body)
+    ).body;
+
+    // archive the proposal the first time
+    await request(app)
+      .patch(`/api/proposals/${inserted_proposal_id}`)
+      .set("Content-Type", "application/json")
+      .send({
+        archived: true,
+      });
+
+    // archive the proposal for the second time
+    const archived_proposal = (
+      await request(app)
+        .patch(`/api/proposals/${inserted_proposal_id}`)
+        .set("Content-Type", "application/json")
+        .send({
+          archived: true,
+        })
+        .expect(200)
+    ).body;
+
+    expect(archived_proposal).toStrictEqual({
+      ...inserted_proposal,
+      archived: true,
+    });
+  });
+
+  it("An expired proposal should be archived", async () => {
+    // set the expiration date to the past
+    proposal_body.expiration_date = dayjs()
+      .subtract(7, "day")
+      .format("YYYY-MM-DD");
+
+    // Insert a proposal. It should already be archived
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body)
+    ).body;
+
+    // get all the proposals
+    const proposals = (await request(app).get("/api/proposals")).body;
+
+    expect(
+      proposals.find((proposal) => proposal.id === inserted_proposal_id),
+    ).toStrictEqual({
+      ...inserted_proposal,
+      archived: true,
+    });
+  });
+  it("The admitted field on the body should be only 'true'", async () => {
+    proposal_body.expiration_date = dayjs().add(7, "day").format("YYYY-MM-DD");
+
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body)
+    ).body;
+
+    await request(app)
+      .patch(`/api/proposals/${inserted_proposal_id}`)
+      .set("Content-Type", "application/json")
+      .send({
+        archived: "something else",
+      })
+      .expect(400);
+
+    // get all the proposals
+    const proposals = (await request(app).get("/api/proposals")).body;
+
+    // the proposal should remain unarchived
+    expect(
+      proposals.find((proposal) => proposal.id === inserted_proposal_id),
+    ).toStrictEqual({
+      ...inserted_proposal,
+      archived: false,
+    });
+  });
+
+  it("The proposal should exist", async () => {
+    proposal_body.expiration_date = dayjs().add(7, "day").format("YYYY-MM-DD");
+
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body)
+    ).body;
+
+    const wrong_proposal_id = inserted_proposal_id + 1;
+
+    await request(app)
+      .patch(`/api/proposals/${wrong_proposal_id}`)
+      .set("Content-Type", "application/json")
+      .send({
+        archived: true,
+      })
+      .expect(404);
+  });
+
+  it("A professor should be able to archive only proposals created by him", async () => {
+    proposal_body.expiration_date = dayjs().add(7, "day").format("YYYY-MM-DD");
+
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body)
+    ).body;
+
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "wrong.professor@teacher.it",
+      };
+      next();
+    });
+
+    await request(app)
+      .patch(`/api/proposals/${inserted_proposal_id}`)
+      .set("Content-Type", "application/json")
+      .send({
+        archived: true,
+      })
+      .expect(401); // unauthorized
+  });
+
+  it("Get only active/inactive proposals", async () => {
+    // insert 5 not archived proposals
+    proposal_body.expiration_date = dayjs().add(7, "day").format("YYYY-MM-DD");
+    for (let i = 0; i < 5; i++) {
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body);
+    }
+
+    // insert 5 archived proposals
+    proposal_body.expiration_date = dayjs()
+      .subtract(7, "day")
+      .format("YYYY-MM-DD");
+    for (let i = 0; i < 5; i++) {
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body);
+    }
+
+    // get active proposals just inserted
+    const active_proposals = (
+      await request(app).get("/api/proposals?archived=false")
+    ).body;
+
+    // get archived proposals just inserted
+    const archived_proposals = (
+      await request(app).get("/api/proposals?archived=true")
+    ).body;
+
+    expect(
+      active_proposals.every((proposal) => proposal.archived === false),
+    ).toBe(true);
+    expect(
+      archived_proposals.every((proposal) => proposal.archived === true),
+    ).toBe(true);
+  });
+  it("When an application gets accepted, its proposal should become archived", async () => {
+    // insert proposal
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body)
+    ).body;
+
+    // insert application for the proposal just inserted
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send({
+        student: "s309618",
+        proposal: inserted_proposal_id,
+      });
+    // find application id
+    const application = (await request(app).get("/api/applications")).body;
+
+    // the proposal should not be archived
+    let proposals = (await request(app).get("/api/proposals")).body;
+    expect(
+      proposals.find((proposal) => proposal.id === inserted_proposal_id),
+    ).toStrictEqual({
+      ...inserted_proposal,
+      archived: false,
+    });
+
+    // accept application
+    await request(app)
+      .patch(`/api/applications/${application.id}`)
+      .set("Content-Type", "application/json")
+      .send({
+        state: "accepted",
+      });
+
+    // now the proposal should be archived
+    proposals = (await request(app).get("/api/proposals")).body;
+    expect(
+      proposals.find((proposal) => proposal.id === inserted_proposal_id),
+    ).toStrictEqual({
+      ...inserted_proposal,
+      archived: true,
+    });
+  });
+});
+
 it("Insertion of a correct proposal", () => {
   return request(app)
     .post("/api/proposals")
@@ -129,13 +407,6 @@ it("CRUD on proposal", async () => {
     undefined,
   );
 });
-/*it("Deletion of a proposal", () => {
-  return request(app)
-    .delete("/api/proposals/31")
-    .set("Content-Type", "application/json")
-    .expect(200);
-});*/
-
 it("Insertion of a proposal with no notes", () => {
   proposal.notes = null;
   return request(app)
