@@ -32,8 +32,8 @@ const {
   findRejectedApplication,
   notifyApplicationDecision,
   getNotificationsOfStudent,
-  getStudentByEmail,
 } = require("./theses-dao");
+const { getUser } = require("./user-dao");
 
 // ==================================================
 // Routes
@@ -71,12 +71,9 @@ router.post(
  */
 router.get("/api/sessions/current", isLoggedIn, (req, res) => {
   const { email } = req.user;
-  const student = getStudentByEmail(email);
-  const teacher = getTeacherByEmail(email);
-  if (student && !teacher) {
-    return res.status(200).json({ ...student, role: "student" });
-  } else if (teacher) {
-    return res.status(200).json({ ...teacher, role: "teacher" });
+  const user = getUser(email);
+  if (user) {
+    return res.status(200).json(user);
   } else {
     return res.status(500).json({ message: "database error" });
   }
@@ -98,8 +95,8 @@ router.get("/logout", (req, res) => {
 
 router.post(
   "/api/proposals",
+  isLoggedIn,
   check("title").isString(),
-  check("supervisor").isAlphanumeric().isLength({ min: 7, max: 7 }),
   check("co_supervisors").isArray(),
   check("co_supervisors.*").isEmail(),
   check("groups").isArray(),
@@ -122,7 +119,6 @@ router.post(
     try {
       const {
         title,
-        supervisor,
         co_supervisors,
         groups,
         keywords,
@@ -134,9 +130,14 @@ router.post(
         level,
         cds,
       } = req.body;
-      const teacher_supervisor = getTeacher(supervisor);
-      if (teacher_supervisor === undefined) {
-        return res.status(400).send({ message: "Invalid proposal content" });
+      const { email } = req.user;
+      const user = getUser(email);
+      if (!user || user.role !== "teacher") {
+        return res
+          .status(401)
+          .json({
+            message: "You must be authenticated as teacher to add a proposal",
+          });
       }
       for (const group of groups) {
         if (getGroup(group) === undefined) {
@@ -146,7 +147,7 @@ router.post(
       if (level !== "MSC" && level !== "BSC") {
         return res.status(400).send({ message: "Invalid proposal content" });
       }
-      const legal_groups = [teacher_supervisor.cod_group];
+      const legal_groups = [user.cod_group];
       for (const co_supervisor_email of co_supervisors) {
         const co_supervisor = getTeacherByEmail(co_supervisor_email);
         if (co_supervisor !== undefined) {
@@ -158,7 +159,7 @@ router.post(
       }
       const teacher = insertProposal(
         title,
-        supervisor,
+        user.id,
         co_supervisors.join(", "),
         groups.join(", "),
         keywords.join(", "),

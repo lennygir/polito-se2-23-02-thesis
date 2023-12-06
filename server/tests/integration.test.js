@@ -365,6 +365,12 @@ it("prova", async () => {
 });
 
 it("CRUD on proposal", async () => {
+  isLoggedIn.mockImplementation((req, res, next) => {
+    req.user = {
+      email: "luigi.derussis@polito.it",
+    };
+    next();
+  });
   const proposal_id = (
     await request(app)
       .post("/api/proposals")
