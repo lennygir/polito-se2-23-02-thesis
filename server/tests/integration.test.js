@@ -76,7 +76,7 @@ describe("Story 12: Archive Proposals", () => {
       description: "This proposal is used to test the archiving functionality",
       required_knowledge: "You have to know how to archive the thesis",
       notes: null,
-      expiration_date: dayjs(),
+      expiration_date: dayjs().format("YYYY-MM-DD"),
       level: "MSC",
       cds: "L-8-F",
     };
