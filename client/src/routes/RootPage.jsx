@@ -8,7 +8,7 @@ import LoadingPage from "./LoadingPage";
 
 const drawerWidth = 240;
 const logoHeight = 80;
-const navbarHeight = 65;
+const navbarHeight = 75;
 
 function RootPage(props) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -37,11 +37,11 @@ function RootPage(props) {
     <div id="root-page">
       <Box sx={{ display: "flex" }}>
         <Navbar
-          selectedTab={selectedTab}
+          navbarHeight={navbarHeight}
           drawerWidth={drawerWidth}
           handleDrawerToggle={handleDrawerToggle}
-          handleTabSelection={handleTabSelection}
           currentDate={props.currentDate}
+          setCurrentDate={props.setCurrentDate}
         />
         <Sidebar
           selectedTab={selectedTab}
