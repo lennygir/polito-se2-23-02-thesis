@@ -47,10 +47,11 @@ exports.insertProposal = (
   expiration_date,
   level,
   cds,
+  archived
 ) => {
   return db
     .prepare(
-      "insert into PROPOSAlS(title, supervisor, co_supervisors, keywords, type, groups, description, required_knowledge, notes, expiration_date, level, cds) values(?,?,?,?,?,?,?,?,?,?,?,?)",
+      "insert into PROPOSAlS(title, supervisor, co_supervisors, keywords, type, groups, description, required_knowledge, notes, expiration_date, level, cds, archived) values(?,?,?,?,?,?,?,?,?,?,?,?,?)",
     )
     .run(
       title,
@@ -65,6 +66,7 @@ exports.insertProposal = (
       expiration_date,
       level,
       cds,
+      archived
     ).lastInsertRowid;
   //  return new Promise((resolve, reject) => {
   //    db.run(
@@ -116,6 +118,10 @@ exports.getTeacher = (id) => {
 
 exports.getTeacherByEmail = (email) => {
   return db.prepare("select * from TEACHER where email = ?").get(email);
+};
+
+exports.getTeacherEmailById = (id) => {
+  return db.prepare("select email from TEACHER where id = ?").get(id);
 };
 
 exports.getTeachers = () => {
@@ -351,6 +357,12 @@ exports.getNotificationsOfStudent = (student_id) => {
 
 exports.deleteProposal = (proposal_id) => {
   db.prepare("DELETE FROM PROPOSALS WHERE id = ?").run(proposal_id);
+};
+
+exports.updateArchivedStateProposal = ( new_archived_state, proposal_id ) => {
+  db.prepare(
+    "update PROPOSALS set archived = ? where id = ?",
+  ).run(new_archived_state, proposal_id);
 };
 
 /*exports.updateProposal = (id, setValues) => {

@@ -23,8 +23,10 @@ const {
   getProposals,
   deleteProposal,
   updateProposal,
+  updateArchivedStateProposal,
   getApplicationById,
   getTeacherByEmail,
+  getTeacherEmailById,
   getApplications,
   cancelPendingApplications,
   getPendingOrAcceptedApplicationsOfStudent,
@@ -99,7 +101,7 @@ router.get("/logout", (req, res) => {
 router.post(
   "/api/proposals",
   check("title").isString(),
-  check("supervisor").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  // de-commento al merge check("supervisor").isAlphanumeric().isLength({ min: 7, max: 7 }),
   check("co_supervisors").isArray(),
   check("co_supervisors.*").isEmail(),
   check("groups").isArray(),
@@ -122,7 +124,7 @@ router.post(
     try {
       const {
         title,
-        supervisor,
+        //supervisor,
         co_supervisors,
         groups,
         keywords,
@@ -132,9 +134,13 @@ router.post(
         notes,
         expiration_date,
         level,
-        cds,
+        cds
       } = req.body;
-      const teacher_supervisor = getTeacher(supervisor);
+
+      //cancello la riga sotto durante il merge (modifico anche la retun con "teacher")
+      let test_ret = "s123456"
+      
+      const teacher_supervisor = getTeacher(test_ret);
       if (teacher_supervisor === undefined) {
         return res.status(400).send({ message: "Invalid proposal content" });
       }
@@ -156,9 +162,20 @@ router.post(
       if (!groups.every((group) => legal_groups.includes(group))) {
         return res.status(400).send({ message: "Invalid groups" });
       }
+
+      let expirationDate = dayjs(expiration_date)
+      let currentDate = dayjs()
+      let archived
+      if(expirationDate.isBefore(currentDate, 'day')){
+        archived = 1;
+      }else{
+        archived = 0;
+      }
+
+      let supervisor = "marco.torchiano@teacher.it"
       const teacher = insertProposal(
         title,
-        supervisor,
+        test_ret,
         co_supervisors.join(", "),
         groups.join(", "),
         keywords.join(", "),
@@ -169,13 +186,63 @@ router.post(
         dayjs(expiration_date).format("YYYY-MM-DD"),
         level,
         cds,
+        archived
       );
+
+      
       return res.status(200).json(teacher);
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }
   },
 );
+
+
+router.patch(
+  "/api/proposals/:id",
+  check("id").isInt(),
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ message: "Invalid proposal content" });
+    }
+    try {
+      const prop_id = req.params.id;
+      const archived = req.body.archived;
+      let to_ret;
+      let proposal = getProposal(prop_id);
+      let teacher_email = getTeacherEmailById(proposal.supervisor)
+      let currentDate = dayjs();
+      const expirationDate = proposal.expiration_date;
+
+      if(archived == true){
+        updateArchivedStateProposal(1, prop_id);
+        to_ret = {
+          "archived": true,
+          "supervisor": teacher_email.email
+        }
+      } else if(expirationDate.isBefore(currentDate)){
+        updateArchivedStateProposal(1, prop_id);
+        to_ret = {
+          "archived": true,
+          "supervisor": teacher_email.email
+        }
+      }else{
+        updateArchivedStateProposal(0, prop_id);
+        to_ret = {
+          "archived": false,
+          "supervisor": teacher_email.email
+        }
+      }
+      
+      return res.status(200).json(to_ret);
+    } catch (e) {
+      return res.status(500).send({ message: "Internal server error" });
+    }
+  },
+);
+
+
 
 // endpoint to get all teachers {id, surname, name, email}
 router.get("/api/teachers", (req, res) => {
