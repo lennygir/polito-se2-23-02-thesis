@@ -69,6 +69,13 @@ export const ROSE = {
   contrastText: "#FFF"
 };
 
+export const WHITE = {
+  main: "#FFFFFF",
+  light: "#FFFFFF",
+  dark: "#FFFFFF",
+  contrastText: "#FFFFFF"
+};
+
 export const LIGHT_BACKGROUND = {
   paper: "#FFFFFF",
   default: "#F0F3F5"
