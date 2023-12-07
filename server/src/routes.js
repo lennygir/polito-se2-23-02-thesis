@@ -203,12 +203,10 @@ router.patch(
   check("id").isInt(),
   (req, res) => {
     
-    
     const archived = req.body.archived;
-    if(typeof archived !== 'boolean'){
+   if(typeof archived !== 'boolean'){
       return res.status(400).send({ message: "Invalid proposal content" });
     }
-    console.log(typeof archived)
     const result = validationResult(req);
     if ((!result.isEmpty()) ) {
       return res.status(400).send({ message: "Invalid proposal content" });
@@ -218,32 +216,68 @@ router.patch(
       
       let to_ret;
       let proposal = getProposal(prop_id);
+
+      console.log(proposal)
+      if(proposal === undefined){
+        return res.status(404).send({ message: "Proposal not found" });
+      }
       let teacher_email = getTeacherEmailById(proposal.supervisor)
       let currentDate = dayjs();
       const expirationDate = proposal.expiration_date;
 
+      proposal.supervisor = teacher_email.email;
+      if (proposal.co_supervisors.includes(',')) {
+        // Convert comma-separated string to an array
+        proposal.co_supervisors = proposal.co_supervisors.split(',').map(email => email.trim());
+      }else{
+        proposal.co_supervisors = [proposal.co_supervisors]
+      }
+
+      if (proposal.groups.includes(',')) {
+        // Convert comma-separated string to an array
+        proposal.groups = proposal.groups.split(',').map(group => group.trim());
+      }else{
+        proposal.groups = [proposal.groups]
+      }
+
+      if (proposal.keywords.includes(',')) {
+        // Convert comma-separated string to an array
+        proposal.keywords = proposal.keywords.split(',').map(keyword => keyword.trim());
+      }else{
+        proposal.keywords = [proposal.keywords]
+      }
+
+      if (proposal.type.includes(',')) {
+        // Convert comma-separated string to an array
+        proposal.type = proposal.type.split(',').map(type => type.trim());
+      }else{
+        proposal.type = [proposal.type]
+      }
+
+
       if(archived == true){
         updateArchivedStateProposal(1, prop_id);
         to_ret = {
+          ...proposal,
           "archived": true,
-          "supervisor": teacher_email.email
         }
       } else if(expirationDate.isBefore(currentDate)){
         updateArchivedStateProposal(1, prop_id);
         to_ret = {
+          ...proposal,
           "archived": true,
-          "supervisor": teacher_email.email
         }
       }else{
         updateArchivedStateProposal(0, prop_id);
         to_ret = {
+          ...proposal,
           "archived": false,
-          "supervisor": teacher_email.email
         }
       }
-      
+      console.log(to_ret)
       return res.status(200).json(to_ret);
     } catch (e) {
+      console.log(e)
       return res.status(500).send({ message: "Internal server error" });
     }
   },
@@ -351,6 +385,7 @@ router.get(
       
       return res.status(200).json(proposals);
     } catch (err) {
+      console.log(err)
       return res.status(500).json({ message: "Internal Server Error" });
     }
   },
@@ -461,6 +496,7 @@ router.patch(
   check("id").isInt({ min: 1 }),
   async (req, res) => {
     const result = validationResult(req);
+
     if (!result.isEmpty()) {
       return res.status(400).send({ message: "Invalid proposal content" });
     }
@@ -516,7 +552,7 @@ router.get(
   },
 );
 
-router.patch("/api/proposals/:id", (req, res) => {
+/*router.patch("/api/proposals/:id", (req, res) => {
   try {
     const {
       title,
@@ -565,7 +601,7 @@ router.patch("/api/proposals/:id", (req, res) => {
   } catch (e) {
     return res.status(500).json({ message: "Internal server error" });
   }
-});
+});*/
 
 router.put(
   "/api/proposals/:id",
