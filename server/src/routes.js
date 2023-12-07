@@ -202,13 +202,20 @@ router.patch(
   "/api/proposals/:id",
   check("id").isInt(),
   (req, res) => {
+    
+    
+    const archived = req.body.archived;
+    if(typeof archived !== 'boolean'){
+      return res.status(400).send({ message: "Invalid proposal content" });
+    }
+    console.log(typeof archived)
     const result = validationResult(req);
-    if (!result.isEmpty()) {
+    if ((!result.isEmpty()) ) {
       return res.status(400).send({ message: "Invalid proposal content" });
     }
     try {
       const prop_id = req.params.id;
-      const archived = req.body.archived;
+      
       let to_ret;
       let proposal = getProposal(prop_id);
       let teacher_email = getTeacherEmailById(proposal.supervisor)
@@ -312,13 +319,36 @@ router.get(
         proposals = getProposalsBySupervisor(supervisor);
       }
       if (cds === undefined && supervisor === undefined) {
+        
         proposals = getProposals();
       }
       if (proposals.length === 0) {
+        
         return res
           .status(404)
           .send({ message: "No proposal found in the database" });
       }
+      
+      proposals.forEach(proposal => {
+        // Get the email using the supervisor ID for each proposal
+        let teacher_email = getTeacherEmailById(proposal.supervisor);
+      
+        // Update the supervisor field with the retrieved email
+        proposal.supervisor = teacher_email.email;
+
+        if (Array.isArray(proposal.co_supervisors)) {
+          proposal.co_supervisors = proposal.co_supervisors.map(co_supervisor_id => {
+            return getTeacherEmailById(co_supervisor_id);
+          });
+        }
+
+        if(proposal.archived == 1){
+          proposal.archived = true
+        }else{
+          proposal.archived = false
+        }
+      });
+      
       return res.status(200).json(proposals);
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
