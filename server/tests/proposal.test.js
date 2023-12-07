@@ -19,7 +19,11 @@ const {
   findAcceptedProposal,
   findRejectedApplication,
   getNotificationsOfStudent,
+  getDelta,
+  setDelta,
+  getProposals
 } = require("../src/theses-dao");
+const dayjs = require("dayjs");
 
 jest.mock("../src/theses-dao");
 
@@ -521,4 +525,62 @@ describe('GET /api/notifications', () => {
   });
 
   // Add more test cases for validation errors, server errors, etc.
+});
+
+describe('GET /api/virtualClock', () => {
+  it('should respond with status 200 and date', async () => {
+    getDelta.mockReturnValueOnce(3);
+    getProposals.mockReturnValue([
+      { id: 1, expiration_date: '2023-01-01' },
+      { id: 2, expiration_date: '2023-02-01' },
+    ]);
+    const response = await request(app).get('/api/virtualClock');
+    expect(cancelPendingApplications).toHaveBeenCalledWith(1);
+    expect(cancelPendingApplications).toHaveBeenCalledWith(2);
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(dayjs().add("3",'day').format("YYYY-MM-DD"))
+  });
+  it('should handle server error and respond with status 500', async () => {
+    getDelta.mockImplementation(() => {
+      throw new Error('Simulated server error');
+    });
+    
+    const response = await request(app).get('/api/virtualClock');
+    expect(response.status).toBe(500);
+    expect(response.body).toHaveProperty('message', 'Internal Server Error');
+  });
+});
+
+describe('PATCH /api/virtualClock', () => {
+  it('should respond with status 200 and success message', async () => {
+    setDelta.mockReturnValueOnce({message: 'Date successfully changed'});
+    getDelta.mockReturnValueOnce(0);
+    getProposals.mockReturnValue([
+      { id: 1, expiration_date: '2023-01-01' },
+      { id: 2, expiration_date: '2023-02-01' },
+    ]);
+    const response = await request(app)
+      .patch('/api/virtualClock')
+      .send({ date: dayjs().add(1,"day").format("YYYY-MM-DD")});
+      expect(cancelPendingApplications).toHaveBeenCalledTimes(2);
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('message', 'Date successfully changed');
+  });
+
+  it('should handle invalid date content and respond with status 400', async () => {
+    const response = await request(app)
+      .patch('/api/virtualClock')
+      .send({ date: 'invalid-date' });
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('message', 'Invalid date content');
+  });
+
+  it('should handle going back in the past and respond with status 400', async () => {
+    getDelta.mockReturnValueOnce(4);
+    const response = await request(app)
+      .patch('/api/virtualClock')
+      .send({ date: dayjs().add(1,"day").format("YYYY-MM-DD")});
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('message', 'Cannot go back in the past');
+  });
 });

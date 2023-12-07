@@ -32,6 +32,8 @@ const {
   notifyApplicationDecision,
   getNotificationsOfStudent,
   getStudentByEmail,
+  getDelta,
+  setDelta,
 } = require("./theses-dao");
 
 // ==================================================
@@ -672,6 +674,48 @@ router.delete("/api/proposals/:id", [check("id").isInt()], async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
+router.get("/api/virtualClock",
+  async (req, res) => {
+    try {
+      const deltaDays = getDelta();
+      const date = dayjs().add(deltaDays, 'day').format("YYYY-MM-DD");
+      getProposals()
+        .filter((proposal) => dayjs(date).isAfter(dayjs(proposal.expiration_date), 'day'))
+        .forEach((proposal) => cancelPendingApplications(proposal.id));
+      return res.status(200).json(date);
+    } catch (err) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
+
+router.patch("/api/virtualClock",
+  check("date").isISO8601().toDate(),
+  async (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ message: "Invalid date content" });
+    }
+    try {
+      const deltaDays = getDelta();
+      const newDelta = dayjs(req.body.date).diff(dayjs(), 'day');
+      if (newDelta<deltaDays){
+        return res.status(400).send({ message: "Cannot go back in the past" });
+      }
+      setDelta(newDelta);
+      getProposals()
+        .filter((proposal) => dayjs(req.body.date).isAfter(dayjs(proposal.expiration_date), 'day'))
+        .forEach((proposal) => {
+          cancelPendingApplications(proposal.id);
+        });
+      return res.status(200).send({ message: "Date successfully changed"});
+    } catch (err) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
+
 // ==================================================
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS
 // ==================================================

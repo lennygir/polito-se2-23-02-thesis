@@ -1,10 +1,15 @@
 "use strict";
 const request = require("supertest");
-const app = require("../src/server");
+const { app } = require("../src/server");
 const { deleteApplicationsOfStudent } = require("../src/theses-dao");
+const dayjs = require("dayjs");
+const { db } = require("../src/db");
+
+jest.mock("../src/db");
 
 let proposal;
 let application;
+
 beforeEach(() => {
   proposal = {
     title: "Proposta di tesi fighissima",
@@ -29,6 +34,7 @@ beforeEach(() => {
     proposal: 8,
   };
 });
+
 it("Insertion of a correct proposal", () => {
   return request(app)
     .post("/api/proposals")
