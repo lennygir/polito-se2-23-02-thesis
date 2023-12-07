@@ -10,6 +10,7 @@ const {
   getTeachers,
   getGroup,
   getGroups,
+  getCds,
   getDegrees,
   insertProposal,
   getProposalsBySupervisor,
@@ -268,7 +269,7 @@ router.get("/api/teachers", (req, res) => {
 
     if (teachers.length === 0) {
       return res
-        .status(404)
+        .status(200)
         .send({ message: "No teacher found in the database" });
     }
 
@@ -286,7 +287,7 @@ router.get("/api/groups", (req, res) => {
 
     if (groups.length === 0) {
       return res
-        .status(404)
+        .status(200)
         .send({ message: "No group found in the database" });
     }
 
@@ -303,7 +304,7 @@ router.get("/api/degrees", (req, res) => {
 
     if (degrees.length === 0) {
       return res
-        .status(404)
+        .status(200)
         .send({ message: "No degree found in the database" });
     }
 
@@ -323,9 +324,19 @@ router.get(
       const supervisor = req.query.supervisor;
       let proposals;
       if (cds !== undefined && supervisor === undefined) {
+        if (getCds(cds) === undefined) {
+          return res.status(404).json({
+            message: `Cds ${cds} not found, cannot get the proposals`,
+          });
+        }
         proposals = getProposalsByDegree(cds);
       }
       if (supervisor !== undefined && cds === undefined) {
+        if (getTeacher(supervisor) === undefined) {
+          return res.status(404).json({
+            message: `Teacher ${supervisor} not found, cannot get the proposals`,
+          });
+        }
         proposals = getProposalsBySupervisor(supervisor);
       }
       if (cds === undefined && supervisor === undefined) {
@@ -333,7 +344,7 @@ router.get(
       }
       if (proposals.length === 0) {
         return res
-          .status(404)
+          .status(200)
           .send({ message: "No proposal found in the database" });
       }
       return res.status(200).json(proposals);
@@ -408,9 +419,7 @@ router.get(
         }
         const applications = getApplicationsOfTeacher(teacher.id);
         if (applications.length === 0) {
-          return res.status(404).json({
-            message: `No application found for teacher ${req.query.teacher}`,
-          });
+          return res.status(200).json({ message: "No application found" });
         }
         return res.status(200).json(applications);
       }
@@ -423,16 +432,14 @@ router.get(
         }
         const applications = getApplicationsOfStudent(student.id);
         if (applications.length === 0) {
-          return res.status(404).json({
-            message: `No application found for student ${req.query.student}`,
-          });
+          return res.status(200).json({ message: "No application found" });
         }
         return res.status(200).json(applications);
       }
       if (req.query.student === undefined && req.query.teacher === undefined) {
         const applications = getApplications();
         if (applications.length === 0) {
-          return res.status(404).json({ message: "No application found" });
+          return res.status(200).json({ message: "No application found" });
         }
         return res.status(200).json(applications);
       }

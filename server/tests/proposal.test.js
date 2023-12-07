@@ -1,7 +1,7 @@
 "use strict";
 
 const request = require("supertest");
-const app = require("../src/server");
+const {app} = require("../src/server");
 const {
   getGroups,
   getTeachers,
@@ -312,7 +312,7 @@ describe("Applications retrieval tests", () => {
     return request(app)
       .get("/api/applications")
       .set("Content-Type", "application/json")
-      .expect(404);
+      .expect(200);
   });
 });
 describe("Get All Teachers Test", () => {
@@ -341,12 +341,12 @@ describe("Get All Teachers Test", () => {
         // todo: Add more specific checks on the response body if needed
       });
   });
-  test("Get 404 for an empty group table db", () => {
+  test("Get 200 for an empty group table db", () => {
     getTeachers.mockReturnValue([]);
     return request(app)
       .get("/api/teachers")
       .expect("Content-Type", /json/)
-      .expect(404);
+      .expect(200);
   });
   test("Get 500 for an internal server error", () => {
     getTeachers.mockImplementation(() => {
@@ -370,12 +370,12 @@ describe("Get All Groups Test", () => {
       .expect("Content-Type", /json/)
       .expect(200);
   });
-  test("Get 404 for an empty group table db", () => {
+  test("Get 200 for an empty group table db", () => {
     getGroups.mockReturnValue([]);
     return request(app)
       .get("/api/groups")
       .expect("Content-Type", /json/)
-      .expect(404);
+      .expect(200);
   });
   test("Get 500 for an internal server error", () => {
     getGroups.mockImplementation(() => {
@@ -399,12 +399,12 @@ describe("Get All Degrees Test", () => {
       .expect("Content-Type", /json/)
       .expect(200);
   });
-  test("Get 404 for an empty degree table db", () => {
+  test("Get 200 for an empty degree table db", () => {
     getDegrees.mockReturnValue([]);
     return request(app)
       .get("/api/degrees")
       .expect("Content-Type", /json/)
-      .expect(404);
+      .expect(200);
   });
   test("Get 500 for an internal server error", () => {
     getDegrees.mockImplementation(() => {

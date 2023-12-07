@@ -31,7 +31,7 @@ beforeEach(() => {
   };
   application = {
     student: "s317743",
-    proposal: 8,
+    proposal: 1,
   };
 });
 
@@ -121,35 +121,20 @@ it("Insertion of a proposal with a single keyword (no array)", () => {
       expect(response.body.message).toBe("Invalid proposal content");
     });
 });
-it("Return 200 correct get of all application of a selected teacher", () => {
-  const teacher = "s123456";
-  return request(app)
-    .get(`/api/applications?teacher=${teacher}`)
-    .set("Content-Type", "application/json")
-    .expect(200);
-});
-
-it("Return 200 correct get of all application of a selected teacher", () => {
-  const teacher = "s123456";
-  return request(app)
-    .get(`/api/applications?teacher=${teacher}`)
-    .set("Content-Type", "application/json")
-    .expect(200);
-});
 
 describe("Get Application From Teacher", () => {
-  it("Return 404 for empty list of application of that teacher", () => {
-    const teacher = "s789012";
+  it("Return 200 correct get of all application of a selected teacher", () => {
+    const teacher = "s123456";
     return request(app)
       .get(`/api/applications?teacher=${teacher}`)
       .set("Content-Type", "application/json")
-      .expect(404);
-  });
+      .expect(200);
+  });  
 
-  it("Return 404 for emply list of application of that student", () => {
-    const student = "s320987";
+  it("Return 404 for no teacher found", () => {
+    const teacher = "s999999";
     return request(app)
-      .get(`/api/applications?student=${student}`)
+      .get(`/api/applications?teacher=${teacher}`)
       .set("Content-Type", "application/json")
       .expect(404);
   });
@@ -217,6 +202,7 @@ describe("Proposal Retrieval Tests", () => {
       .expect(404);
   });
 });
+
 describe("Application Insertion Tests", () => {
   it("Insertion of an application from a wrong student", () => {
     application.student = "s000000";
@@ -241,7 +227,7 @@ describe("Application Insertion Tests", () => {
       .then((response) => {
         expect(response.body).toStrictEqual({
           student_id: "s317743",
-          proposal_id: 8,
+          proposal_id: 1,
           state: "pending",
         });
       });
