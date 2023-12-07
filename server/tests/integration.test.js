@@ -55,18 +55,16 @@ describe("Template for doing protected routes", () => {
 describe("Story 12: Archive Proposals", () => {
   let proposal_body;
   let inserted_proposal;
+  const email = "marco.torchiano@teacher.it";
+  const future_date = dayjs().add(7, "day").format("YYYY-MM-DD");
+  const past_date = dayjs().subtract(7, "day").format("YYYY-MM-DD");
   beforeEach(() => {
-    const email = "marco.torchiano@teacher.it";
     isLoggedIn.mockImplementation((req, res, next) => {
       req.user = {
         email: email,
       };
       next();
     });
-    inserted_proposal = {
-      ...proposal_body,
-      supervisor: email,
-    };
     proposal_body = {
       title: "New proposal",
       co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
@@ -76,9 +74,13 @@ describe("Story 12: Archive Proposals", () => {
       description: "This proposal is used to test the archiving functionality",
       required_knowledge: "You have to know how to archive the thesis",
       notes: null,
-      expiration_date: dayjs().format("YYYY-MM-DD"),
+      expiration_date: future_date,
       level: "MSC",
       cds: "L-8-F",
+    };
+    inserted_proposal = {
+      ...proposal_body,
+      supervisor: email,
     };
   });
   afterEach(() => {
@@ -86,8 +88,6 @@ describe("Story 12: Archive Proposals", () => {
     db.prepare("delete from main.APPLICATIONS").run();
   });
   it("Create a proposal, then archive it", async () => {
-    proposal_body.expiration_date = dayjs().add(7, "day").format("YYYY-MM-DD");
-
     // insert proposal as marco.torchiano
     const inserted_proposal_id = (
       await request(app)
@@ -112,8 +112,6 @@ describe("Story 12: Archive Proposals", () => {
     });
   });
   it("Multiple tries should not trigger any errors (idempotency)", async () => {
-    proposal_body.expiration_date = dayjs().add(7, "day").format("YYYY-MM-DD");
-
     // insert proposal
     const inserted_proposal_id = (
       await request(app)
@@ -148,10 +146,8 @@ describe("Story 12: Archive Proposals", () => {
   });
 
   it("An expired proposal should be archived", async () => {
-    // set the expiration date to the past
-    proposal_body.expiration_date = dayjs()
-      .subtract(7, "day")
-      .format("YYYY-MM-DD");
+    proposal_body.expiration_date = past_date;
+    inserted_proposal.expiration_date = past_date;
 
     // Insert a proposal. It should already be archived
     const inserted_proposal_id = (
@@ -172,8 +168,6 @@ describe("Story 12: Archive Proposals", () => {
     });
   });
   it("The admitted field on the body should be only 'true'", async () => {
-    proposal_body.expiration_date = dayjs().add(7, "day").format("YYYY-MM-DD");
-
     const inserted_proposal_id = (
       await request(app)
         .post("/api/proposals")
@@ -202,8 +196,6 @@ describe("Story 12: Archive Proposals", () => {
   });
 
   it("The proposal should exist", async () => {
-    proposal_body.expiration_date = dayjs().add(7, "day").format("YYYY-MM-DD");
-
     const inserted_proposal_id = (
       await request(app)
         .post("/api/proposals")
@@ -223,8 +215,6 @@ describe("Story 12: Archive Proposals", () => {
   });
 
   it("A professor should be able to archive only proposals created by him", async () => {
-    proposal_body.expiration_date = dayjs().add(7, "day").format("YYYY-MM-DD");
-
     const inserted_proposal_id = (
       await request(app)
         .post("/api/proposals")
@@ -250,7 +240,6 @@ describe("Story 12: Archive Proposals", () => {
 
   it("Get only active/inactive proposals", async () => {
     // insert 5 not archived proposals
-    proposal_body.expiration_date = dayjs().add(7, "day").format("YYYY-MM-DD");
     for (let i = 0; i < 5; i++) {
       await request(app)
         .post("/api/proposals")
@@ -259,9 +248,7 @@ describe("Story 12: Archive Proposals", () => {
     }
 
     // insert 5 archived proposals
-    proposal_body.expiration_date = dayjs()
-      .subtract(7, "day")
-      .format("YYYY-MM-DD");
+    proposal_body.expiration_date = past_date;
     for (let i = 0; i < 5; i++) {
       await request(app)
         .post("/api/proposals")
@@ -304,7 +291,7 @@ describe("Story 12: Archive Proposals", () => {
         proposal: inserted_proposal_id,
       });
     // find application id
-    const application = (await request(app).get("/api/applications")).body;
+    const applications = (await request(app).get("/api/applications")).body;
 
     // the proposal should not be archived
     let proposals = (await request(app).get("/api/proposals")).body;
@@ -317,7 +304,7 @@ describe("Story 12: Archive Proposals", () => {
 
     // accept application
     await request(app)
-      .patch(`/api/applications/${application.id}`)
+      .patch(`/api/applications/${applications[0].id}`)
       .set("Content-Type", "application/json")
       .send({
         state: "accepted",
@@ -365,6 +352,12 @@ it("prova", async () => {
 });
 
 it("CRUD on proposal", async () => {
+  isLoggedIn.mockImplementation((req, res, next) => {
+    req.user = {
+      email: "luigi.derussis@polito.it",
+    };
+    next();
+  });
   const proposal_id = (
     await request(app)
       .post("/api/proposals")
