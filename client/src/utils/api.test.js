@@ -163,8 +163,8 @@ test("getProposalsByTeacher - should return correct data", async () => {
   expect(result).toEqual(mockApiResponse);
 });
 
-describe("Test the insert of an application", () => {
-  test("insertApplication - should send a correct application to the server", async () => {
+describe("Test the creation of an application", () => {
+  test("createApplication - should send a correct application to the server", async () => {
     const expectedResponse = { status: "success" };
     fetch.mockResolvedValue({
       ok: true,
@@ -174,7 +174,7 @@ describe("Test the insert of an application", () => {
       proposal: "fake proposal",
       student: "fake student"
     };
-    const result = await API.insertApplication(application);
+    const result = await API.createApplication(application);
     expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications`, {
       method: "POST",
       headers: {
@@ -185,7 +185,7 @@ describe("Test the insert of an application", () => {
     expect(result).toEqual({ status: "success" });
   });
 
-  test("insertApplicatioon - should manage correctly errors", async () => {
+  test("createApplicatioon - should manage correctly errors", async () => {
     try {
       fetch.mockResolvedValue({
         ok: false,
@@ -195,7 +195,7 @@ describe("Test the insert of an application", () => {
         proposal: "not valid Proposal",
         student: "fake student"
       };
-      await API.insertApplication(application);
+      await API.createApplication(application);
       expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications`, {
         method: "POST",
         headers: {
@@ -226,48 +226,45 @@ test("evaluateApplication - should return correct update message", async () => {
   });
   const application = {
     id: 4,
-    state: "state",
+    state: "state"
   };
   const result = await API.evaluateApplication(application);
-  expect(fetch).toHaveBeenCalledWith(
-    `${SERVER_URL}/applications/${application.id}`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({state:application.state}),
-    }
-  );
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications/${application.id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ state: application.state })
+  });
 
   expect(result).toEqual({ message: "success update" });
 });
 
-test("getNotificationsByStudent - should return correct data", async () => {
+test("getNotifications - should return correct data", async () => {
   fetch.mockResolvedValue({
     ok: true,
     json: () => Promise.resolve(mockApiResponse)
   });
-  const result = await API.getNotificationsByStudent("student_id");
-  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/notifications?student=student_id`);
+  const result = await API.getNotifications();
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/notifications`);
   expect(result).toEqual(mockApiResponse);
 });
 
-it('updateProposal - should update a proposal successfully and return the result', async () => {
-  const proposalToUpdate = { id: 12345, title: 'Updated Title', description: 'Updated Description' };
+it("updateProposal - should update a proposal successfully and return the result", async () => {
+  const proposalToUpdate = { id: 12345, title: "Updated Title", description: "Updated Description" };
   fetch.mockResolvedValueOnce({
     ok: true,
-    json: jest.fn().mockResolvedValueOnce({ message: 'Proposal updated successfully' }),
+    json: jest.fn().mockResolvedValueOnce({ message: "Proposal updated successfully" })
   });
   const result = await API.updateProposal(proposalToUpdate);
   expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/${proposalToUpdate.id}`, {
-    method: 'PUT',
+    method: "PUT",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json"
     },
-    body: JSON.stringify(proposalToUpdate),
+    body: JSON.stringify(proposalToUpdate)
   });
-  expect(result).toEqual({ message: 'Proposal updated successfully' });
+  expect(result).toEqual({ message: "Proposal updated successfully" });
 });
 
 describe("Test the deletion of a proposal", () => {
@@ -279,25 +276,24 @@ describe("Test the deletion of a proposal", () => {
     const proposalIdToDelete = 12345;
     const result = await API.deleteProposal(proposalIdToDelete);
     expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/${proposalIdToDelete}`, {
-      method: 'DELETE',
+      method: "DELETE"
     });
     expect(result).toEqual({ message: "Proposal deleted successfully" });
   });
 
   it("deleteProposal - should handle failed deletion and throw an error", async () => {
-    try{ 
+    try {
       fetch.mockResolvedValueOnce({
-          ok: false,
-          json: () => Promise.resolve({ error: "error on deleting the proposal" }),
-        });
-        const proposalIdToDelete = 67890;
-        await API.deleteProposal(proposalIdToDelete);
-        expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/${proposalIdToDelete}`, {
-          method: 'DELETE',
-        });
+        ok: false,
+        json: () => Promise.resolve({ error: "error on deleting the proposal" })
+      });
+      const proposalIdToDelete = 67890;
+      await API.deleteProposal(proposalIdToDelete);
+      expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/${proposalIdToDelete}`, {
+        method: "DELETE"
+      });
     } catch (error) {
       expect(error).toEqual({ error: "error on deleting the proposal" });
-  }
+    }
   });
 });
-

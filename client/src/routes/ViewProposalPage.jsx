@@ -15,7 +15,7 @@ function ViewProposalPage(props) {
   const applications = props.applications;
 
   const createApplication = (application) => {
-    API.insertApplication(application)
+    API.createApplication(application)
       .then(() => {
         props.setAlert({
           message: "Application sent successfully",
