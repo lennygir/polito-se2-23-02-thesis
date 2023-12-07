@@ -1,7 +1,7 @@
 "use strict";
 const request = require("supertest");
 const { app } = require("../src/server");
-const { deleteApplicationsOfStudent } = require("../src/theses-dao");
+const { deleteApplicationsOfStudent, getDelta } = require("../src/theses-dao");
 const dayjs = require("dayjs");
 const { db } = require("../src/db");
 
@@ -265,6 +265,45 @@ describe("Notifications Retrieval Tests", () => {
       });
   });
 });
+
+describe("test the correct flow for a proposal expiration", () => {
+  it("a pending application for a proposal that expires sholud be set cancelled", async () => {
+    const clock = getDelta();
+    
+    proposal.expiration_date = dayjs().add(clock.delta+1,'day').format("YYYY-MM-DD");
+    
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+    await deleteApplicationsOfStudent("s317743");
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send({
+        student: "s317743",
+        proposal: inserted_proposal_id,
+      })
+    await request(app)
+    .patch(`/api/virtualClock`)
+    .set("Content-Type", "application/json")
+    .send({date:dayjs().add(clock.delta+2,"day").format("YYYY-MM-DD")})
+    .expect(200);
+    
+  });
+
+  /*it("", () => {
+    return request(app)
+      .post(`/api/virtualClock`)
+      .set("Content-Type", "application/json")
+      .send("2023-12-12")
+      .expect(200);
+  });*/
+});
+
+
 
 /*describe("Delete proposals", () => {
   test("Correct elimination of a proposal", () => {
