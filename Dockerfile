@@ -1,7 +1,10 @@
 FROM node:latest
 
 # Install and configure apache2 web server
-RUN apt update && apt install apache2 -y && echo "ServerName localhost" >> /etc/apache2/apache2.conf
+RUN apt update \
+    && apt install apache2 -y \
+    && apt clean \
+    && echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Install backend dependencies
 COPY server/package.json .

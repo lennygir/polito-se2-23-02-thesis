@@ -66,7 +66,7 @@ function Main() {
 
   const handleErrors = (err) => {
     let errMsg;
-    if (err.errors && err.errors[0] && err.errors[0].msg) {
+    if (err?.errors?.[0].msg) {
       errMsg = err.errors[0].msg;
     } else if (err.error) {
       errMsg = err.error;

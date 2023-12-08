@@ -11,19 +11,6 @@ exports.insertApplication = (proposal, student, state) => {
     "insert into APPLICATIONS(proposal_id, student_id, state) values (?,?,?)"
   ).run(proposal, student, state);
   return { proposal_id: proposal, student_id: student, state: state };
-  //  return new Promise((resolve, reject) => {
-  //    db.run(
-  //      "insert into APPLICATIONS(proposal_id, student_id, state) values(?,?,?)",
-  //      [proposal, student, state],
-  //      function (err) {
-  //        if (err) {
-  //          reject(err);
-  //        } else {
-  //          resolve({ proposal_id: proposal, student_id: student, state: state });
-  //        }
-  //      },
-  //    );
-  //  });
 };
 
 exports.searchAcceptedApplication = (student_id) => {
@@ -66,32 +53,6 @@ exports.insertProposal = (
       level,
       cds
     ).lastInsertRowid;
-  //  return new Promise((resolve, reject) => {
-  //    db.run(
-  //      "insert into PROPOSAlS(title, supervisor, co_supervisors, keywords, type, groups, description, required_knowledge, notes, expiration_date, level, cds) values(?,?,?,?,?,?,?,?,?,?,?,?)",
-  //      [
-  //        title,
-  //        supervisor,
-  //        co_supervisors,
-  //        keywords,
-  //        types,
-  //        groups,
-  //        description,
-  //        required_knowledge,
-  //        notes,
-  //        expiration_date,
-  //        level,
-  //        cds,
-  //      ],
-  //      function (err) {
-  //        if (err) {
-  //          reject(err);
-  //        } else {
-  //          resolve(this.lastID);
-  //        }
-  //      },
-  //    );
-  //  });
 };
 
 exports.getApplicationById = (id) => {
@@ -352,34 +313,6 @@ exports.getNotificationsOfStudent = (student_id) => {
 exports.deleteProposal = (proposal_id) => {
   db.prepare("DELETE FROM PROPOSALS WHERE id = ?").run(proposal_id);
 };
-
-/*exports.updateProposal = (id, setValues) => {
-
-  const params = [];
-  const sqlParams = [];
-  for (const key in setValues) {
-    const value = setValues[key];
-    // Check if the value is of a supported type for SQLite3 bindings
-    if (
-      typeof value === 'number' || 
-      typeof value === 'string' ||
-      value instanceof Buffer ||
-      value === null
-    ) {
-      sqlParams.push(`${key} = ?`);
-      params.push(value);
-    } else {
-      sqlParams.push(`${key} = ?`);
-      params.push(JSON.stringify(value)); 
-    }
-  }
-
-  const sqlQuery = `UPDATE PROPOSALS SET ${sqlParams.join(', ')} WHERE id = ?`;
-  params.push(id);
-
-  const stmt = db.prepare(sqlQuery);
-  stmt.run(params)
-}*/
 
 exports.updateProposal = (
   proposal_id,

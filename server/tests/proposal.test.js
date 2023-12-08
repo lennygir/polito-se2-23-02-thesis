@@ -319,12 +319,16 @@ describe("Get All Teachers Test", () => {
         surname: "Torchiano",
         name: "Marco",
         email: "marco.torchiano@polito.it",
+        cod_group: "SOFTENG",
+        cod_department: "DAUIN",
       },
       {
         id: "s234567",
         surname: "Morisio",
         name: "Maurizio",
         email: "maurizio.morisio@polito.it",
+        cod_group: "SOFTENG",
+        cod_department: "DAUIN",
       },
     ]);
     return request(app)
@@ -334,7 +338,14 @@ describe("Get All Teachers Test", () => {
       .then((response) => {
         // Assuming the response body is an array
         expect(Array.isArray(response.body)).toBe(true);
-        // todo: Add more specific checks on the response body if needed
+        response.body.forEach(teacher => {
+          expect(teacher).toHaveProperty('id')
+          expect(teacher).toHaveProperty('surname')
+          expect(teacher).toHaveProperty('name')
+          expect(teacher).toHaveProperty('email')
+          expect(teacher).toHaveProperty('cod_group')
+          expect(teacher).toHaveProperty('cod_department')
+        });
       });
   });
   test("Get 404 for an empty group table db", () => {
@@ -346,7 +357,7 @@ describe("Get All Teachers Test", () => {
   });
   test("Get 500 for an internal server error", () => {
     getTeachers.mockImplementation(() => {
-      throw "SQLITE_ERROR_SOMETHING";
+      throw new Error("SQLITE_ERROR_SOMETHING");
     });
     return request(app)
       .get("/api/teachers")
@@ -375,7 +386,7 @@ describe("Get All Groups Test", () => {
   });
   test("Get 500 for an internal server error", () => {
     getGroups.mockImplementation(() => {
-      throw "SQLITE_ERROR_SOMETHING";
+      throw new Error("SQLITE_ERROR_SOMETHING");
     });
     return request(app)
       .get("/api/groups")
@@ -404,7 +415,7 @@ describe("Get All Degrees Test", () => {
   });
   test("Get 500 for an internal server error", () => {
     getDegrees.mockImplementation(() => {
-      throw "SQLITE_ERROR_SOMETHING";
+      throw new Error("SQLITE_ERROR_SOMETHING");
     });
     return request(app)
       .get("/api/degrees")
@@ -468,7 +479,7 @@ describe("PATCH /api/applications/:id", () => {
   });
   test("It should return 500 in case of database error", () => {
     getApplicationById.mockImplementation(() => {
-      throw "SQLITE_ERROR_SOMETHING";
+      throw new Error("SQLITE_ERROR_SOMETHING");
     });
     return request(app)
       .patch("/api/applications/1")
