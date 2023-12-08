@@ -222,7 +222,6 @@ function ProposalForm(props) {
 
     const data = {
       title: formData.title,
-      supervisor: user.id,
       co_supervisors: formData.coSupervisors,
       groups: formData.groups,
       keywords: formData.keywords === "" ? null : formData.keywords.split("\n").map((keyword) => keyword.trim()),

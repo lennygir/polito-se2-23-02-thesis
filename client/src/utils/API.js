@@ -30,25 +30,17 @@ function getJson(httpResponsePromise) {
   });
 }
 
-const logIn = async (credentials) => {
-  return getJson(
-    fetch(SERVER_URL + "/sessions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(credentials)
-    })
-  );
-};
-
 /**
  * Retrieves the list of all teachers by sending a GET request to the server's teachers endpoint.
  * @returns {Promise} A promise that resolves to the parsed JSON content of the teachers' list response.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
 const getTeachers = async () => {
-  return getJson(fetch(SERVER_URL + "/teachers"));
+  return getJson(
+    fetch(SERVER_URL + "/teachers", {
+      credentials: "include"
+    })
+  );
 };
 
 /**
@@ -57,7 +49,11 @@ const getTeachers = async () => {
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
 const getDegrees = async () => {
-  return getJson(fetch(SERVER_URL + "/degrees"));
+  return getJson(
+    fetch(SERVER_URL + "/degrees", {
+      credentials: "include"
+    })
+  );
 };
 
 /**
@@ -66,7 +62,11 @@ const getDegrees = async () => {
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
 const getGroups = async () => {
-  return getJson(fetch(SERVER_URL + "/groups"));
+  return getJson(
+    fetch(SERVER_URL + "/groups", {
+      credentials: "include"
+    })
+  );
 };
 
 /**
@@ -82,38 +82,36 @@ const createProposal = async (proposal) => {
       headers: {
         "Content-Type": "application/json"
       },
+      credentials: "include",
       body: JSON.stringify(proposal)
     })
   );
 };
 
 /**
- * Retrieves the list of all proposals by sending a GET request to the server's proposals endpoint.
+ * Retrieves the list of proposals based on logged in user by sending a GET request to the server's proposals endpoint.
  * @returns {Promise} A promise that resolves to the parsed JSON content of the proposals list response.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
 const getProposals = async () => {
-  return getJson(fetch(SERVER_URL + "/proposals"));
+  return getJson(
+    fetch(SERVER_URL + "/proposals", {
+      credentials: "include"
+    })
+  );
 };
 
 /**
- * Retrieves proposals by degree by sending a GET request to the server's proposals endpoint with a specified degree.
- * @param {string} degree - The degree for which proposals are requested.
- * @returns {Promise} A promise that resolves to the parsed JSON content of the proposals list response for the specified degree.
+ * Retrieves the list of applications based on logged in user by sending a GET request to the server's proposals endpoint.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the proposals list response.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
-const getProposalsByDegree = async (degree) => {
-  return getJson(fetch(SERVER_URL + "/proposals?cds=" + degree));
-};
-
-/**
- * Retrieves proposals by teacher by sending a GET request to the server's proposals endpoint with a specified teacher ID.
- * @param {string} teacher_id - The ID of the teacher for whom proposals are requested.
- * @returns {Promise} A promise that resolves to the parsed JSON content of the proposals list response for the specified teacher.
- * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
- */
-const getProposalsByTeacher = async (teacher_id) => {
-  return getJson(fetch(SERVER_URL + "/proposals?supervisor=" + teacher_id));
+const getApplications = async () => {
+  return getJson(
+    fetch(SERVER_URL + "/applications", {
+      credentials: "include"
+    })
+  );
 };
 
 /**
@@ -122,13 +120,14 @@ const getProposalsByTeacher = async (teacher_id) => {
  * @returns {Promise} A promise that resolves to the parsed JSON content of the created application response.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
-const insertApplication = async (application) => {
+const createApplication = async (application) => {
   return getJson(
     fetch(SERVER_URL + "/applications", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
+      credentials: "include",
       body: JSON.stringify(application)
     })
   );
@@ -147,39 +146,23 @@ const evaluateApplication = async (application) => {
       headers: {
         "Content-Type": "application/json"
       },
+      credentials: "include",
       body: JSON.stringify({ state: application.state })
     })
   );
 };
 
 /**
- * Retrieves applications by teacher by sending a GET request to the server's applications endpoint with a specified teacher ID.
- * @param {string} teacher_id - The ID of the teacher for whom applications are requested.
- * @returns {Promise} A promise that resolves to the parsed JSON content of the applications list response for the specified teacher.
- * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
- */
-const getApplicationsByTeacher = async (teacher_id) => {
-  return getJson(fetch(SERVER_URL + "/applications?teacher=" + teacher_id));
-};
-
-/**
- * Retrieves applications by student by sending a GET request to the server's applications endpoint with a specified student ID.
- * @param {string} student_id - The ID of the student for whom applications are requested.
+ * Retrieves notifications based on logged in user by sending a GET request to the server's notifications endpoint with a specified student ID.
  * @returns {Promise} A promise that resolves to the parsed JSON content of the applications list response for the specified student.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
-const getApplicationsByStudent = async (student_id) => {
-  return getJson(fetch(SERVER_URL + "/applications?student=" + student_id));
-};
-
-/**
- * Retrieves notifications by student by sending a GET request to the server's notifications endpoint with a specified student ID.
- * @param {string} student_id - The ID of the student for whom applications are requested.
- * @returns {Promise} A promise that resolves to the parsed JSON content of the applications list response for the specified student.
- * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
- */
-const getNotificationsByStudent = async (student_id) => {
-  return getJson(fetch(SERVER_URL + "/notifications?student=" + student_id));
+const getNotifications = async () => {
+  return getJson(
+    fetch(SERVER_URL + "/notifications", {
+      credentials: "include"
+    })
+  );
 };
 
 /**
@@ -195,6 +178,7 @@ const updateProposal = async (proposal) => {
       headers: {
         "Content-Type": "application/json"
       },
+      credentials: "include",
       body: JSON.stringify(proposal)
     })
   );
@@ -209,11 +193,17 @@ const updateProposal = async (proposal) => {
 const deleteProposal = async (proposal_id) => {
   return getJson(
     fetch(SERVER_URL + "/proposals/" + proposal_id, {
-      method: "DELETE"
+      method: "DELETE",
+      credentials: "include"
     })
   );
 };
 
+/**
+ * Get currently logged in user information.
+ * @returns {Promise} - A promise that resolves with the result of the deletion.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
 const getUserInfo = async () => {
   return getJson(
     fetch(SERVER_URL + "/sessions/current", {
@@ -224,21 +214,17 @@ const getUserInfo = async () => {
 
 const API = {
   createProposal,
+  createApplication,
   getDegrees,
   getGroups,
   getTeachers,
   getProposals,
-  getProposalsByDegree,
-  getProposalsByTeacher,
+  getApplications,
+  getNotifications,
   getUserInfo,
-  insertApplication,
-  getApplicationsByTeacher,
-  getApplicationsByStudent,
   evaluateApplication,
-  logIn,
-  getNotificationsByStudent,
   updateProposal,
-  deleteProposal
+  deleteProposal,
 };
 
 export default API;
