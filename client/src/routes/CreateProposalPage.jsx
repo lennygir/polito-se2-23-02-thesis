@@ -86,9 +86,10 @@ function CreateProposalPage(props) {
           open={openCopyMenu}
           onClose={handleCloseCopyMenu}
           sx={{ maxWidth: "400px" }}
+          slotProps={{ paper: { sx: { borderRadius: 3, px: 1 } } }}
         >
           {props.proposals.map((proposal) => (
-            <MenuItem key={proposal.id} onClick={() => handleSelectedOption(proposal)}>
+            <MenuItem key={proposal.id} onClick={() => handleSelectedOption(proposal)} sx={{ borderRadius: 2 }}>
               <Typography variant="inherit" noWrap>
                 {proposal.title}
               </Typography>
@@ -107,7 +108,9 @@ function CreateProposalPage(props) {
             teachers={props.teachers}
             groups={props.groups}
             degrees={props.degrees}
+            proposals={props.proposals}
             createProposal={createProposal}
+            setAlert={props.setAlert}
           />
         </Box>
       </Paper>

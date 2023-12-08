@@ -110,6 +110,7 @@ function ProposalDetails(props) {
     <>
       {user.role === "student" && (
         <ConfirmationDialog
+          mode="submit"
           message={dialogMessage}
           open={openDialog}
           handleClose={handleCloseDialog}

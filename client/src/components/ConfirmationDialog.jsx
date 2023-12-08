@@ -3,11 +3,11 @@ import { Button, Dialog, DialogActions, DialogContent, DialogContentText, Dialog
 
 /**
  *
- * @param {props} props { message, open, handleClose, handleSubmit }
+ * @param {props} props { mode, message, open, handleClose, handleSubmit }
  * @returns Confirmation dialog to confirm or deny action
  */
 function ConfirmationDialog(props) {
-  const { message, open, handleClose, handleSubmit } = props;
+  const { mode, message, open, handleClose, handleSubmit } = props;
   return (
     <Dialog maxWidth="xs" open={open} onClose={handleClose}>
       <DialogTitle variant="h5">Confirm Decision</DialogTitle>
@@ -23,10 +23,10 @@ function ConfirmationDialog(props) {
         }}
       >
         <Button fullWidth onClick={handleClose} variant="outlined" color="error">
-          Cancel
+          {mode === "submit" ? "Cancel" : "No"}
         </Button>
         <Button fullWidth onClick={handleSubmit} variant="contained">
-          Submit
+          {mode === "submit" ? "Submit" : "Yes"}
         </Button>
       </DialogActions>
     </Dialog>
@@ -34,6 +34,7 @@ function ConfirmationDialog(props) {
 }
 
 ConfirmationDialog.propTypes = {
+  mode: PropTypes.string,
   message: PropTypes.string,
   open: PropTypes.bool,
   handleClose: PropTypes.func,

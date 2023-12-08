@@ -18,7 +18,7 @@ import { LogoutButton } from "./Auth";
 const sidebarMainTabs = [
   {
     id: "proposals",
-    label: "Theses",
+    label: "Proposals",
     icon: <SchoolRoundedIcon color="primary" />,
     path: "/proposals"
   },
