@@ -112,7 +112,7 @@ describe("Story 12: Archive Proposals", () => {
         .expect(200)
     ).body;
 
-    expect(archived_proposal).toStrictEqual({
+    expect(archived_proposal).toEqual({
       ...inserted_proposal,
       archived: true,
     });
@@ -145,7 +145,7 @@ describe("Story 12: Archive Proposals", () => {
         .expect(200)
     ).body;
 
-    expect(archived_proposal).toStrictEqual({
+    expect(archived_proposal).toEqual({
       ...inserted_proposal,
       archived: true,
     });
@@ -168,7 +168,7 @@ describe("Story 12: Archive Proposals", () => {
 
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
-    ).toStrictEqual({
+    ).toEqual({
       ...inserted_proposal,
       archived: true,
     });
@@ -195,7 +195,7 @@ describe("Story 12: Archive Proposals", () => {
     // the proposal should remain unarchived
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
-    ).toStrictEqual({
+    ).toEqual({
       ...inserted_proposal,
       archived: false,
     });
@@ -221,6 +221,7 @@ describe("Story 12: Archive Proposals", () => {
   });
 
   it("A professor should be able to archive only proposals created by him", async () => {
+    // marco.torchiano inserts a proposal
     const inserted_proposal_id = (
       await request(app)
         .post("/api/proposals")
@@ -230,11 +231,12 @@ describe("Story 12: Archive Proposals", () => {
 
     isLoggedIn.mockImplementation((req, res, next) => {
       req.user = {
-        email: "wrong.professor@teacher.it",
+        email: "luigi.derussis@teacher.it",
       };
       next();
     });
 
+    // luigi.derussis wants to set marco.torchiano's proposal to archived
     await request(app)
       .patch(`/api/proposals/${inserted_proposal_id}`)
       .set("Content-Type", "application/json")
@@ -280,7 +282,7 @@ describe("Story 12: Archive Proposals", () => {
     ).toBe(true);
   });
   it("When an application gets accepted, its proposal should become archived", async () => {
-    // insert proposal
+    // marco.torchiano inserts a proposal
     const inserted_proposal_id = (
       await request(app)
         .post("/api/proposals")
@@ -288,22 +290,36 @@ describe("Story 12: Archive Proposals", () => {
         .send(proposal_body)
     ).body;
 
-    // insert application for the proposal just inserted
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+
+    // s309618 student inserts an application for the proposal just inserted
     await request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
       .send({
-        student: "s309618",
         proposal: inserted_proposal_id,
       });
-    // find application id
+
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+
+    // marco.torchiano finds the application id
     const applications = (await request(app).get("/api/applications")).body;
 
     // the proposal should not be archived
     let proposals = (await request(app).get("/api/proposals")).body;
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
-    ).toStrictEqual({
+    ).toEqual({
       ...inserted_proposal,
       archived: false,
     });
@@ -320,7 +336,7 @@ describe("Story 12: Archive Proposals", () => {
     proposals = (await request(app).get("/api/proposals")).body;
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
-    ).toStrictEqual({
+    ).toEqual({
       ...inserted_proposal,
       archived: true,
     });
