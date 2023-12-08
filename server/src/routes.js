@@ -366,6 +366,9 @@ router.get("/api/notifications", isLoggedIn, (req, res) => {
       return res.status(200).json(notifications);
     } else {
       // todo: professor notifications
+      return res
+        .status(500)
+        .json({ message: "Missing professor notifications feature" });
     }
   } catch (e) {
     return res.status(500).json({ message: "Internal Server Error" });
@@ -373,41 +376,7 @@ router.get("/api/notifications", isLoggedIn, (req, res) => {
 });
 
 // todo: to be modified. Should be used to story #12
-router.patch("/api/proposals/:id", isLoggedIn, (req, res) => {
-  //  try {
-  //    const id = req.params.id;
-  //
-  //    if (findAcceptedProposal(id)) {
-  //      return res.status(400).json({
-  //        message: `The proposal ${id} is already accepted for another student`,
-  //      });
-  //    }
-  //
-  //    const fieldsToUpdate = [
-  //      { field: "title", value: title },
-  //      { field: "supervisor", value: supervisor },
-  //      { field: "co_supervisors", value: co_supervisors },
-  //      { field: "groups", value: groups },
-  //      { field: "keywords", value: keywords },
-  //      { field: "types", value: types },
-  //      { field: "description", value: description },
-  //      { field: "required_knowledge", value: required_knowledge },
-  //      { field: "notes", value: notes },
-  //      { field: "expiration_date", value: expiration_date },
-  //      { field: "level", value: level },
-  //      { field: "cds", value: cds },
-  //    ].filter((field) => field.value !== undefined);
-  //
-  //    const setValues = {};
-  //    fieldsToUpdate.forEach((field) => {
-  //      setValues[field.field] = field.value;
-  //    });
-  //    updateProposal(id, setValues);
-  //    return res.status(200).send("Proposal updated successfully.");
-  //  } catch (e) {
-  //    return res.status(500).json({ message: "Internal server error" });
-  //  }
-});
+router.patch("/api/proposals/:id", isLoggedIn, (req, res) => {});
 
 router.put(
   "/api/proposals/:id",

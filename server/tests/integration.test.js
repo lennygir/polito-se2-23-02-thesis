@@ -15,29 +15,23 @@ let application;
 beforeEach(() => {
   proposal = {
     title: "Proposta di tesi fighissima",
-    supervisor: "s345678",
-    co_supervisors: [
-      "marco.torchiano@polito.it",
-      "s122349@gmail.com",
-      "s298399@outlook.com",
-    ],
-    groups: ["ELITE"],
+    co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
+    groups: ["SOFTENG"],
     keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
     types: ["EXPERIMENTAL", "RESEARCH"],
     description: "Accetta questa tesi che e' una bomba",
     required_knowledge: "non devi sapere nulla",
     notes: "Bella raga",
-    expiration_date: "2019-01-25T02:00:00.000Z",
+    expiration_date: "2019-01-25",
     level: "MSC",
     cds: "L-8-F",
   };
   application = {
-    student: "s317743",
     proposal: 8,
   };
 });
 
-describe("Template for doing protected routes", () => {
+describe("Protected routes", () => {
   it("Sets the logged in user", async () => {
     const email = "marco.torchiano@teacher.it";
     isLoggedIn.mockImplementation((req, res, next) => {
@@ -49,6 +43,19 @@ describe("Template for doing protected routes", () => {
     const user = (await request(app).get("/api/sessions/current").expect(200))
       .body;
     expect(user.email).toBe(email);
+  });
+  it("Insertion of a correct proposal by a professor", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+    await request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(200);
   });
 });
 
@@ -334,40 +341,11 @@ describe("Story 12: Archive Proposals", () => {
   });
 });
 
-it("Insertion of a correct proposal", () => {
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(200);
-});
-
 it("prova", async () => {
-  const proposal_id = (
-    await request(app)
-      .post("/api/proposals")
-      .set("Content-Type", "application/json")
-      .send(proposal)
-      .expect(200)
-  ).body;
-  let expected_proposal = {
-    ...proposal,
-    type: proposal.types.join(", "),
-    id: proposal_id,
-    co_supervisors: proposal.co_supervisors.join(", "),
-    groups: proposal.groups.join(", "),
-    keywords: proposal.keywords.join(", "),
-    expiration_date: dayjs(proposal.expiration_date).format("YYYY-MM-DD"),
-  };
-  delete expected_proposal.types;
-  let returned_proposal = db.prepare("select * from main.PROPOSALS").get();
-  expect(returned_proposal).toStrictEqual(expected_proposal);
-});
-
-it("CRUD on proposal", async () => {
+  const email = "marco.torchiano@teacher.it";
   isLoggedIn.mockImplementation((req, res, next) => {
     req.user = {
-      email: "luigi.derussis@polito.it",
+      email: email,
     };
     next();
   });
@@ -378,9 +356,9 @@ it("CRUD on proposal", async () => {
       .send(proposal)
       .expect(200)
   ).body;
-  let proposals = (await request(app).get("/api/proposals").expect(200)).body;
   let expected_proposal = {
     ...proposal,
+    supervisor: "s123456", // marco.torchiano@teacher.it's id
     type: proposal.types.join(", "),
     id: proposal_id,
     co_supervisors: proposal.co_supervisors.join(", "),
@@ -389,31 +367,75 @@ it("CRUD on proposal", async () => {
     expiration_date: dayjs(proposal.expiration_date).format("YYYY-MM-DD"),
   };
   delete expected_proposal.types;
-  expect(
-    proposals.find((proposal) => proposal.id === proposal_id),
-  ).toStrictEqual(expected_proposal);
-  const update_message = (
+  let returned_proposal = db
+    .prepare("select * from main.PROPOSALS where id = ?")
+    .get(proposal_id);
+  expect(returned_proposal).toEqual(expected_proposal);
+});
+
+it("CRUD on proposal", async () => {
+  const email = "marco.torchiano@teacher.it";
+  isLoggedIn.mockImplementation((req, res, next) => {
+    req.user = {
+      email: email,
+    };
+    next();
+  });
+  const proposalId = (
     await request(app)
-      .put(`/api/proposals/${proposal_id}`)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(200)
+  ).body;
+  const proposals = (await request(app).get("/api/proposals").expect(200)).body;
+  let expectedProposal = {
+    ...proposal,
+    supervisor: "s123456", // marco.torchiano@teacher.it
+    type: proposal.types.join(", "),
+    id: proposalId,
+    co_supervisors: proposal.co_supervisors.join(", "),
+    groups: proposal.groups.join(", "),
+    keywords: proposal.keywords.join(", "),
+    expiration_date: dayjs(proposal.expiration_date).format("YYYY-MM-DD"),
+  };
+  delete expectedProposal.types;
+  expect(proposals.find((proposal) => proposal.id === proposalId)).toEqual(
+    expectedProposal,
+  );
+  const updateMessage = (
+    await request(app)
+      .put(`/api/proposals/${proposalId}`)
       .send({
         ...proposal,
         title: "Updated title",
       })
       .expect(200)
   ).body;
-  expect(update_message.message).toBe("Proposal updated successfully");
-  expected_proposal.title = "Updated title";
-  proposals = (await request(app).get("/api/proposals").expect(200)).body;
+  expect(updateMessage.message).toBe("Proposal updated successfully");
+  expectedProposal.title = "Updated title";
+  const updatedProposals = (
+    await request(app).get("/api/proposals").expect(200)
+  ).body;
   expect(
-    proposals.find((proposal) => proposal.id === proposal_id),
-  ).toStrictEqual(expected_proposal);
-  await request(app).delete(`/api/proposals/${proposal_id}`).expect(200);
-  proposals = (await request(app).get("/api/proposals").expect(200)).body;
-  expect(proposals.find((proposal) => proposal.id === proposal_id)).toBe(
+    updatedProposals.find((proposal) => proposal.id === proposalId),
+  ).toStrictEqual(expectedProposal);
+  await request(app).delete(`/api/proposals/${proposalId}`).expect(200);
+  const deletedProposals = (
+    await request(app).get("/api/proposals").expect(200)
+  ).body;
+  expect(deletedProposals.find((proposal) => proposal.id === proposalId)).toBe(
     undefined,
   );
 });
 it("Insertion of a proposal with no notes", () => {
+  const email = "marco.torchiano@teacher.it";
+  isLoggedIn.mockImplementation((req, res, next) => {
+    req.user = {
+      email: email,
+    };
+    next();
+  });
   proposal.notes = null;
   return request(app)
     .post("/api/proposals")
@@ -430,18 +452,14 @@ it("Insertion of a proposal with no notes", () => {
     .expect(200);
 });*/
 
-it("Insertion of a proposal with a non existent supervisor", () => {
-  proposal.supervisor = "s000000";
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(400)
-    .then((response) => {
-      expect(response.body.message).toBe("Invalid proposal content");
-    });
-});
 it("Insertion with an invalid date", () => {
+  const email = "marco.torchiano@teacher.it";
+  isLoggedIn.mockImplementation((req, res, next) => {
+    req.user = {
+      email: email,
+    };
+    next();
+  });
   proposal.expiration_date = "0";
   return request(app)
     .post("/api/proposals")
@@ -453,6 +471,13 @@ it("Insertion with an invalid date", () => {
     });
 });
 it("Insertion of a proposal with wrong level format", () => {
+  const email = "marco.torchiano@teacher.it";
+  isLoggedIn.mockImplementation((req, res, next) => {
+    req.user = {
+      email: email,
+    };
+    next();
+  });
   proposal.level = "wrong-level";
   return request(app)
     .post("/api/proposals")
@@ -464,6 +489,13 @@ it("Insertion of a proposal with wrong level format", () => {
     });
 });
 it("Insertion of a proposal with an invalid group", () => {
+  const email = "marco.torchiano@teacher.it";
+  isLoggedIn.mockImplementation((req, res, next) => {
+    req.user = {
+      email: email,
+    };
+    next();
+  });
   proposal.groups.push("WRONG GROUP");
   return request(app)
     .post("/api/proposals")
@@ -475,6 +507,13 @@ it("Insertion of a proposal with an invalid group", () => {
     });
 });
 it("Insertion of a proposal with a single keyword (no array)", () => {
+  const email = "marco.torchiano@teacher.it";
+  isLoggedIn.mockImplementation((req, res, next) => {
+    req.user = {
+      email: email,
+    };
+    next();
+  });
   proposal.keywords = "SOFTWARE ENGINEERING";
   return request(app)
     .post("/api/proposals")
@@ -486,14 +525,13 @@ it("Insertion of a proposal with a single keyword (no array)", () => {
     });
 });
 it("Return 200 correct get of all application of a selected teacher", () => {
-  const teacher = "s123456";
-  return request(app)
-    .get(`/api/applications?teacher=${teacher}`)
-    .set("Content-Type", "application/json")
-    .expect(200);
-});
-
-it("Return 200 correct get of all application of a selected teacher", () => {
+  const email = "marco.torchiano@teacher.it";
+  isLoggedIn.mockImplementation((req, res, next) => {
+    req.user = {
+      email: email,
+    };
+    next();
+  });
   const teacher = "s123456";
   return request(app)
     .get(`/api/applications?teacher=${teacher}`)
@@ -502,101 +540,89 @@ it("Return 200 correct get of all application of a selected teacher", () => {
 });
 
 describe("Get Application From Teacher", () => {
-  it("Return 404 for empty list of application of that teacher", () => {
-    const teacher = "s789012";
-    return request(app)
-      .get(`/api/applications?teacher=${teacher}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  it("Return 404 for emply list of application of that student", () => {
-    const student = "s320987";
-    return request(app)
-      .get(`/api/applications?student=${student}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  it("Return 404 for no student found", () => {
-    const student = "s999999";
-    return request(app)
-      .get(`/api/applications?student=${student}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
   it("Return 200 correct get of all application of a selected student", () => {
-    const student = "s319823";
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
     return request(app)
-      .get(`/api/applications?student=${student}`)
+      .get(`/api/applications`)
       .set("Content-Type", "application/json")
       .expect(200);
   });
 });
 
 describe("Proposal Retrieval Tests", () => {
-  it("Get all the proposals from a specific field of study", () => {
-    const cds = "L-8-F";
+  it("Get all the proposals from a specific teacher", () => {
+    const email = "marco.torchiano@teacher.it";
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: email,
+      };
+      next();
+    });
     return request(app)
-      .get(`/api/proposals?cds=${cds}`)
-      .set("Content-Type", "application/json")
-      .expect(200)
-      .then((response) => {
-        response.body.forEach((proposal) => {
-          expect(proposal.cds).toBe(cds);
-        });
-      });
-  });
-
-  it("Get all the proposals from a specific supervisor", () => {
-    const supervisor = "s123456";
-    return request(app)
-      .get(`/api/proposals?supervisor=${supervisor}`)
+      .get(`/api/proposals`)
       .set("Content-Type", "application/json")
       .expect(200);
   });
 
-  it("Return 404 for a non-existing supervisor", () => {
-    const supervisor = "s000000";
+  it("Return 404 for a non-existing teacher", () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      return res.status(401).json({ message: "Unauthorized" });
+    });
     return request(app)
-      .get(`/api/proposals?supervisor=${supervisor}`)
+      .get(`/api/proposals`)
       .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  it("Return 400 for a invalid format of supervisor", () => {
-    const supervisor = 0;
-    return request(app)
-      .get(`/api/proposals?supervisor=${supervisor}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
-  });
-
-  it("Get all the proposals from a field of study that doesn't exists", () => {
-    const cds = "aaaaaaaaaaaaaaaaaaaaaaaaa";
-    return request(app)
-      .get(`/api/proposals?cds=${cds}`)
-      .set("Content-Type", "application/json")
-      .expect(404);
+      .expect(401);
   });
 });
 describe("Application Insertion Tests", () => {
   it("Insertion of an application from a wrong student", () => {
-    application.student = "s000000";
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "wrong.student@student.it",
+      };
+      next();
+    });
     return request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
       .send(application)
-      .expect(400)
+      .expect(401)
       .then((response) => {
         expect(response.body).toStrictEqual({
-          message: "Invalid application content",
+          message: "Only a student can apply for a proposal",
         });
       });
   });
-  it("Insertion of a correct application", () => {
-    deleteApplicationsOfStudent(application.student);
+  it("Insertion of a correct application", async () => {
+    db.prepare(
+      "delete from main.APPLICATIONS where main.APPLICATIONS.student_id = ?",
+    ).run("s309618");
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+    const proposalId = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+    application = {
+      proposal: proposalId,
+    };
     return request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
@@ -604,26 +630,59 @@ describe("Application Insertion Tests", () => {
       .expect(200)
       .then((response) => {
         expect(response.body).toStrictEqual({
-          student_id: "s317743",
-          proposal_id: 8,
+          student_id: "s309618",
+          proposal_id: proposalId,
           state: "pending",
         });
       });
   });
   it("Insertion of an application for a student who already applied to a proposal", async () => {
-    deleteApplicationsOfStudent(application.student);
+    db.prepare(
+      "delete from main.APPLICATIONS where main.APPLICATIONS.student_id = ?",
+    ).run("s309618");
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+    const proposalId = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+    const anotherProposalId = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+    application = {
+      proposal: proposalId,
+    };
     await request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
-      .send(application);
+      .send({
+        proposal: proposalId,
+      });
     return request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
-      .send(application)
+      .send({
+        proposal: anotherProposalId,
+      })
       .expect(400)
       .then((response) => {
         expect(response.body).toStrictEqual({
-          message: `The student ${application.student} has already applied to a proposal`,
+          message: "The student s309618 has already applied to a proposal",
         });
       });
   });
@@ -631,14 +690,19 @@ describe("Application Insertion Tests", () => {
 
 describe("Notifications Retrieval Tests", () => {
   it("Get all the notifications from a specific student", () => {
-    const student_id = "s319823";
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
     return request(app)
-      .get(`/api/notifications?student=${student_id}`)
+      .get(`/api/notifications`)
       .set("Content-Type", "application/json")
       .expect(200)
       .then((response) => {
         response.body.forEach((notification) => {
-          expect(notification.student_id).toBe(student_id);
+          expect(notification.student_id).toBe("s309618");
         });
       });
   });
