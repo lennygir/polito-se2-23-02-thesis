@@ -30,18 +30,6 @@ function getJson(httpResponsePromise) {
   });
 }
 
-const logIn = async (credentials) => {
-  return getJson(
-    fetch(SERVER_URL + "/sessions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(credentials)
-    })
-  );
-};
-
 /**
  * Retrieves the list of all teachers by sending a GET request to the server's teachers endpoint.
  * @returns {Promise} A promise that resolves to the parsed JSON content of the teachers' list response.
@@ -237,7 +225,6 @@ const API = {
   evaluateApplication,
   updateProposal,
   deleteProposal,
-  logIn
 };
 
 export default API;
