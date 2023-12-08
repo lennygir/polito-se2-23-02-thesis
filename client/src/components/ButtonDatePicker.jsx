@@ -8,13 +8,7 @@ function ButtonField(props) {
   const { setOpen, label, InputProps: { ref } = {} } = props;
 
   return (
-    <Button
-      sx={{ height: 55, borderRadius: 40, px: 3 }}
-      color="inherit"
-      ref={ref}
-      startIcon={<EditCalendarIcon />}
-      onClick={() => setOpen((prev) => !prev)}
-    >
+    <Button color="inherit" ref={ref} startIcon={<EditCalendarIcon />} onClick={() => setOpen((prev) => !prev)}>
       {label}
     </Button>
   );

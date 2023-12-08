@@ -32,10 +32,10 @@ function AccountPopover() {
       color="white"
       label={
         <Stack direction="column" mx={1}>
-          <Typography fontSize={15} variant="subtitle2">
+          <Typography fontSize={15} fontWeight={600} variant="subtitle2">
             {`${user.surname.charAt(0)}. ${user.name}`}
           </Typography>
-          <Typography fontSize={11} variant="caption">
+          <Typography fontSize={12} fontWeight={500} variant="caption">
             {capitalizeFirstLetter(user.role)}
           </Typography>
         </Stack>

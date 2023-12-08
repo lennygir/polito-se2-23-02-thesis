@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { Alert, Snackbar, ThemeProvider } from "@mui/material";
+import { ThemeProvider } from "@mui/material";
 import { useThemeContext } from "./theme/ThemeContextProvider";
 import CssBaseline from "@mui/material/CssBaseline";
 import RootPage from "./routes/RootPage";
@@ -18,6 +18,7 @@ import ViewProposalPage from "./routes/ViewProposalPage";
 import ViewApplicationPage from "./routes/ViewApplicationPage";
 import API from "./utils/API";
 import EditProposalPage from "./routes/EditProposalPage";
+import AppAlert from "./components/AppAlert";
 
 function App() {
   const { theme } = useThemeContext();
@@ -194,16 +195,7 @@ function Main() {
           </Route>
           <Route path="*" element={<ErrorPage />} />
         </Routes>
-        <Snackbar
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-          open={alert.message !== ""}
-          onClose={() => setAlert({ ...alert, message: "" })}
-          autoHideDuration={5000}
-        >
-          <Alert variant="filled" severity={alert.severity}>
-            {alert.message}
-          </Alert>
-        </Snackbar>
+        <AppAlert alert={alert} setAlert={setAlert} />
       </ErrorContext.Provider>
     </UserContext.Provider>
   );

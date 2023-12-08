@@ -42,6 +42,10 @@ export const TEACHER_PROPOSALS_FILTERS = [
   {
     id: "active",
     label: "ACTIVE"
+  },
+  {
+    id: "archive",
+    label: "ARCHIVED"
   }
 ];
 
