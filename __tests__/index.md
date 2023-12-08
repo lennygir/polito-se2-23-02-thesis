@@ -146,16 +146,31 @@ corresponding button and fill the form.
 2. Click on the "Theses" button
 3. Click on the tree dots button of a proposal
 4. Click on the "Edit" button
-... TODO
+5. Remove a required field
+   - Verify that the error message is displayed under the field
+6. Set a valid and different value to the required field
+7. Click the "update proposal" button
+   - Verify that you are redirected to the proposal page and that the proposal has been updated
 
 ### [8] Proposal - delete a proposal
 
 In this test we will check that the professor can delete a proposal he owns.
 
-... TODO
+1. Login as a professor
+2. Click on the "Theses" button
+3. Click on the tree dots button of a proposal
+4. Click on the "Delete" button
+   - Verify that you received a confirmation message
+   - Verify that the proposal is not in the list anymore
 
 ### [9] Proposal - copy a proposal
 
 In this test we will check if the proposal is copy of a proposal is working properly.
 
-... TODO
+1. Login as a professor
+2. Click on the "Theses" button
+3. Click on the "new proposal" button
+4. Click on the "Copy from" button of a proposal
+   - Verify that all fields are filled with the values of the select proposal
+5. Click on the "Create proposal" button
+   - Verify that you are redirected to the proposal page and that the proposal is in your list of proposals
