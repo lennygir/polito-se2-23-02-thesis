@@ -89,42 +89,21 @@ function Main() {
   };
 
   const fetchProposals = async () => {
-    try {
-      if (user.role === "student") {
-        const proposals = await API.getProposalsByDegree(user.cod_degree);
-        setProposals(proposals);
-      } else if (user.role === "teacher") {
-        const proposals = await API.getProposalsByTeacher(user.id);
-        setProposals(proposals);
-      }
-    } catch (err) {
-      return handleErrors(err);
-    }
+    API.getProposals()
+      .then((proposals) => setProposals(proposals))
+      .catch((err) => handleErrors(err));
   };
 
   const fetchApplications = async () => {
-    try {
-      if (user.role === "student") {
-        const applications = await API.getApplicationsByStudent(user.id);
-        setApplications(applications);
-      } else if (user.role === "teacher") {
-        const applications = await API.getApplicationsByTeacher(user.id);
-        setApplications(applications);
-      }
-    } catch (err) {
-      return handleErrors(err);
-    }
+    API.getApplications()
+      .then((applications) => setApplications(applications))
+      .catch((err) => handleErrors(err));
   };
 
   const fetchNotifications = async () => {
-    try {
-      if (user.role === "student") {
-        const notifications = await API.getNotificationsByStudent(user.id);
-        setNotifications(notifications);
-      }
-    } catch (err) {
-      return handleErrors(err);
-    }
+    API.getNotifications()
+      .then((notifications) => setNotifications(notifications))
+      .catch((err) => handleErrors(err));
   };
 
   // At launch only
