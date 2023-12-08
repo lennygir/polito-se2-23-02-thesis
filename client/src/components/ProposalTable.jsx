@@ -58,6 +58,7 @@ function ProposalTable(props) {
                 key={proposal.id}
                 proposal={proposal}
                 deleteProposal={props.deleteProposal}
+                archiveProposal={props.archiveProposal}
                 getTeacherById={props.getTeacherById}
               />
             ))}

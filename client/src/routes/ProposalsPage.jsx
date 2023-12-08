@@ -16,7 +16,6 @@ import UserContext from "../contexts/UserContext";
 import ProposalTable from "../components/ProposalTable";
 import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
-import CreateIcon from "@mui/icons-material/Create";
 import ProposalFilters from "../components/ProposalFilters";
 import { TEACHER_PROPOSALS_FILTERS } from "../utils/constants";
 import API from "../utils/API";
@@ -169,6 +168,12 @@ function ProposalsPage(props) {
     return true;
   });
 
+  const archiveProposal = (proposalId) => {
+    // TODO: Get archived proposals from server
+
+    console.log("Proposal " + proposalId + " archived");
+  };
+
   const deleteProposal = (proposalId) => {
     API.deleteProposal(proposalId)
       .then(() => {
@@ -177,7 +182,6 @@ function ProposalsPage(props) {
           severity: "success"
         });
         props.setDirty(true);
-        navigate("/proposals");
       })
       .catch((err) => handleErrors(err));
   };
@@ -186,10 +190,10 @@ function ProposalsPage(props) {
     <>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
-          My Theses Proposals
+          My Thesis Proposals
         </Typography>
         <Hidden smDown>
-          <Button component={Link} to="/add-proposal" variant="contained" sx={{ mr: 4 }} endIcon={<CreateIcon />}>
+          <Button component={Link} to="/add-proposal" variant="contained" sx={{ mr: 4 }} startIcon={<AddIcon />}>
             New Proposal
           </Button>
         </Hidden>
@@ -198,8 +202,8 @@ function ProposalsPage(props) {
         sx={{
           display: "flex",
           justifyContent: "space-between",
-          marginX: 3,
-          marginY: -2
+          marginX: { md: 3, xs: 0 },
+          marginY: { md: -2, xs: 0 }
         }}
       >
         <Stack direction="row" spacing={1}>
@@ -214,7 +218,11 @@ function ProposalsPage(props) {
           ))}
         </Stack>
       </Toolbar>
-      <ProposalTable data={filteredTeacherProposals} deleteProposal={deleteProposal} />
+      <ProposalTable
+        data={filteredTeacherProposals}
+        deleteProposal={deleteProposal}
+        archiveProposal={archiveProposal}
+      />
       <Box height={5} marginTop={3} />
       <Hidden smUp>
         <Stack
