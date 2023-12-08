@@ -1,7 +1,7 @@
 "use strict";
 
 const request = require("supertest");
-const app = require("../src/server");
+const { app } = require("../src/server");
 const {
   getGroups,
   getTeachers,
@@ -9,9 +9,7 @@ const {
   updateApplication,
   getApplicationById,
   getTeacherByEmail,
-  getTeacher,
   getGroup,
-  getApplications,
   cancelPendingApplications,
   getProposal,
   getStudent,
@@ -19,22 +17,32 @@ const {
   findAcceptedProposal,
   findRejectedApplication,
   getNotificationsOfStudent,
+  getApplicationsOfTeacher,
+  getApplicationsOfStudent,
 } = require("../src/theses-dao");
+const isLoggedIn = require("../src/protect-routes");
 
 jest.mock("../src/theses-dao");
+jest.mock("../src/protect-routes");
 
 const application = {
-  student: "s309618",
   proposal: 8,
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  application.student = "s309618";
   application.proposal = 8;
 });
 
 describe("Application Insertion Tests", () => {
+  beforeEach(() => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+  });
   test("Insertion of an application with a wrong proposal", () => {
     application.proposal = -5;
     return request(app)
@@ -65,15 +73,20 @@ describe("Application Insertion Tests", () => {
     getProposal.mockReturnValue({
       proposal: "proposal",
     });
-    getStudent.mockReturnValue(undefined);
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "wrong.student@studenti.it",
+      };
+      next();
+    });
     return request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
       .send(application)
-      .expect(400)
+      .expect(401)
       .then((response) => {
         expect(response.body).toStrictEqual({
-          message: "Invalid application content",
+          message: "Only a student can apply for a proposal",
         });
       });
   });
@@ -98,7 +111,7 @@ describe("Application Insertion Tests", () => {
       .expect(400)
       .then((response) => {
         expect(response.body).toStrictEqual({
-          message: `The student ${application.student} has already applied to a proposal`,
+          message: `The student s309618 has already applied to a proposal`,
         });
       });
   });
@@ -167,78 +180,81 @@ describe("Application Insertion Tests", () => {
       .expect(200);
   });
 });
-describe("Proposal Insertion Tests", () => {
-  test("Insertion of a proposal with groups that are not related to any (co)supervisor", () => {
-    const proposal = {
-      title: "Proposta di tesi fighissima",
-      supervisor: "s345678",
-      co_supervisors: [
-        "maurizio.morisio@polito.it",
-        "s122349@gmail.com",
-        "s298399@outlook.com",
-      ],
-      groups: ["ELITE", "SOFTENG", "FUNDIT"],
-      keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
-      types: ["EXPERIMENTAL", "RESEARCH"],
-      description: "Accetta questa tesi che e' una bomba",
-      required_knowledge: "non devi sapere nulla",
-      notes: "Bella raga",
-      expiration_date: "2019-01-25T02:00:00.000Z",
-      level: "MSC",
-      cds: "LM-32 (DM270)",
-    };
-    getTeacher.mockReturnValue({
-      id: "s345678",
-      name: "Luigi",
-      surname: "De Russis",
+
+test("Proposal insertion ", () => {
+  isLoggedIn.mockImplementation((req, res, next) => {
+    req.user = {
       email: "luigi.derussis@polito.it",
-      cod_group: "ELITE",
-      cod_department: "DAUIN",
-    });
-    getGroup.mockReturnValueOnce({
-      cod_group: "ELITE",
-      name_group: "Intelligent and Interactive Systems",
-      cod_department: "DAUIN",
-    });
-    getGroup.mockReturnValueOnce({
-      cod_group: "SOFTENG",
-      name_group: "Software Engineering Group",
-      cod_department: "DAUIN",
-    });
-    getGroup.mockReturnValueOnce({
-      cod_group: "FUNDIT",
-      name_group: "Physics of Fundamental Interactions",
-      cod_department: "DISAT",
-    });
-    getTeacherByEmail.mockReturnValueOnce({
-      id: "s234567",
-      surname: "Morisio",
-      name: "Maurizio",
-      email: "maurizio.morisio@polito.it",
-      cod_group: "SOFTENG",
-      cod_department: "DAUIN",
-    });
-    return request(app)
-      .post("/api/proposals")
-      .set("Content-Type", "application/json")
-      .send(proposal)
-      .expect(400)
-      .then((response) => {
-        expect(response.body.message).toBe("Invalid groups");
-      });
+    };
+    next();
   });
+  const proposal = {
+    title: "Proposta di tesi fighissima",
+    co_supervisors: [
+      "maurizio.morisio@polito.it",
+      "s122349@gmail.com",
+      "s298399@outlook.com",
+    ],
+    groups: ["ELITE", "SOFTENG", "FUNDIT"],
+    keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
+    types: ["EXPERIMENTAL", "RESEARCH"],
+    description: "Accetta questa tesi che e' una bomba",
+    required_knowledge: "non devi sapere nulla",
+    notes: "Bella raga",
+    expiration_date: "2019-01-25T02:00:00.000Z",
+    level: "MSC",
+    cds: "LM-32 (DM270)",
+  };
+  getGroup.mockReturnValueOnce({
+    cod_group: "ELITE",
+    name_group: "Intelligent and Interactive Systems",
+    cod_department: "DAUIN",
+  });
+  getGroup.mockReturnValueOnce({
+    cod_group: "SOFTENG",
+    name_group: "Software Engineering Group",
+    cod_department: "DAUIN",
+  });
+  getGroup.mockReturnValueOnce({
+    cod_group: "FUNDIT",
+    name_group: "Physics of Fundamental Interactions",
+    cod_department: "DISAT",
+  });
+  getTeacherByEmail.mockReturnValueOnce({
+    id: "s234567",
+    surname: "Morisio",
+    name: "Maurizio",
+    email: "maurizio.morisio@polito.it",
+    cod_group: "SOFTENG",
+    cod_department: "DAUIN",
+  });
+  return request(app)
+    .post("/api/proposals")
+    .set("Content-Type", "application/json")
+    .send(proposal);
 });
 
 describe("Applications retrieval tests", () => {
-  test("Return 400 for a teacher that doesn't exist", () => {
-    const teacher = 0;
+  test("Return 500 for user that doesn't exist", () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "wrong.teacher@teacher.it",
+      };
+      next();
+    });
     return request(app)
-      .get(`/api/applications?teacher=${teacher}`)
+      .get(`/api/applications`)
       .set("Content-Type", "application/json")
-      .expect(400);
+      .expect(500);
   });
-  test("Get all the applications", () => {
-    getApplications.mockReturnValue([
+  test("Get all the applications of student", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s317743@studenti.polito.it",
+      };
+      next();
+    });
+    const expectedApplications = [
       {
         id: 1,
         proposal_id: 1,
@@ -285,33 +301,39 @@ describe("Applications retrieval tests", () => {
         title:
           "Detecting the risk discrimination in classifiers with imbalance measures",
       },
-      {
-        id: 37,
-        proposal_id: 8,
-        student_id: "s309618",
-        state: "pending",
-        student_name: "Lorenzo",
-        student_surname: "Bertetto",
-        teacher_name: "Maurizio",
-        teacher_surname: "Morisio",
-        title:
-          "Analisi della qualità del codice e della sicurezza delle librerie software nell ambito dell IoT: un approccio basato sull analisi statica",
-      },
-    ]);
-    return request(app)
+    ];
+    getApplicationsOfStudent.mockReturnValue(expectedApplications);
+    const applications = (
+      await request(app)
+        .get("/api/applications")
+        .set("Content-Type", "application/json")
+        .expect(200)
+    ).body;
+    expect(applications).toEqual(expectedApplications);
+  });
+  test("No applications", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+    getApplicationsOfTeacher.mockReturnValue([]);
+    await request(app)
       .get("/api/applications")
       .set("Content-Type", "application/json")
       .expect(200);
-  });
-  test("No applications", () => {
-    getApplications.mockReturnValue([]);
-    return request(app)
-      .get("/api/applications")
-      .set("Content-Type", "application/json")
-      .expect(404);
+    expect(getApplicationsOfTeacher).toBeCalledWith(
+      "s123456", //"marco.torchiano@teacher.it",
+    );
   });
 });
 describe("Get All Teachers Test", () => {
+  beforeEach(() => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      next();
+    });
+  });
   test("Correct get of all teachers from db", () => {
     getTeachers.mockReturnValue([
       {
@@ -337,12 +359,12 @@ describe("Get All Teachers Test", () => {
         // todo: Add more specific checks on the response body if needed
       });
   });
-  test("Get 404 for an empty group table db", () => {
+  test("Get 200 for an empty group table db", () => {
     getTeachers.mockReturnValue([]);
     return request(app)
       .get("/api/teachers")
       .expect("Content-Type", /json/)
-      .expect(404);
+      .expect(200);
   });
   test("Get 500 for an internal server error", () => {
     getTeachers.mockImplementation(() => {
@@ -356,6 +378,9 @@ describe("Get All Teachers Test", () => {
 });
 
 describe("Get All Groups Test", () => {
+  beforeEach(() => {
+    isLoggedIn.mockImplementation((req, res, next) => next());
+  });
   test("Correct get of all groups from db", () => {
     getGroups.mockReturnValue([
       { cod_group: "SOFTENG" },
@@ -385,6 +410,9 @@ describe("Get All Groups Test", () => {
 });
 
 describe("Get All Degrees Test", () => {
+  beforeEach(() => {
+    isLoggedIn.mockImplementation((req, res, next) => next());
+  });
   test("Correct get of all degrees from db", () => {
     getDegrees.mockReturnValue([
       { cod_degree: "LM-32 (DM270)", title_degree: "Computer Engineering" },
@@ -414,6 +442,14 @@ describe("Get All Degrees Test", () => {
 });
 
 describe("PATCH /api/applications/:id", () => {
+  beforeEach(() => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+  });
   test("Should return 400 if the application does not exist", async () => {
     getApplicationById.mockReturnValue(undefined);
 
@@ -500,23 +536,34 @@ describe("PATCH /api/applications/:id", () => {
   });
 });
 
-describe('GET /api/notifications', () => {
-  it('should return notifications for a valid student', async () => {
-    const mockStudent = { id: "s295923"  };
-    const mockNotifications = [{ id: 1, message: 'Notification 1' }];
-    getStudent.mockReturnValue(mockStudent);
+describe("GET /api/notifications", () => {
+  beforeEach(() => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+  });
+  it("should return notifications for a valid student", async () => {
+    const mockNotifications = [{ id: 1, message: "Notification 1" }];
     getNotificationsOfStudent.mockReturnValue(mockNotifications);
-    const response = await request(app).get('/api/notifications?student=s295923');
+    const response = await request(app).get("/api/notifications");
     expect(response.status).toBe(200);
     expect(response.body).toEqual(mockNotifications);
   });
 
-  it('should return a 404 error for a non-existing student', async () => {
-    getStudent.mockReturnValue(undefined);
-    const response = await request(app).get('/api/notifications?student=s328186');
-    expect(response.status).toBe(404);
+  it("should return a 404 error for a non existing student", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+    const response = await request(app).get("/api/notifications");
+    expect(response.status).toBe(500);
     expect(response.body).toEqual({
-      message: 'Student s328186 not found, cannot get the notifications',
+      message: "Missing professor notifications feature",
     });
   });
 

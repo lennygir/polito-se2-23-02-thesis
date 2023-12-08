@@ -1,7 +1,6 @@
 "use strict";
 const request = require("supertest");
 const { app } = require("../src/server");
-const { deleteApplicationsOfStudent } = require("../src/theses-dao");
 const dayjs = require("dayjs");
 const { db } = require("../src/db");
 const isLoggedIn = require("../src/protect-routes");

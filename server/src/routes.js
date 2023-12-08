@@ -177,12 +177,6 @@ router.get("/api/teachers", isLoggedIn, (req, res) => {
   try {
     const teachers = getTeachers();
 
-    if (teachers.length === 0) {
-      return res
-        .status(404)
-        .send({ message: "No teacher found in the database" });
-    }
-
     return res.status(200).json(teachers);
   } catch (e) {
     return res.status(500).send({ message: "Internal server error" });
