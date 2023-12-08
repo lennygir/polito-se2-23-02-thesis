@@ -157,7 +157,9 @@ describe("Application Insertion Tests", () => {
   test("Correct insertion of a right application", () => {
     getProposal.mockReturnValue({
       proposal: "something",
+      expiration_date: dayjs().add(1,'day'),
     });
+    getDelta.mockReturnValue(0);
     getStudent.mockReturnValue({
       student: "something",
     });
@@ -350,7 +352,7 @@ describe("Get All Teachers Test", () => {
   });
   test("Get 500 for an internal server error", () => {
     getTeachers.mockImplementation(() => {
-      throw "SQLITE_ERROR_SOMETHING";
+      throw new Error("SQLITE_ERROR_SOMETHING");
     });
     return request(app)
       .get("/api/teachers")
@@ -379,7 +381,7 @@ describe("Get All Groups Test", () => {
   });
   test("Get 500 for an internal server error", () => {
     getGroups.mockImplementation(() => {
-      throw "SQLITE_ERROR_SOMETHING";
+      throw new Error("SQLITE_ERROR_SOMETHING");
     });
     return request(app)
       .get("/api/groups")
@@ -408,7 +410,7 @@ describe("Get All Degrees Test", () => {
   });
   test("Get 500 for an internal server error", () => {
     getDegrees.mockImplementation(() => {
-      throw "SQLITE_ERROR_SOMETHING";
+      throw new Error("SQLITE_ERROR_SOMETHING");
     });
     return request(app)
       .get("/api/degrees")
@@ -472,7 +474,7 @@ describe("PATCH /api/applications/:id", () => {
   });
   test("It should return 500 in case of database error", () => {
     getApplicationById.mockImplementation(() => {
-      throw "SQLITE_ERROR_SOMETHING";
+      throw new Error("SQLITE_ERROR_SOMETHING");
     });
     return request(app)
       .patch("/api/applications/1")
@@ -529,7 +531,7 @@ describe('GET /api/notifications', () => {
 
 describe('GET /api/virtualClock', () => {
   it('should respond with status 200 and date', async () => {
-    getDelta.mockReturnValueOnce(3);
+    getDelta.mockReturnValueOnce({delta:3});
     getProposals.mockReturnValue([
       { id: 1, expiration_date: '2023-01-01' },
       { id: 2, expiration_date: '2023-02-01' },
@@ -554,7 +556,7 @@ describe('GET /api/virtualClock', () => {
 describe('PATCH /api/virtualClock', () => {
   it('should respond with status 200 and success message', async () => {
     setDelta.mockReturnValueOnce({message: 'Date successfully changed'});
-    getDelta.mockReturnValueOnce(0);
+    getDelta.mockReturnValueOnce({delta:0});
     getProposals.mockReturnValue([
       { id: 1, expiration_date: '2023-01-01' },
       { id: 2, expiration_date: '2023-02-01' },
@@ -576,7 +578,7 @@ describe('PATCH /api/virtualClock', () => {
   });
 
   it('should handle going back in the past and respond with status 400', async () => {
-    getDelta.mockReturnValueOnce(4);
+    getDelta.mockReturnValueOnce({delta:4});
     const response = await request(app)
       .patch('/api/virtualClock')
       .send({ date: dayjs().add(1,"day").format("YYYY-MM-DD")});

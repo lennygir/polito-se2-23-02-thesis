@@ -386,6 +386,13 @@ router.post(
             "The student has already applied for this application and it was rejected",
         });
       }
+      const clock = getDelta();
+      const date = dayjs().add(clock.delta, 'day').format("YYYY-MM-DD");
+      if ( dayjs(date).isAfter(dayjs(db_proposal.expiration_date), 'day') ){
+        return res.status(400).json({
+          message: `The proposal ${proposal} is expired, cannot apply`,
+        });
+      }
       const application = insertApplication(proposal, student, "pending");
       return res.status(200).json(application);
     } catch (e) {
@@ -685,8 +692,8 @@ router.delete("/api/proposals/:id", [check("id").isInt()], async (req, res) => {
 router.get("/api/virtualClock",
   async (req, res) => {
     try {
-      const deltaDays = getDelta();
-      const date = dayjs().add(deltaDays, 'day').format("YYYY-MM-DD");
+      const clock = getDelta();
+      const date = dayjs().add(clock.delta, 'day').format("YYYY-MM-DD");
       getProposals()
         .filter((proposal) => dayjs(date).isAfter(dayjs(proposal.expiration_date), 'day'))
         .forEach((proposal) => cancelPendingApplications(proposal.id));
@@ -705,9 +712,10 @@ router.patch("/api/virtualClock",
       return res.status(400).send({ message: "Invalid date content" });
     }
     try {
-      const deltaDays = getDelta();
-      const newDelta = dayjs(req.body.date).diff(dayjs(), 'day');
-      if (newDelta<deltaDays){
+      const clock = getDelta();
+      const newDelta = dayjs(req.body.date).diff(dayjs().format("YYYY-MM-DD"), 'day');
+   
+      if (newDelta<clock.delta){
         return res.status(400).send({ message: "Cannot go back in the past" });
       }
       setDelta(newDelta);

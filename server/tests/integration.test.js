@@ -25,7 +25,7 @@ beforeEach(() => {
     description: "Accetta questa tesi che e' una bomba",
     required_knowledge: "non devi sapere nulla",
     notes: "Bella raga",
-    expiration_date: "2019-01-25T02:00:00.000Z",
+    expiration_date: "2025-01-25T02:00:00.000Z",
     level: "MSC",
     cds: "L-8-F",
   };
@@ -217,8 +217,15 @@ describe("Application Insertion Tests", () => {
         });
       });
   });
-  it("Insertion of a correct application", () => {
+  it("Insertion of a correct application", async () => {
     deleteApplicationsOfStudent(application.student);
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+    application.proposal=inserted_proposal_id;
     return request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
@@ -227,13 +234,20 @@ describe("Application Insertion Tests", () => {
       .then((response) => {
         expect(response.body).toStrictEqual({
           student_id: "s317743",
-          proposal_id: 1,
+          proposal_id: inserted_proposal_id,
           state: "pending",
         });
       });
   });
   it("Insertion of an application for a student who already applied to a proposal", async () => {
     deleteApplicationsOfStudent(application.student);
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+    application.proposal=inserted_proposal_id;
     await request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
@@ -269,16 +283,14 @@ describe("Notifications Retrieval Tests", () => {
 describe("test the correct flow for a proposal expiration", () => {
   it("a pending application for a proposal that expires sholud be set cancelled", async () => {
     const clock = getDelta();
-    
     proposal.expiration_date = dayjs().add(clock.delta+1,'day').format("YYYY-MM-DD");
-    
     const inserted_proposal_id = (
       await request(app)
         .post("/api/proposals")
         .set("Content-Type", "application/json")
         .send(proposal)
     ).body;
-    await deleteApplicationsOfStudent("s317743");
+    deleteApplicationsOfStudent("s317743");
     await request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
@@ -291,16 +303,42 @@ describe("test the correct flow for a proposal expiration", () => {
     .set("Content-Type", "application/json")
     .send({date:dayjs().add(clock.delta+2,"day").format("YYYY-MM-DD")})
     .expect(200);
-    
+    let state = db.prepare("select state from APPLICATIONS where student_id = ? and proposal_id = ?").get("s317743",inserted_proposal_id);
+    console.log(state);
+    expect(state).toEqual({ state: 'canceled' });
+    db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
   });
 
-  /*it("", () => {
-    return request(app)
-      .post(`/api/virtualClock`)
+  it("cannot apply to a proposal expired", async () => {
+    const clock = getDelta();
+    proposal.expiration_date = dayjs().add(clock.delta+1,'day').format("YYYY-MM-DD");
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+    deleteApplicationsOfStudent("s317743");
+    await request(app)
+    .patch(`/api/virtualClock`)
+    .set("Content-Type", "application/json")
+    .send({date:dayjs().add(clock.delta+2,"day").format("YYYY-MM-DD")})
+    .expect(200);
+    await request(app)
+      .post("/api/applications")
       .set("Content-Type", "application/json")
-      .send("2023-12-12")
-      .expect(200);
-  });*/
+      .send({
+        student: "s317743",
+        proposal: inserted_proposal_id,
+      })
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: `The proposal ${inserted_proposal_id} is expired, cannot apply`,
+        });
+      });
+      db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
+  });
 });
 
 
