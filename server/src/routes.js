@@ -28,6 +28,8 @@ const {
   findRejectedApplication,
   notifyApplicationDecision,
   getNotificationsOfStudent,
+  getExamsOfStudent,
+  insertPDFInApplication,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 
@@ -307,10 +309,56 @@ router.get("/api/applications", isLoggedIn, (req, res) => {
   }
 });
 
+router.get(
+  "/api/applications/:id/attached-file",
+  check("id").isInt({ min: 1 }),
+  isLoggedIn,
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).json({ message: "Invalid application content" });
+    }
+    try {
+      const { id } = req.params;
+      const application = getApplicationById(id);
+      if (application === undefined) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      const attachedFile = application.attached_file;
+      if (attachedFile === undefined) {
+        return res
+          .status(404)
+          .json({ message: "The application has not any attached files" });
+      }
+      return res.status(200).send(attachedFile);
+    } catch (e) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+
+async function setStateToApplication(req, res, state) {
+  const application = getApplicationById(req.params.id);
+  if (application === undefined) {
+    return res.status(400).json({ message: "Application not existent" });
+  }
+  if (application.state !== "pending") {
+    return res.status(400).json({
+      message: "You cannot modify an application already accepted or rejected",
+    });
+  }
+  updateApplication(application.id, state);
+  await notifyApplicationDecision(application.id, state);
+  if (state === "accepted") {
+    cancelPendingApplications(application.proposal_id);
+  }
+  return res.status(200).json({ message: `Application ${state}` });
+}
+
 router.patch(
   "/api/applications/:id",
   isLoggedIn,
-  check("state").isIn(["accepted", "rejected"]),
+  check("state").isIn(["accepted", "rejected"]).optional({ values: "falsy" }),
   check("id").isInt({ min: 1 }),
   async (req, res) => {
     const result = validationResult(req);
@@ -319,30 +367,52 @@ router.patch(
     }
     try {
       const { email } = req.user;
-      const teacher = getUser(email);
-      if (!teacher || teacher.role !== "teacher") {
-        return res
-          .status(401)
-          .json({ message: "You must be a teacher to modify an application" });
+      const user = getUser(email);
+      if (user) {
+        if (user.role === "teacher") {
+          const { state } = req.body;
+          if (state) {
+            return await setStateToApplication(req, res, state);
+          } else {
+            return res.status(400).json({
+              message:
+                "You have to tell if you want to accept or reject the application",
+            });
+          }
+        } else if (user.role === "student") {
+          const application = getApplicationById(req.params.id);
+          if (application.state !== "pending") {
+            return res.status(401).json({
+              message: "You cannot attach a file to a request not pending",
+            });
+          }
+          // I am expecting a pdf file
+          const uploadedFile = req.body;
+          insertPDFInApplication(uploadedFile, req.params.id);
+          return res.status(200).json({ message: "File uploaded correctly" });
+        }
+      } else {
+        return res.status(500).json({ message: "Internal Server Error" });
       }
-      const { state } = req.body;
-      const application = getApplicationById(req.params.id);
-      if (application === undefined) {
-        return res.status(400).json({ message: "Application not existent" });
-      }
-      if (application.state !== "pending") {
-        return res.status(400).json({
-          message:
-            "You cannot modify an application already accepted or rejected",
-        });
-      }
-      updateApplication(application.id, state);
-      await notifyApplicationDecision(application.id, state);
-      if (state === "accepted") {
-        cancelPendingApplications(application.proposal_id);
-      }
-      return res.status(200).json({ message: `Application ${state}` });
     } catch (err) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+
+router.get(
+  "/api/students/:studentId/exams",
+  isLoggedIn,
+  check("studentId").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ message: "Invalid proposal content" });
+    }
+    try {
+      const { studentId } = req.params;
+      return res.status(200).json(getExamsOfStudent(studentId));
+    } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   },

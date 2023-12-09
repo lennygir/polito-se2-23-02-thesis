@@ -94,6 +94,18 @@ exports.insertProposal = (
   //  });
 };
 
+exports.insertPDFInApplication = (file, applicationId) => {
+  return db
+    .prepare(
+      "update APPLICATIONS set attached_file = ? where main.APPLICATIONS.id = ?",
+    )
+    .run(file, applicationId);
+};
+
+exports.getExamsOfStudent = (id) => {
+  return db.prepare("select * from main.CAREER where id = ?").all(id);
+};
+
 exports.getApplicationById = (id) => {
   return db.prepare("select * from APPLICATIONS where id = ?").get(id);
 };
