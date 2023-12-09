@@ -309,6 +309,34 @@ router.get("/api/applications", isLoggedIn, (req, res) => {
   }
 });
 
+router.get(
+  "/api/applications/:id/attached-file",
+  check("id").isInt({ min: 1 }),
+  isLoggedIn,
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).json({ message: "Invalid application content" });
+    }
+    try {
+      const { id } = req.params;
+      const application = getApplicationById(id);
+      if (application === undefined) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      const attachedFile = application.attached_file;
+      if (attachedFile === undefined) {
+        return res
+          .status(404)
+          .json({ message: "The application has not any attached files" });
+      }
+      return res.status(200).send(attachedFile);
+    } catch (e) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+
 async function setStateToApplication(req, res, state) {
   const application = getApplicationById(req.params.id);
   if (application === undefined) {

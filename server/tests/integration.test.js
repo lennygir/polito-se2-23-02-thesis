@@ -428,6 +428,22 @@ describe("Story 13: student CV", () => {
       .send(pdf)
       .expect(200);
     expect(response.body).toEqual({ message: "File uploaded correctly" });
+
+    // log in as professor
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+
+    // retrieve pdf file
+    const expectedPdf = (
+      await request(app)
+        .get(`/api/applications/${applications[0].id}/attached-file`)
+        .expect(200)
+    ).body;
+    expect(expectedPdf).toEqual(pdf);
   });
 });
 
