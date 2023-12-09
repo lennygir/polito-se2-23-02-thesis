@@ -329,10 +329,10 @@ VALUES  (1, 'Gamification di attività di modellazione UML', 's123456', 'luigi.d
 INSERT INTO USERS (email, password)
 VALUES ('marco.torchiano@teacher.it', 's123456'),
        ('maurizio.morisio@teacher.it', 's234567'),
-       ('s319823@studenti.teacher.it', 's319823'),
-       ('s321503@studenti.teacher.it', 's321503'),
-       ('s308747@studenti.teacher.it', 's308747'),
-       ('s309618@studenti.teacher.it', 's309618');
+       ('s319823@studenti.polito.it', 's319823'),
+       ('s321503@studenti.polito.it', 's321503'),
+       ('s308747@studenti.polito.it', 's308747'),
+       ('s309618@studenti.polito.it', 's309618');
 
 INSERT INTO APPLICATIONS (proposal_id,student_id,state)
 VALUES (1,'s309618','rejected'),
