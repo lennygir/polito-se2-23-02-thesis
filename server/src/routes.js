@@ -282,7 +282,6 @@ router.post(
       notifyNewApplication(application?.proposal_id);
       return res.status(200).json(application);
     } catch (e) {
-      console.log(e);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
