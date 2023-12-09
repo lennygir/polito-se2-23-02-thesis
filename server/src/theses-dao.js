@@ -5,6 +5,7 @@
 const { db } = require("./db");
 const { nodemailer } = require("./smtp");
 const { applicationDecisionTemplate } = require("./mail/application-decision");
+const { newApplicationTemplate } = require("./mail/new-application");
 
 exports.insertApplication = (proposal, student, state) => {
   db.prepare(
@@ -247,6 +248,41 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
   ).run(
     applicationJoined.id,
     "New decision on your thesis application",
+    mailBody.text,
+  );
+};
+
+exports.notifyNewApplication = async (proposalId) => {
+  // Send email to the supervisor
+  const proposalJoined = db
+    .prepare(
+      "SELECT P.title, T.id, T.email, T.surname, T.name \
+      FROM PROPOSALS P \
+      JOIN TEACHER T ON T.id = P.supervisor \
+      WHERE P.id = ?",
+    )
+    .get(proposalId);
+  const mailBody = newApplicationTemplate({
+    name: proposalJoined.surname + " " + proposalJoined.name,
+    thesis: proposalJoined.title
+  });
+  try {
+    await nodemailer.sendMail({
+      to: proposalJoined.email,
+      subject: "New application on your thesis proposal",
+      text: mailBody.text,
+      html: mailBody.html,
+    });
+  } catch (e) {
+    console.log("[mail service]", e);
+  }
+
+  // Save email in DB
+  db.prepare(
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+  ).run(
+    proposalJoined.id,
+    "New application on your thesis proposal",
     mailBody.text,
   );
 };
