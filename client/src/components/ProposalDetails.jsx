@@ -14,14 +14,14 @@ import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import ScienceIcon from "@mui/icons-material/Science";
 import UserContext from "../contexts/UserContext";
 import { useThemeContext } from "../theme/ThemeContextProvider";
-import ConfirmationDialog from "./ConfirmationDialog";
+import DropzoneDialog from "./DropzoneDialog";
 
-const dialogMessage =
-  "Are you sure you want to submit your application for this thesis proposal? This action is irreversible, and your application will be sent to the supervisor for consideration.";
+const uploadMessage =
+  "Before proceding, you can upload up to one pdf file (e.g., your personal CV) that is going to be attached to your application.";
 
 function ProposalDetails(props) {
   const { theme } = useThemeContext();
-  const { proposal, applications, getTeacherById, getDegreeById } = props;
+  const { proposal, applications, createApplication, getTeacherById, getDegreeById, setAlert } = props;
   const supervisorTeacher = getTeacherById(proposal.supervisor);
   const degree = getDegreeById(proposal.cds);
   const user = useContext(UserContext);
@@ -42,7 +42,7 @@ function ProposalDetails(props) {
       proposal: proposal.id,
       student: user.id
     };
-    props.createApplication(application);
+    createApplication(application);
   };
 
   const isApplicationAccepted = () => {
@@ -109,12 +109,12 @@ function ProposalDetails(props) {
   return (
     <>
       {user.role === "student" && (
-        <ConfirmationDialog
-          mode="submit"
-          message={dialogMessage}
+        <DropzoneDialog
+          message={uploadMessage}
           open={openDialog}
           handleClose={handleCloseDialog}
-          handleSubmit={handleSubmit}
+          createApplication={handleSubmit}
+          setAlert={setAlert}
         />
       )}
       <Typography variant="h5" gutterBottom paddingTop={2}>

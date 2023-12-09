@@ -237,7 +237,6 @@ function ProposalForm(props) {
       data.id = proposal.id;
       props.editProposal(data);
     } else if (props.mode === "create") {
-      console.log(data);
       props.createProposal(data);
     }
   };

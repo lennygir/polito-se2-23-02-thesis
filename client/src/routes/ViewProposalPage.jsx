@@ -56,6 +56,7 @@ function ViewProposalPage(props) {
             createApplication={createApplication}
             getTeacherById={props.getTeacherById}
             getDegreeById={props.getDegreeById}
+            setAlert={props.setAlert}
           />
         </Box>
       </Paper>
