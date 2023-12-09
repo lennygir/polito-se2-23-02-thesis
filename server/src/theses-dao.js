@@ -343,10 +343,10 @@ exports.getProposals = () => {
   return db.prepare("select * from PROPOSALS").all();
 };
 
-exports.getNotificationsOfStudent = (student_id) => {
+exports.getNotifications = (user_id) => {
   return db
-    .prepare("SELECT * FROM NOTIFICATIONS WHERE student_id = ?")
-    .all(student_id);
+    .prepare("SELECT * FROM NOTIFICATIONS WHERE student_id = ? OR teacher_id = ?")
+    .all(user_id, user_id);
 };
 
 exports.deleteProposal = (proposal_id) => {

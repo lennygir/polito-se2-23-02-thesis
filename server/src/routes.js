@@ -27,7 +27,7 @@ const {
   findAcceptedProposal,
   findRejectedApplication,
   notifyApplicationDecision,
-  getNotificationsOfStudent,
+  getNotifications,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 
@@ -355,15 +355,8 @@ router.get("/api/notifications", isLoggedIn, (req, res) => {
     if (!user) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-    if (user.role === "student") {
-      const notifications = getNotificationsOfStudent(user.id);
-      return res.status(200).json(notifications);
-    } else {
-      // todo: professor notifications
-      return res
-        .status(500)
-        .json({ message: "Missing professor notifications feature" });
-    }
+    const notifications = getNotifications(user.id);
+    return res.status(200).json(notifications);
   } catch (e) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
