@@ -232,12 +232,18 @@ router.get("/api/proposals", isLoggedIn, (req, res) => {
   try {
     const { email } = req.user;
     const user = getUser(email);
+    const clock = getDelta();
+    const date = dayjs().add(clock.delta, 'day').format("YYYY-MM-DD");
     if (!user) {
       return res.status(500).json({ message: "Internal server error" });
     }
     let proposals;
     if (user.role === "student") {
-      proposals = getProposalsByDegree(user.cod_degree);
+      proposals = getProposalsByDegree(user.cod_degree)
+      .filter( ( proposal ) => {
+       dayjs(date).isBefore(proposal.expiration_date, 'day') || dayjs(date).isSame(proposal.expiration_date, 'day');
+      }
+      );
     } else if (user.role === "teacher") {
       proposals = getProposalsBySupervisor(user.id);
     } else {
@@ -289,7 +295,7 @@ router.post(
       }
       const clock = getDelta();
       const date = dayjs().add(clock.delta, 'day').format("YYYY-MM-DD");
-      if ( dayjs(date).isAfter(dayjs(db_proposal.expiration_date), 'day') ){
+      if ( dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day") ){
         return res.status(400).json({
           message: `The proposal ${proposal} is expired, cannot apply`,
         });
@@ -309,12 +315,28 @@ router.get("/api/applications", isLoggedIn, (req, res) => {
     if (!user) {
       return res.status(500).json({ message: "Internal server error" });
     }
+    const clock = getDelta();
+    const date = dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
     let applications;
     if (user.role === "teacher") {
-      applications = getApplicationsOfTeacher(user.id);
+      applications = getApplicationsOfTeacher(user.id)
+      .map( ( application ) => {
+        let db_proposal = getProposal(application.proposal_id);
+        if ( dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day") && application.state === "pending" ){
+          application.state = "canceled";
+        }
+        return application;
+      });
       return res.status(200).json(applications);
     } else if (user.role === "student") {
-      applications = getApplicationsOfStudent(user.id);
+      applications = getApplicationsOfStudent(user.id)
+      .map( ( application ) => {
+        let db_proposal = getProposal(application.proposal_id);
+        if ( dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day") && application.state === "pending" ){
+          application.state = "canceled";
+        }
+        return application;
+      });
       return res.status(200).json(applications);
     } else {
       return res.status(500).json({ message: "Internal server error" });
@@ -534,13 +556,11 @@ router.delete(
 );
     
 router.get("/api/virtualClock",
+  isLoggedIn,
   async (req, res) => {
     try {
       const clock = getDelta();
       const date = dayjs().add(clock.delta, 'day').format("YYYY-MM-DD");
-      getProposals()
-        .filter((proposal) => dayjs(date).isAfter(dayjs(proposal.expiration_date), 'day'))
-        .forEach((proposal) => cancelPendingApplications(proposal.id));
       return res.status(200).json(date);
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
@@ -549,6 +569,7 @@ router.get("/api/virtualClock",
 );
 
 router.patch("/api/virtualClock",
+  isLoggedIn,
   check("date").isISO8601().toDate(),
   async (req, res) => {
     const result = validationResult(req);
@@ -558,16 +579,10 @@ router.patch("/api/virtualClock",
     try {
       const clock = getDelta();
       const newDelta = dayjs(req.body.date).diff(dayjs().format("YYYY-MM-DD"), 'day');
-   
       if (newDelta<clock.delta){
         return res.status(400).send({ message: "Cannot go back in the past" });
       }
       setDelta(newDelta);
-      getProposals()
-        .filter((proposal) => dayjs(req.body.date).isAfter(dayjs(proposal.expiration_date), 'day'))
-        .forEach((proposal) => {
-          cancelPendingApplications(proposal.id);
-        });
       return res.status(200).send({ message: "Date successfully changed"});
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });

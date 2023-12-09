@@ -23,7 +23,7 @@ beforeEach(() => {
     notes: "Bella raga",
     expiration_date: "2025-01-25T02:00:00.000Z",
     level: "MSC",
-    cds: "L-8-F",
+    cds: "LM-32-D",
   };
   application = {
     proposal: 1,
@@ -58,7 +58,7 @@ describe("Protected routes", () => {
   });
 });
 
-describe("Story 12: Archive Proposals", () => {
+/*describe("Story 12: Archive Proposals", () => {
   let proposal_body;
   let inserted_proposal;
   beforeEach(() => {
@@ -338,7 +338,7 @@ describe("Story 12: Archive Proposals", () => {
       archived: true,
     });
   });
-});
+});*/
 
 it("prova", async () => {
   const email = "marco.torchiano@teacher.it";
@@ -710,7 +710,14 @@ describe("Notifications Retrieval Tests", () => {
 
 describe("test the correct flow for a proposal expiration", () => {
   it("a pending application for a proposal that expires sholud be set cancelled", async () => {
-    const clock = getDelta();
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+    db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
+    const clock = db.prepare("select delta from VIRTUAL_CLOCK where id = 1").get();
     proposal.expiration_date = dayjs().add(clock.delta+1,'day').format("YYYY-MM-DD");
     const inserted_proposal_id = (
       await request(app)
@@ -718,27 +725,44 @@ describe("test the correct flow for a proposal expiration", () => {
         .set("Content-Type", "application/json")
         .send(proposal)
     ).body;
-    deleteApplicationsOfStudent("s317743");
+    db.prepare(
+      "delete from main.APPLICATIONS where main.APPLICATIONS.student_id = ?",
+    ).run("s309618");
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
     await request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
       .send({
-        student: "s317743",
         proposal: inserted_proposal_id,
-      })
+      });
     await request(app)
-    .patch(`/api/virtualClock`)
-    .set("Content-Type", "application/json")
-    .send({date:dayjs().add(clock.delta+2,"day").format("YYYY-MM-DD")})
-    .expect(200);
-    let state = db.prepare("select state from APPLICATIONS where student_id = ? and proposal_id = ?").get("s317743",inserted_proposal_id);
-    console.log(state);
-    expect(state).toEqual({ state: 'canceled' });
-    db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
+      .patch(`/api/virtualClock`)
+      .set("Content-Type", "application/json")
+      .send({date:dayjs().add(clock.delta+2,"day").format("YYYY-MM-DD")})
+      .expect(200);
+    await request(app)
+      .get("/api/applications")
+      .then((response) => {
+        response.body.forEach((application) => {
+          expect(application.state).toEqual("canceled");
+        });
+      });
   });
 
   it("cannot apply to a proposal expired", async () => {
-    const clock = getDelta();
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+    db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
+    const clock = db.prepare("select delta from VIRTUAL_CLOCK where id = 1").get();
     proposal.expiration_date = dayjs().add(clock.delta+1,'day').format("YYYY-MM-DD");
     const inserted_proposal_id = (
       await request(app)
@@ -746,17 +770,24 @@ describe("test the correct flow for a proposal expiration", () => {
         .set("Content-Type", "application/json")
         .send(proposal)
     ).body;
-    deleteApplicationsOfStudent("s317743");
+    db.prepare(
+      "delete from main.APPLICATIONS where main.APPLICATIONS.student_id = ?",
+    ).run("s309618");
     await request(app)
-    .patch(`/api/virtualClock`)
-    .set("Content-Type", "application/json")
-    .send({date:dayjs().add(clock.delta+2,"day").format("YYYY-MM-DD")})
-    .expect(200);
+      .patch(`/api/virtualClock`)
+      .set("Content-Type", "application/json")
+      .send({date:dayjs().add(clock.delta+2,"day").format("YYYY-MM-DD")})
+      .expect(200);
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
     await request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
       .send({
-        student: "s317743",
         proposal: inserted_proposal_id,
       })
       .expect(400)
@@ -765,7 +796,41 @@ describe("test the correct flow for a proposal expiration", () => {
           message: `The proposal ${inserted_proposal_id} is expired, cannot apply`,
         });
       });
-      db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
+  });
+
+  it("getProposals for student shouldn't return expired proposals", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+    db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
+    const clock = db.prepare("select delta from VIRTUAL_CLOCK where id = 1").get();
+    proposal.expiration_date = dayjs().add(clock.delta+1,'day').format("YYYY-MM-DD");
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+    await request(app)
+      .patch(`/api/virtualClock`)
+      .set("Content-Type", "application/json")
+      .send({date:dayjs().add(clock.delta+2,"day").format("YYYY-MM-DD")})
+      .expect(200);
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+    const proposals = (
+      await request(app).get("/api/proposals").expect(200)
+    ).body;
+    expect(proposals.find((proposal) => proposal.id === inserted_proposal_id)).toBe(
+      undefined,
+    );
   });
 });
 

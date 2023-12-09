@@ -310,6 +310,8 @@ describe("Applications retrieval tests", () => {
       },
     ];
     getApplicationsOfStudent.mockReturnValue(expectedApplications);
+    getDelta.mockReturnValue({ delta: 0 });
+    getProposal.mockReturnValue({ expiration_date: dayjs().add(2,"day").format("YYYY-MM-DD") });
     const applications = (
       await request(app)
         .get("/api/applications")
@@ -580,13 +582,7 @@ describe("GET /api/notifications", () => {
 describe('GET /api/virtualClock', () => {
   it('should respond with status 200 and date', async () => {
     getDelta.mockReturnValueOnce({delta:3});
-    getProposals.mockReturnValue([
-      { id: 1, expiration_date: '2023-01-01' },
-      { id: 2, expiration_date: '2023-02-01' },
-    ]);
     const response = await request(app).get('/api/virtualClock');
-    expect(cancelPendingApplications).toHaveBeenCalledWith(1);
-    expect(cancelPendingApplications).toHaveBeenCalledWith(2);
     expect(response.status).toBe(200);
     expect(response.body).toEqual(dayjs().add("3",'day').format("YYYY-MM-DD"))
   });
@@ -605,14 +601,9 @@ describe('PATCH /api/virtualClock', () => {
   it('should respond with status 200 and success message', async () => {
     setDelta.mockReturnValueOnce({message: 'Date successfully changed'});
     getDelta.mockReturnValueOnce({delta:0});
-    getProposals.mockReturnValue([
-      { id: 1, expiration_date: '2023-01-01' },
-      { id: 2, expiration_date: '2023-02-01' },
-    ]);
     const response = await request(app)
       .patch('/api/virtualClock')
       .send({ date: dayjs().add(1,"day").format("YYYY-MM-DD")});
-      expect(cancelPendingApplications).toHaveBeenCalledTimes(2);
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('message', 'Date successfully changed');
   });
