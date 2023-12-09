@@ -16,7 +16,7 @@ const {
   getPendingOrAcceptedApplicationsOfStudent,
   findAcceptedProposal,
   findRejectedApplication,
-  getNotificationsOfStudent,
+  getNotifications,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
 } = require("../src/theses-dao");
@@ -547,13 +547,15 @@ describe("GET /api/notifications", () => {
   });
   it("should return notifications for a valid student", async () => {
     const mockNotifications = [{ id: 1, message: "Notification 1" }];
-    getNotificationsOfStudent.mockReturnValue(mockNotifications);
+    getNotifications.mockReturnValue(mockNotifications);
     const response = await request(app).get("/api/notifications");
     expect(response.status).toBe(200);
     expect(response.body).toEqual(mockNotifications);
   });
 
-  it("should return a 404 error for a non existing student", async () => {
+  it("should return notifications for a valid teacher", async () => {
+    const mockNotifications = [{ id: 1, message: "Notification 1" }];
+    getNotifications.mockReturnValue(mockNotifications);
     isLoggedIn.mockImplementation((req, res, next) => {
       req.user = {
         email: "marco.torchiano@teacher.it",
@@ -561,10 +563,8 @@ describe("GET /api/notifications", () => {
       next();
     });
     const response = await request(app).get("/api/notifications");
-    expect(response.status).toBe(500);
-    expect(response.body).toEqual({
-      message: "Missing professor notifications feature",
-    });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(mockNotifications);
   });
 
   // Add more test cases for validation errors, server errors, etc.
