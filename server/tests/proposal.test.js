@@ -19,6 +19,7 @@ const {
   getNotificationsOfStudent,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
+  getExamsOfStudent,
 } = require("../src/theses-dao");
 const isLoggedIn = require("../src/protect-routes");
 
@@ -34,6 +35,54 @@ beforeEach(() => {
   application.proposal = 8;
 });
 
+describe("Career retrieval tests", () => {
+  test("Get career of student", async () => {
+    const studentId = "s309618";
+    const career = [
+      {
+        id: studentId,
+        cod_course: "01SQMOV",
+        title_course: "Data Science and Database Technologies",
+        cfu: 8,
+        grade: 28,
+        date: "2023-01-23",
+      },
+      {
+        id: studentId,
+        cod_course: "02KPNOV",
+        title_course: "Network Services and Technologies",
+        cfu: 6,
+        grade: 25,
+        date: "2023-01-30",
+      },
+    ];
+    isLoggedIn.mockImplementation((req, res, next) => next());
+    getExamsOfStudent.mockReturnValue(career);
+    const returnedCareer = (
+      await request(app).get(`/api/students/${studentId}/exams`).expect(200)
+    ).body;
+    expect(returnedCareer).toEqual(career);
+  });
+  test("Error in the database", async () => {
+    const studentId = "s309618";
+    isLoggedIn.mockImplementation((req, res, next) => next());
+    getExamsOfStudent.mockImplementation(() => {
+      throw "ERROR: SQL_SOMETHING";
+    });
+    await request(app).get(`/api/students/${studentId}/exams`).expect(500);
+  });
+  test("Wrong student", async () => {
+    const studentId = "wrong student";
+    isLoggedIn.mockImplementation((req, res, next) => next());
+    await request(app).get(`/api/students/${studentId}/exams`).expect(400);
+  });
+  test("Finding an empty career is ok", async () => {
+    const studentId = "s309618";
+    isLoggedIn.mockImplementation((req, res, next) => next());
+    getExamsOfStudent.mockReturnValue([]);
+    await request(app).get(`/api/students/${studentId}/exams`).expect(200);
+  });
+});
 describe("Application Insertion Tests", () => {
   beforeEach(() => {
     isLoggedIn.mockImplementation((req, res, next) => {

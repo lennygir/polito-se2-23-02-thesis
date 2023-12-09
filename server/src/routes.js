@@ -28,6 +28,7 @@ const {
   findRejectedApplication,
   notifyApplicationDecision,
   getNotificationsOfStudent,
+  getExamsOfStudent,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 
@@ -343,6 +344,24 @@ router.patch(
       }
       return res.status(200).json({ message: `Application ${state}` });
     } catch (err) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+
+router.get(
+  "/api/students/:studentId/exams",
+  isLoggedIn,
+  check("studentId").isAlphanumeric().isLength({ min: 7, max: 7 }),
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ message: "Invalid proposal content" });
+    }
+    try {
+      const { studentId } = req.params;
+      return res.status(200).json(getExamsOfStudent(studentId));
+    } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   },
