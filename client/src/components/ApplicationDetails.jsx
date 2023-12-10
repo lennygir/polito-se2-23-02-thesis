@@ -12,6 +12,7 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import UserContext from "../contexts/UserContext";
 import ConfirmationDialog from "./ConfirmationDialog";
 import { useThemeContext } from "../theme/ThemeContextProvider";
+import API from "../utils/API";
 
 function ApplicationDetails(props) {
   const user = useContext(UserContext);
@@ -137,6 +138,27 @@ function ApplicationDetails(props) {
     }
   };
 
+  const handleDownloadFile = () => {
+    API.getApplicationFile(application.id)
+      .then((blob) => {
+        // Create a Blob URL
+        const url = URL.createObjectURL(blob);
+
+        // Create a link element and trigger a click to initiate the download
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `student_cv_${application.student_id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      })
+      .catch((error) => {
+        // Handle any errors during the process
+        console.error("Error downloading file:", error);
+      });
+  };
+
   return (
     <>
       {user?.role === "teacher" && (
@@ -164,15 +186,17 @@ function ApplicationDetails(props) {
         <span style={{ fontWeight: "bold" }}>Email: </span>
         {application.student_id + "@studenti.polito.it"}
       </Typography>
-      <Stack direction="row" spacing={5} alignItems="center" marginY={3}>
-        <Typography variant="body1">
-          <span style={{ fontWeight: "bold" }}>View CV: </span>
-        </Typography>
-        <Button variant="outlined" startIcon={<AttachFileIcon />}>
-          Student CV
-        </Button>
-      </Stack>
-      <Typography variant="h5" gutterBottom>
+      {application.attached_file && (
+        <Stack direction="row" spacing={5} alignItems="center" marginY={3}>
+          <Typography variant="body1">
+            <span style={{ fontWeight: "bold" }}>View CV: </span>
+          </Typography>
+          <Button variant="outlined" startIcon={<AttachFileIcon />} onClick={handleDownloadFile}>
+            Student CV
+          </Button>
+        </Stack>
+      )}
+      <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
         Thesis Proposal
       </Typography>
       <Divider variant="middle" />

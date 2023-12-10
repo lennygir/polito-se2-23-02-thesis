@@ -25,7 +25,7 @@ function ViewProposalPage(props) {
         const fileContentBinaryString = arrayBufferToBinaryString(fileContentArrayBuffer);
 
         console.log(newApplication);
-        await API.attachFileToApplication(newApplication, fileContentBinaryString);
+        await API.attachFileToApplication(newApplication.application_id, fileContentBinaryString);
       }
       props.setAlert({
         message: "Application sent successfully",
