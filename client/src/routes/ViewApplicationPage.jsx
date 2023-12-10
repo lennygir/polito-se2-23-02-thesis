@@ -17,7 +17,6 @@ function ViewApplicationPage(props) {
   const { handleErrors } = useContext(ErrorContext);
 
   const application = location.state?.application;
-  const proposal = location.state?.proposal;
 
   const evaluateApplication = (application) => {
     API.evaluateApplication(application)
@@ -58,7 +57,6 @@ function ViewApplicationPage(props) {
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
           <ApplicationDetails
             application={application}
-            proposal={proposal}
             evaluateApplication={evaluateApplication}
             applications={applications}
           />

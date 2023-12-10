@@ -16,7 +16,7 @@ import API from "../utils/API";
 
 function CreateProposalPage(props) {
   const navigate = useNavigate();
-  const { fetchProposals, proposals, teachers, groups, degrees, setAlert } = props;
+  const { fetchProposals, proposals, teachers, degrees, setAlert } = props;
   const { handleErrors } = useContext(ErrorContext);
 
   const [anchorEl, setAnchorEl] = useState();
@@ -108,8 +108,7 @@ function CreateProposalPage(props) {
           <ProposalForm
             mode="create"
             proposal={copiedProposal}
-            teachers={teachers}
-            groups={groups}
+            teachersList={teachers}
             degrees={degrees}
             proposals={proposals}
             createProposal={createProposal}
@@ -126,7 +125,6 @@ CreateProposalPage.propTypes = {
   fetchProposals: PropTypes.func,
   proposals: PropTypes.array,
   teachers: PropTypes.array,
-  groups: PropTypes.array,
   degrees: PropTypes.array,
   setAlert: PropTypes.func
 };

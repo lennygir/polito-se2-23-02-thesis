@@ -1,5 +1,6 @@
-import dayjs from "dayjs";
 import { useContext, useState } from "react";
+import dayjs from "dayjs";
+import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
@@ -21,7 +22,7 @@ const dialogMessage =
 
 function ProposalDetails(props) {
   const { theme } = useThemeContext();
-  const { proposal, applications, getTeacherById, getDegreeById } = props;
+  const { proposal, applications, createApplication, getTeacherById, getDegreeById } = props;
   const supervisorTeacher = getTeacherById(proposal.supervisor);
   const degree = getDegreeById(proposal.cds);
   const user = useContext(UserContext);
@@ -42,7 +43,7 @@ function ProposalDetails(props) {
       proposal: proposal.id,
       student: user.id
     };
-    props.createApplication(application);
+    createApplication(application);
   };
 
   const isApplicationAccepted = () => {
@@ -191,5 +192,13 @@ function ProposalDetails(props) {
     </>
   );
 }
+
+ProposalDetails.propTypes = {
+  proposal: PropTypes.object,
+  applications: PropTypes.array,
+  createApplication: PropTypes.func,
+  getTeacherById: PropTypes.func,
+  getDegreeById: PropTypes.func
+};
 
 export default ProposalDetails;

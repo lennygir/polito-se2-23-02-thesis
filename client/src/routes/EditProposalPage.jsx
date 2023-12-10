@@ -12,7 +12,7 @@ import ErrorContext from "../contexts/ErrorContext";
 import API from "../utils/API";
 
 function EditProposalPage(props) {
-  const { fetchProposals, teachers, groups, degrees, setAlert } = props;
+  const { fetchProposals, teachers, degrees, setAlert } = props;
   const { handleErrors } = useContext(ErrorContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -58,8 +58,7 @@ function EditProposalPage(props) {
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
           <ProposalForm
             mode="update"
-            teachers={teachers}
-            groups={groups}
+            teachersList={teachers}
             degrees={degrees}
             proposal={proposal}
             editProposal={editProposal}
@@ -74,7 +73,6 @@ function EditProposalPage(props) {
 EditProposalPage.propTypes = {
   fetchProposals: PropTypes.func,
   teachers: PropTypes.array,
-  groups: PropTypes.array,
   degrees: PropTypes.array,
   setAlert: PropTypes.func
 };

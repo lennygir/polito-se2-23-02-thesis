@@ -1,4 +1,5 @@
 import { useContext } from "react";
+import PropTypes from "prop-types";
 import Card from "@mui/material/Card";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -15,6 +16,7 @@ const STUDENT_HEADERS = ["Supervisor", "Thesis", "Expiration Date"];
 
 function ProposalTable(props) {
   const user = useContext(UserContext);
+  const { data, deleteProposal, archiveProposal, getTeacherById } = props;
 
   return (
     <Card
@@ -53,13 +55,13 @@ function ProposalTable(props) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {props.data.map((proposal) => (
+            {data.map((proposal) => (
               <ProposalRow
                 key={proposal.id}
                 proposal={proposal}
-                deleteProposal={props.deleteProposal}
-                archiveProposal={props.archiveProposal}
-                getTeacherById={props.getTeacherById}
+                deleteProposal={deleteProposal}
+                archiveProposal={archiveProposal}
+                getTeacherById={getTeacherById}
               />
             ))}
           </TableBody>
@@ -68,5 +70,12 @@ function ProposalTable(props) {
     </Card>
   );
 }
+
+ProposalTable.propTypes = {
+  data: PropTypes.array,
+  deleteProposal: PropTypes.func,
+  archiveProposal: PropTypes.func,
+  getTeacherById: PropTypes.func
+};
 
 export default ProposalTable;
