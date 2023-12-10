@@ -1,7 +1,10 @@
 import { useContext } from "react";
-import { Avatar, Chip, Stack, Typography } from "@mui/material";
-import UserContext from "../contexts/UserContext";
+import Avatar from "@mui/material/Avatar";
+import Chip from "@mui/material/Chip";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import PersonIcon from "@mui/icons-material/Person";
+import UserContext from "../contexts/UserContext";
 
 function AccountPopover() {
   const user = useContext(UserContext);

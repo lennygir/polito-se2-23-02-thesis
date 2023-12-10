@@ -1,16 +1,18 @@
-import { Outlet } from "react-router-dom";
 import { useState } from "react";
-import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
+import { Outlet } from "react-router-dom";
+import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import LoadingPage from "./LoadingPage";
+import Navbar from "../components/Navbar";
+import Sidebar from "../components/Sidebar";
 
 const drawerWidth = 240;
 const logoHeight = 80;
 const navbarHeight = 75;
 
 function RootPage(props) {
+  const { loading, currentDate, setCurrentDate, fetchProposals, fetchApplications, fetchNotifications } = props;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState("proposals");
 
@@ -25,11 +27,11 @@ function RootPage(props) {
   const handleTabSelection = (tabId) => {
     setSelectedTab(tabId);
     if (tabId === "proposals") {
-      props.fetchProposals();
+      fetchProposals();
     } else if (tabId === "applications") {
-      props.fetchApplications();
+      fetchApplications();
     } else if (tabId === "notifications") {
-      props.fetchNotifications();
+      fetchNotifications();
     }
   };
 
@@ -40,8 +42,8 @@ function RootPage(props) {
           navbarHeight={navbarHeight}
           drawerWidth={drawerWidth}
           handleDrawerToggle={handleDrawerToggle}
-          currentDate={props.currentDate}
-          setCurrentDate={props.setCurrentDate}
+          currentDate={currentDate}
+          setCurrentDate={setCurrentDate}
         />
         <Sidebar
           selectedTab={selectedTab}
@@ -51,7 +53,6 @@ function RootPage(props) {
           closeDrawer={closeDrawer}
           handleDrawerToggle={handleDrawerToggle}
           handleTabSelection={handleTabSelection}
-          logout={props.logout}
         />
         <Container maxWidth="lg">
           <Box
@@ -64,12 +65,21 @@ function RootPage(props) {
               marginTop: { md: 8, xs: 11 }
             }}
           >
-            {props.loading ? <LoadingPage loading={props.loading} /> : <Outlet />}
+            {loading ? <LoadingPage loading={loading} /> : <Outlet />}
           </Box>
         </Container>
       </Box>
     </div>
   );
 }
+
+RootPage.propTypes = {
+  loading: PropTypes.bool,
+  currentDate: PropTypes.string,
+  setCurrentDate: PropTypes.func,
+  fetchProposals: PropTypes.func,
+  fetchApplications: PropTypes.func,
+  fetchNotifications: PropTypes.func
+};
 
 export default RootPage;

@@ -1,5 +1,7 @@
 import PropTypes from "prop-types";
-import { Alert, Slide, Snackbar } from "@mui/material";
+import Alert from "@mui/material/Alert";
+import Slide from "@mui/material/Slide";
+import Snackbar from "@mui/material/Snackbar";
 
 function TransitionRight(props) {
   return <Slide {...props} direction="left" />;
