@@ -2,12 +2,13 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useThemeContext } from "../theme/ThemeContextProvider";
 import logo from "../assets/images/logo.png";
 
 function ErrorPage() {
   const { mode } = useThemeContext();
+  const navigate = useNavigate();
   return (
     <div id="error-page">
       <Container maxWidth="md">
@@ -37,9 +38,9 @@ function ErrorPage() {
             This is not the route you're looking for.
           </Typography>
           <Box marginTop={4}>
-            <Link to="/">
-              <Button variant="contained">Go back</Button>
-            </Link>
+            <Button variant="contained" onClick={() => navigate(-1)}>
+              Go back
+            </Button>
           </Box>
         </Box>
       </Container>

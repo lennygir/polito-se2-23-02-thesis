@@ -291,7 +291,8 @@ function ProposalForm(props) {
               margin: "normal",
               helperText: formErrors.expirationDate,
               error: !!formErrors.expirationDate
-            }
+            },
+            desktopPaper: { sx: { borderRadius: 4 } }
           }}
           value={formData.expirationDate ? dayjs(formData.expirationDate) : null}
           onChange={(newDate) => handleFormInputChange("expirationDate", dayjs(newDate).format("YYYY-MM-DD"))}
