@@ -14,16 +14,51 @@ function ViewProposalPage(props) {
   const proposal = location.state?.proposal;
   const applications = props.applications;
 
-  const createApplication = (application) => {
-    API.createApplication(application)
-      .then(() => {
-        props.setAlert({
-          message: "Application sent successfully",
-          severity: "success"
-        });
-        props.setDirty(true);
-      })
-      .catch((err) => handleErrors(err));
+  const createApplication = async (application, file) => {
+    try {
+      const newApplication = await API.createApplication(application);
+      if (file) {
+        // Convert the File object content into binary
+        const fileContentArrayBuffer = await readFileAsArrayBuffer(file);
+
+        // Convert ArrayBuffer to binary string (optional)
+        const fileContentBinaryString = arrayBufferToBinaryString(fileContentArrayBuffer);
+
+        console.log(newApplication);
+        await API.attachFileToApplication(newApplication, fileContentBinaryString);
+      }
+      props.setAlert({
+        message: "Application sent successfully",
+        severity: "success"
+      });
+      props.setDirty(true);
+    } catch (err) {
+      handleErrors(err);
+    }
+  };
+
+  // Function to read the content of a File as an ArrayBuffer
+  const readFileAsArrayBuffer = (file) => {
+    return new Promise((resolve, reject) => {
+      const fileReader = new FileReader();
+
+      fileReader.onload = () => {
+        resolve(fileReader.result);
+      };
+
+      fileReader.onerror = (error) => {
+        reject(error);
+      };
+
+      fileReader.readAsArrayBuffer(file);
+    });
+  };
+
+  // Function to convert ArrayBuffer to binary string
+  const arrayBufferToBinaryString = (arrayBuffer) => {
+    const binaryArray = new Uint8Array(arrayBuffer);
+    const binaryString = String.fromCharCode.apply(null, binaryArray);
+    return binaryString;
   };
 
   return (

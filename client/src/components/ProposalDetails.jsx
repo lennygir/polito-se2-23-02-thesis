@@ -16,7 +16,7 @@ import UserContext from "../contexts/UserContext";
 import { useThemeContext } from "../theme/ThemeContextProvider";
 import DropzoneDialog from "./DropzoneDialog";
 
-const uploadMessage =
+const dialogMessage =
   "Before proceding, you can upload up to one pdf file (e.g., your personal CV) that is going to be attached to your application.";
 
 function ProposalDetails(props) {
@@ -27,6 +27,7 @@ function ProposalDetails(props) {
   const user = useContext(UserContext);
 
   const [openDialog, setOpenDialog] = useState(false);
+  const [files, setFiles] = useState([]);
 
   const handleOpenDialog = () => {
     setOpenDialog(true);
@@ -37,12 +38,25 @@ function ProposalDetails(props) {
   };
 
   const handleSubmit = () => {
-    setOpenDialog(false);
     const application = {
       proposal: proposal.id,
       student: user.id
     };
-    createApplication(application);
+
+    if (files.length > 0) {
+      const file = files[0].file;
+      if (file.type !== "application/pdf") {
+        setAlert({
+          message: `File "${file.name}" is not a pdf`,
+          severity: "warning"
+        });
+        return;
+      }
+      createApplication(application, file);
+    } else {
+      createApplication(application, null);
+    }
+    setOpenDialog(false);
   };
 
   const isApplicationAccepted = () => {
@@ -110,11 +124,12 @@ function ProposalDetails(props) {
     <>
       {user.role === "student" && (
         <DropzoneDialog
-          message={uploadMessage}
+          files={files}
+          setFiles={setFiles}
+          message={dialogMessage}
           open={openDialog}
           handleClose={handleCloseDialog}
-          createApplication={handleSubmit}
-          setAlert={setAlert}
+          handleSubmit={handleSubmit}
         />
       )}
       <Typography variant="h5" gutterBottom paddingTop={2}>

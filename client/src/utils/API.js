@@ -133,6 +133,19 @@ const createApplication = async (application) => {
   );
 };
 
+const attachFileToApplication = async (application, file) => {
+  return getJson(
+    fetch(SERVER_URL + "/applications/" + application.id, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/pdf"
+      },
+      credentials: "include",
+      body: file
+    })
+  );
+};
+
 /**
  * Evaluates an application by sending a PATCH request to the server's applications endpoint with updated application state.
  * @param {Object} application - An object containing the application ID and the updated state.
@@ -225,6 +238,7 @@ const API = {
   evaluateApplication,
   updateProposal,
   deleteProposal,
+  attachFileToApplication
 };
 
 export default API;

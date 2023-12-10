@@ -1,28 +1,11 @@
 import PropTypes from "prop-types";
-import { useState } from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
 import { FilePond } from "react-filepond";
 
 import "filepond/dist/filepond.min.css";
 
 function DropzoneDialog(props) {
-  const { message, open, handleClose, createApplication, setAlert } = props;
-
-  const [files, setFiles] = useState([]);
-
-  const handleSubmit = () => {
-    const file = files[0].file;
-
-    if (file.type !== "application/pdf") {
-      setAlert({
-        message: `File "${file.name}" is not a pdf`,
-        severity: "warning"
-      });
-      return;
-    }
-    // createApplication();
-    console.log(file);
-  };
+  const { files, setFiles, message, open, handleClose, handleSubmit } = props;
 
   return (
     <Dialog maxWidth="sm" open={open} onClose={handleClose}>
@@ -60,11 +43,12 @@ function DropzoneDialog(props) {
 }
 
 DropzoneDialog.propTypes = {
+  files: PropTypes.array,
+  setFiles: PropTypes.func,
   message: PropTypes.string,
   open: PropTypes.bool,
   handleClose: PropTypes.func,
-  createApplication: PropTypes.func,
-  setAlert: PropTypes.func
+  handleSubmit: PropTypes.func
 };
 
 export default DropzoneDialog;
