@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
+import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
@@ -12,6 +13,7 @@ import API from "../utils/API";
 
 function ViewApplicationPage(props) {
   const location = useLocation();
+  const { fetchApplications, fetchNotifications, setAlert, applications } = props;
   const { handleErrors } = useContext(ErrorContext);
 
   const application = location.state?.application;
@@ -20,12 +22,12 @@ function ViewApplicationPage(props) {
   const evaluateApplication = (application) => {
     API.evaluateApplication(application)
       .then(() => {
-        props.setAlert({
+        setAlert({
           message: "Application evaluated successfully",
           severity: "success"
         });
-        props.fetchApplications();
-        props.fetchNotifications();
+        fetchApplications();
+        fetchNotifications();
       })
       .catch((err) => handleErrors(err));
   };
@@ -58,7 +60,7 @@ function ViewApplicationPage(props) {
             application={application}
             proposal={proposal}
             evaluateApplication={evaluateApplication}
-            applications={props.applications}
+            applications={applications}
           />
         </Box>
       </Paper>
@@ -66,5 +68,12 @@ function ViewApplicationPage(props) {
     </div>
   );
 }
+
+ViewApplicationPage.propTypes = {
+  fetchApplications: PropTypes.func,
+  fetchNotifications: PropTypes.func,
+  setAlert: PropTypes.func,
+  applications: PropTypes.array
+};
 
 export default ViewApplicationPage;
