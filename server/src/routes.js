@@ -16,6 +16,7 @@ const {
   updateApplication,
   getProposal,
   insertApplication,
+  insertStartRequest,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   deleteProposal,
@@ -166,6 +167,40 @@ router.post(
         cds,
       );
       return res.status(200).json(teacher);
+    } catch (e) {
+      return res.status(500).send({ message: "Internal server error" });
+    }
+  },
+);
+
+// endpoint to add a new start request
+router.post(
+  "/api/start-requests",
+  isLoggedIn,
+  check("title").isString(),
+  check("co_supervisors").optional().isArray(),
+  check("co_supervisors.*").isEmail(),
+  check("description").isString(),
+  check("supervisor").isString(),
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ message: "Invalid start request content" });
+    }
+    try {
+      const newStartRequest = req.body;
+      const { email } = req.user;
+      const user = getUser(email);
+      if (!user || user.role !== "student") {
+        return res.status(401).json({
+          message: "You must be authenticated as student to add a start request",
+        });
+      }
+      newStartRequest.co_supervisors = newStartRequest.co_supervisors.join(", ");
+      newStartRequest.approvalDate = null;
+      newStartRequest.studentId = user.id;
+      const startRequest = insertStartRequest(newStartRequest);
+      return res.status(200).json(startRequest);
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }

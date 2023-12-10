@@ -569,3 +569,42 @@ describe("GET /api/notifications", () => {
 
   // Add more test cases for validation errors, server errors, etc.
 });
+
+describe("POST /api/start-requests", () => {
+  test("Valid start request - returns 200", () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+    return request(app)
+      .post(`/api/start-requests`)
+      .send({
+        "title": "test",
+        "description": "desc test",
+        "supervisor": "s123456",
+        "co_supervisors": ["maurizio.morisio@teacher.it", "luigi.derussis@teacher.it"]
+      })
+      .set("Content-Type", "application/json")
+      .expect(200);
+  });
+  test("Logged in as a teacher - returns 401", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "maurizio.morisio@teacher.it",
+      };
+      next();
+    });
+    return request(app)
+      .post(`/api/start-requests`)
+      .send({
+        "title": "test",
+        "description": "desc test",
+        "supervisor": "s123456",
+        "co_supervisors": ["maurizio.morisio@teacher.it", "luigi.derussis@teacher.it"]
+      })
+      .set("Content-Type", "application/json")
+      .expect(401);
+  });
+});

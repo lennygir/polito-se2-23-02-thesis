@@ -94,6 +94,21 @@ exports.insertProposal = (
   //  });
 };
 
+exports.insertStartRequest = (startRequest) => {
+  const { title, description, supervisor, co_supervisors, studentId } = startRequest;
+  return db
+    .prepare(
+      "insert into START_REQUESTS(title, description, supervisor, co_supervisors, student_id) values(?,?,?,?,?)",
+    )
+    .run(
+      title,
+      description,
+      supervisor,
+      co_supervisors,
+      studentId
+    ).lastInsertRowid;
+};
+
 exports.getApplicationById = (id) => {
   return db.prepare("select * from APPLICATIONS where id = ?").get(id);
 };

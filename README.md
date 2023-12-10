@@ -225,6 +225,22 @@ Once the docker container is running you can access the application using [local
     "state": "pending"
   }
   ```
+- POST `/api/start-requests`
+  - notes
+    - can only be called by a student
+  - request body content example
+  ```
+  {
+    "title": "test",
+    "description": "desc test",
+    "supervisor": "s123456",
+    "co_supervisors": ["maurizio.morisio@teacher.it", "luigi.derussis@teacher.it"]
+  }
+  ```
+  - returns the id of the new start request. Example :
+  ```
+  1
+  ```
 - GET `/api/applications`
   - return the list of proposals related to a teacher id or student
   - return 200 for correct behavior
