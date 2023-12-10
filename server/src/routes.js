@@ -27,6 +27,7 @@ const {
   findAcceptedProposal,
   findRejectedApplication,
   notifyApplicationDecision,
+  notifyNewApplication,
   getNotifications,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
@@ -278,6 +279,7 @@ router.post(
         });
       }
       const application = insertApplication(proposal, user.id, "pending");
+      notifyNewApplication(application?.proposal_id);
       return res.status(200).json(application);
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
