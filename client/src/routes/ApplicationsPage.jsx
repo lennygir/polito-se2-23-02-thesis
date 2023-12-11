@@ -1,8 +1,9 @@
+import { useContext } from "react";
+import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import ApplicationTable from "../components/ApplicationTable";
-import { Stack } from "@mui/material";
-import { useContext } from "react";
 import UserContext from "../contexts/UserContext";
 
 function ApplicationsPage(props) {
@@ -35,5 +36,9 @@ function ApplicationsPage(props) {
 
   return <div id="application-page">{user?.role === "teacher" ? teacherView : studentView}</div>;
 }
+
+ApplicationsPage.propTypes = {
+  applications: PropTypes.array
+};
 
 export default ApplicationsPage;

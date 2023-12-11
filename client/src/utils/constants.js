@@ -42,6 +42,10 @@ export const TEACHER_PROPOSALS_FILTERS = [
   {
     id: "active",
     label: "ACTIVE"
+  },
+  {
+    id: "archive",
+    label: "ARCHIVED"
   }
 ];
 
@@ -67,6 +71,13 @@ export const ROSE = {
   light: "#FECDD3",
   dark: "#E11D48",
   contrastText: "#FFF"
+};
+
+export const WHITE = {
+  main: "#FFFFFF",
+  light: "#FFFFFF",
+  dark: "#FFFFFF",
+  contrastText: "#FFFFFF"
 };
 
 export const LIGHT_BACKGROUND = {

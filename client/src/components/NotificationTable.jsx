@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import Card from "@mui/material/Card";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -5,12 +6,13 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import { Typography } from "@mui/material";
+import Typography from "@mui/material/Typography";
 import NotificationRow from "./NotificationRow";
 
 const HEADERS = ["Object", "Message", "Date"];
 
 function NotificationTable(props) {
+  const { data } = props;
   return (
     <Card
       sx={{
@@ -25,18 +27,14 @@ function NotificationTable(props) {
           <TableHead>
             <TableRow>
               {HEADERS.map((headCell) => (
-                <TableCell
-                  key={headCell}
-                  align="center"
-                  variant="head"
-                >
+                <TableCell key={headCell} align="center" variant="head">
                   <Typography fontWeight={700}>{headCell}</Typography>
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {props.data.map((notification) => (
+            {data.map((notification) => (
               <NotificationRow key={notification.id} notification={notification} />
             ))}
           </TableBody>
@@ -45,5 +43,9 @@ function NotificationTable(props) {
     </Card>
   );
 }
+
+NotificationTable.propTypes = {
+  data: PropTypes.array
+};
 
 export default NotificationTable;

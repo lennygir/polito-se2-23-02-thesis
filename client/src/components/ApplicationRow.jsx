@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { NavLink } from "react-router-dom";
+import PropTypes from "prop-types";
 import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import TableCell from "@mui/material/TableCell";
@@ -52,5 +53,9 @@ function ApplicationRow(props) {
     </>
   );
 }
+
+ApplicationRow.propTypes = {
+  application: PropTypes.object
+};
 
 export default ApplicationRow;
