@@ -581,10 +581,13 @@ describe("POST /api/start-requests", () => {
     return request(app)
       .post(`/api/start-requests`)
       .send({
-        "title": "test",
-        "description": "desc test",
-        "supervisor": "s123456",
-        "co_supervisors": ["maurizio.morisio@teacher.it", "luigi.derussis@teacher.it"]
+        title: "test",
+        description: "desc test",
+        supervisor: "s123456",
+        co_supervisors: [
+          "maurizio.morisio@teacher.it",
+          "luigi.derussis@teacher.it",
+        ],
       })
       .set("Content-Type", "application/json")
       .expect(200);
@@ -599,12 +602,32 @@ describe("POST /api/start-requests", () => {
     return request(app)
       .post(`/api/start-requests`)
       .send({
-        "title": "test",
-        "description": "desc test",
-        "supervisor": "s123456",
-        "co_supervisors": ["maurizio.morisio@teacher.it", "luigi.derussis@teacher.it"]
+        title: "test",
+        description: "desc test",
+        supervisor: "s123456",
+        co_supervisors: [
+          "maurizio.morisio@teacher.it",
+          "luigi.derussis@teacher.it",
+        ],
       })
       .set("Content-Type", "application/json")
       .expect(401);
+  });
+  test("Valid start request without co-supervisors", () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+    return request(app)
+      .post(`/api/start-requests`)
+      .send({
+        title: "test",
+        description: "desc test",
+        supervisor: "s123456",
+      })
+      .set("Content-Type", "application/json")
+      .expect(200);
   });
 });
