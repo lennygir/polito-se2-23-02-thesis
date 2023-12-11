@@ -1,6 +1,11 @@
 import { useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Box, Button, Paper, Stack, Typography } from "@mui/material";
+import PropTypes from "prop-types";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ProposalDetails from "../components/ProposalDetails";
 import ErrorContext from "../contexts/ErrorContext";
@@ -9,19 +14,19 @@ import API from "../utils/API";
 function ViewProposalPage(props) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { setDirty, setAlert, getTeacherById, getDegreeById, applications } = props;
   const { handleErrors } = useContext(ErrorContext);
 
   const proposal = location.state?.proposal;
-  const applications = props.applications;
 
   const createApplication = (application) => {
-    API.insertApplication(application)
+    API.createApplication(application)
       .then(() => {
-        props.setAlert({
+        setAlert({
           message: "Application sent successfully",
           severity: "success"
         });
-        props.setDirty(true);
+        setDirty(true);
       })
       .catch((err) => handleErrors(err));
   };
@@ -48,14 +53,13 @@ function ViewProposalPage(props) {
         Thesis Proposal
       </Typography>
       <Paper elevation={1} sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
-        {/* TODO: if applications.find(proposal.id === proposal.id) => disable button */}
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
           <ProposalDetails
             proposal={proposal}
             applications={applications}
             createApplication={createApplication}
-            getTeacherById={props.getTeacherById}
-            getDegreeById={props.getDegreeById}
+            getTeacherById={getTeacherById}
+            getDegreeById={getDegreeById}
           />
         </Box>
       </Paper>
@@ -63,5 +67,13 @@ function ViewProposalPage(props) {
     </div>
   );
 }
+
+ViewProposalPage.propTypes = {
+  setDirty: PropTypes.func,
+  setAlert: PropTypes.func,
+  getTeacherById: PropTypes.func,
+  getDegreeById: PropTypes.func,
+  applications: PropTypes.array
+};
 
 export default ViewProposalPage;

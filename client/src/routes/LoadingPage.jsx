@@ -1,6 +1,10 @@
-import { Box, CircularProgress, Fade } from "@mui/material";
+import PropTypes from "prop-types";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import Fade from "@mui/material/Fade";
 
 function LoadingPage(props) {
+  const { loading } = props;
   return (
     <Box
       sx={{
@@ -11,9 +15,9 @@ function LoadingPage(props) {
       }}
     >
       <Fade
-        in={props.loading}
+        in={loading}
         style={{
-          transitionDelay: props.loading ? "800ms" : "0ms"
+          transitionDelay: loading ? "800ms" : "0ms"
         }}
         unmountOnExit
       >
@@ -22,5 +26,9 @@ function LoadingPage(props) {
     </Box>
   );
 }
+
+LoadingPage.propTypes = {
+  loading: PropTypes.bool
+};
 
 export default LoadingPage;
