@@ -1,5 +1,8 @@
 FROM node:current-alpine
 
+# Create a non-root user
+RUN groupadd -r secureUser && useradd -r -g secureUser secureUser
+
 # Install and configure apache2 web server
 RUN apt update \
     && apt --no-install-recommends install apache2 -y \
@@ -13,8 +16,8 @@ RUN npm install --ignore-scripts
 COPY ./client/dist /var/www/html
 COPY ./server .
 
-# Run apache2 service
-RUN service apache2 start
+# Change user to non-root user
+USER secureUser
 
 # Expose default apache port
 EXPOSE 80
