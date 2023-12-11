@@ -198,6 +198,23 @@ function ProposalsPage(props) {
     if (selectedTeacherFilter === "archive") {
       return proposal.archived;
     }
+    if(selectedTeacherFilter === "archive") {
+      // Check if search bar is empty or proposal matches search input
+      const supervisor = props.teachers.find(t => t.id === proposal.supervisor);
+      return searchInput === "" || 
+        proposal.title.toLowerCase().includes(searchInput.toLowerCase()) ||
+        supervisor?.email?.toLowerCase().includes(searchInput.toLowerCase()) ||
+        proposal.co_supervisors?.toLowerCase().includes(searchInput.toLowerCase()) ||
+        proposal.keywords?.toLowerCase().includes(searchInput.toLowerCase()) ||
+        proposal.type?.toLowerCase().includes(searchInput.toLowerCase()) ||
+        proposal.groups?.toLowerCase().includes(searchInput.toLowerCase()) ||
+        proposal.description?.toLowerCase().includes(searchInput.toLowerCase()) ||
+        proposal.required_knowledge?.toLowerCase().includes(searchInput.toLowerCase()) ||
+        proposal.notes?.toLowerCase().includes(searchInput.toLowerCase()) ||
+        proposal.expiration_date?.toLowerCase().includes(searchInput.toLowerCase()) ||
+        proposal.level?.toLowerCase().includes(searchInput.toLowerCase()) ||
+        proposal.cds?.toLowerCase().includes(searchInput.toLowerCase());
+    }
     return true;
   });
 
@@ -241,10 +258,27 @@ function ProposalsPage(props) {
         sx={{
           display: "flex",
           justifyContent: "space-between",
-          marginX: { md: 3, xs: 0 },
-          marginY: { md: -2, xs: 0 }
+          alignItems: "end",
+          height: 96,
+          marginTop: { md: -3, xs: 0 },
+          marginX: { md: 3, xs: -2 }
         }}
       >
+        <Stack>
+          { selectedTeacherFilter === "archive" &&
+            <OutlinedInput
+              sx={{ borderRadius: 4, width: { md: "400px", xs: "200px" } }}
+              placeholder="Search proposal..."
+              onChange={(e) => handleSearchInputChange(e.target.value)}
+              value={searchInput}
+              startAdornment={
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: "text.disabled", width: 20, height: 20 }} />
+                </InputAdornment>
+              }
+            />
+          }
+        </Stack>
         <Stack direction="row" spacing={1}>
           {TEACHER_PROPOSALS_FILTERS.map((filter) => (
             <Chip
