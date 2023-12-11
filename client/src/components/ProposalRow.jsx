@@ -1,7 +1,17 @@
 import dayjs from "dayjs";
-import { useContext, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { IconButton, Chip, Link, MenuItem, Popover, Stack, TableCell, TableRow } from "@mui/material";
+import PropTypes from "prop-types";
+import { useContext, useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
+import IconButton from "@mui/material/IconButton";
+import Chip from "@mui/material/Chip";
+import Divider from "@mui/material/Divider";
+import Link from "@mui/material/Link";
+import MenuItem from "@mui/material/MenuItem";
+import Popover from "@mui/material/Popover";
+import Stack from "@mui/material/Stack";
+import TableCell from "@mui/material/TableCell";
+import TableRow from "@mui/material/TableRow";
+import ArchiveIcon from "@mui/icons-material/Archive";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -10,25 +20,48 @@ import BusinessIcon from "@mui/icons-material/Business";
 import PublicIcon from "@mui/icons-material/Public";
 import ScienceIcon from "@mui/icons-material/Science";
 import UserContext from "../contexts/UserContext";
+import ConfirmationDialog from "./ConfirmationDialog";
 
 function ProposalRow(props) {
+  const { proposal, getTeacherById, deleteProposal, archiveProposal } = props;
   const user = useContext(UserContext);
-  const proposal = props.proposal;
-  const teacher = user?.role === "student" ? props.getTeacherById(proposal.supervisor) : null;
+  const teacher = user.role === "student" ? getTeacherById(proposal.supervisor) : null;
 
-  const [open, setOpen] = useState(null);
+  const [openMenu, setOpenMenu] = useState(null);
+  const [action, setAction] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState("");
+
+  useEffect(() => {
+    let message = "";
+    if (action === "archive") {
+      message = "You are about to archive this proposal which can be later restored. Do you want to continue?";
+    } else if (action === "delete") {
+      message = "You are about to delete this proposal and this action is irreversible. Do you want to continue?";
+    }
+    setDialogMessage(message);
+  }, [action]);
 
   const handleOpenMenu = (event) => {
-    setOpen(event.currentTarget);
+    setOpenMenu(event.currentTarget);
   };
 
   const handleCloseMenu = () => {
-    setOpen(null);
+    setOpenMenu(null);
   };
 
-  const handleDelete = () => {
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
     handleCloseMenu();
-    props.deleteProposal(proposal.id);
+  };
+
+  const handleSubmit = () => {
+    handleCloseDialog();
+    if (action === "archive") {
+      archiveProposal(proposal.id);
+    } else if (action === "delete") {
+      deleteProposal(proposal.id);
+    }
   };
 
   const renderType = (type) => {
@@ -46,10 +79,14 @@ function ProposalRow(props) {
 
   return (
     <>
+      <ConfirmationDialog
+        message={dialogMessage}
+        open={openDialog}
+        handleClose={handleCloseDialog}
+        handleSubmit={handleSubmit}
+      />
       <TableRow key={proposal.id}>
-        {user?.role === "student" && teacher && (
-          <TableCell>{`${teacher.name.charAt(0)}. ${teacher.surname}`}</TableCell>
-        )}
+        {user.role === "student" && teacher && <TableCell>{`${teacher.name.charAt(0)}. ${teacher.surname}`}</TableCell>}
         <TableCell
           sx={{
             maxWidth: "500px",
@@ -72,7 +109,7 @@ function ProposalRow(props) {
           </Stack>
         </TableCell>
         <TableCell align="center">{dayjs(proposal.expiration_date).format("DD/MM/YYYY")}</TableCell>
-        {user?.role === "teacher" && (
+        {user.role === "teacher" && (
           <TableCell align="right">
             <IconButton onClick={handleOpenMenu}>
               <MoreVertIcon />
@@ -81,13 +118,13 @@ function ProposalRow(props) {
         )}
       </TableRow>
       <Popover
-        open={!!open}
-        anchorEl={open}
+        open={!!openMenu}
+        anchorEl={openMenu}
         onClose={handleCloseMenu}
         anchorOrigin={{ vertical: "top", horizontal: "left" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
         slotProps={{
-          sx: { width: 140 }
+          paper: { sx: { borderRadius: 3, width: 165, p: 1 } }
         }}
       >
         <MenuItem
@@ -97,18 +134,47 @@ function ProposalRow(props) {
           to={`/edit-proposal/${proposal.id}`}
           state={{ proposal: proposal }}
           onClick={handleCloseMenu}
+          sx={{ borderRadius: 2 }}
         >
-          <ModeEditIcon sx={{ mr: 2 }} />
+          <ModeEditIcon sx={{ mr: 3 }} />
           Edit
         </MenuItem>
 
-        <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
-          <DeleteIcon sx={{ mr: 2 }} />
+        <MenuItem
+          color="inherit"
+          underline="none"
+          onClick={() => {
+            setAction("archive");
+            setOpenDialog(true);
+          }}
+          sx={{ borderRadius: 2 }}
+        >
+          <ArchiveIcon sx={{ mr: 3 }} />
+          Archive
+        </MenuItem>
+
+        <Divider />
+
+        <MenuItem
+          onClick={() => {
+            setAction("delete");
+            setOpenDialog(true);
+          }}
+          sx={{ color: "error.main", borderRadius: 2 }}
+        >
+          <DeleteIcon sx={{ mr: 3 }} />
           Delete
         </MenuItem>
       </Popover>
     </>
   );
 }
+
+ProposalRow.propTypes = {
+  proposal: PropTypes.object,
+  getTeacherById: PropTypes.func,
+  deleteProposal: PropTypes.func,
+  archiveProposal: PropTypes.func
+};
 
 export default ProposalRow;

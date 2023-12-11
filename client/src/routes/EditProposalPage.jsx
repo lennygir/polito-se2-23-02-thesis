@@ -1,12 +1,18 @@
 import { useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Box, Button, Paper, Stack, Typography } from "@mui/material";
+import PropTypes from "prop-types";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ProposalForm from "../components/ProposalForm";
 import ErrorContext from "../contexts/ErrorContext";
 import API from "../utils/API";
 
 function EditProposalPage(props) {
+  const { fetchProposals, teachers, degrees, setAlert } = props;
   const { handleErrors } = useContext(ErrorContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -16,11 +22,11 @@ function EditProposalPage(props) {
   const editProposal = (proposal) => {
     API.updateProposal(proposal)
       .then(() => {
-        props.setAlert({
+        setAlert({
           message: "Proposal updated successfully",
           severity: "success"
         });
-        props.fetchProposals();
+        fetchProposals();
         navigate("/proposals");
       })
       .catch((err) => handleErrors(err));
@@ -52,9 +58,8 @@ function EditProposalPage(props) {
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
           <ProposalForm
             mode="update"
-            teachers={props.teachers}
-            groups={props.groups}
-            degrees={props.degrees}
+            teachersList={teachers}
+            degrees={degrees}
             proposal={proposal}
             editProposal={editProposal}
           />
@@ -64,5 +69,12 @@ function EditProposalPage(props) {
     </div>
   );
 }
+
+EditProposalPage.propTypes = {
+  fetchProposals: PropTypes.func,
+  teachers: PropTypes.array,
+  degrees: PropTypes.array,
+  setAlert: PropTypes.func
+};
 
 export default EditProposalPage;

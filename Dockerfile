@@ -1,11 +1,13 @@
-FROM node:latest
+FROM node:current-alpine
 
 # Install and configure apache2 web server
-RUN apt update && apt install apache2 -y && echo "ServerName localhost" >> /etc/apache2/apache2.conf
+RUN apt update \
+    && apt --no-install-recommends install apache2 -y \
+    && echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Install backend dependencies
 COPY server/package.json .
-RUN npm install
+RUN npm install --ignore-scripts
 
 # Move frontend and backend files
 COPY ./client/dist /var/www/html

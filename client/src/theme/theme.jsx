@@ -1,4 +1,4 @@
-import { NAVY, ORANGE, ROSE, LIGHT_BACKGROUND, DARK_BACKGROUND } from "../utils/constants";
+import { NAVY, ORANGE, ROSE, LIGHT_BACKGROUND, DARK_BACKGROUND, WHITE } from "../utils/constants";
 
 export const getDesignTokens = (mode) => ({
   palette: {
@@ -22,7 +22,8 @@ export const getDesignTokens = (mode) => ({
           // Deep Blue
           background: DARK_BACKGROUND
         }),
-    rose: ROSE
+    rose: ROSE,
+    white: WHITE
   },
   typography: {
     htmlFontSize: 16,
@@ -93,7 +94,7 @@ export const getDesignTokens = (mode) => ({
         root: {
           paddingLeft: 8,
           paddingRight: 8,
-          marginBottom: 8
+          marginBottom: 3
         }
       }
     },

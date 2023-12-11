@@ -1,4 +1,5 @@
 import { useContext } from "react";
+import PropTypes from "prop-types";
 import Card from "@mui/material/Card";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -55,5 +56,9 @@ function ApplicationTable(props) {
     </Card>
   );
 }
+
+ApplicationTable.propTypes = {
+  applications: PropTypes.array
+};
 
 export default ApplicationTable;

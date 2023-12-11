@@ -9,7 +9,6 @@ const {
   getTeachers,
   getGroup,
   getGroups,
-  getCds,
   getDegrees,
   insertProposal,
   getProposalsBySupervisor,
@@ -28,7 +27,8 @@ const {
   findAcceptedProposal,
   findRejectedApplication,
   notifyApplicationDecision,
-  getNotificationsOfStudent,
+  notifyNewApplication,
+  getNotifications,
   getDelta,
   setDelta,
 } = require("./theses-dao");
@@ -50,7 +50,7 @@ router.get(
   }),
   (_req, res) => {
     return res.redirect("http://localhost:5173");
-  },
+  }
 );
 
 /** Endpoint called by Auth0 using Passport */
@@ -62,7 +62,7 @@ router.post(
   }),
   (_req, res) => {
     return res.redirect("http://localhost:5173");
-  },
+  }
 );
 
 /** Check for user authentication
@@ -166,13 +166,13 @@ router.post(
         notes,
         dayjs(expiration_date).format("YYYY-MM-DD"),
         level,
-        cds,
+        cds
       );
       return res.status(200).json(teacher);
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }
-  },
+  }
 );
 
 // endpoint to get all teachers {id, surname, name, email}
@@ -227,23 +227,21 @@ router.get("/api/degrees", isLoggedIn, (req, res) => {
   }
 });
 
-
 router.get("/api/proposals", isLoggedIn, (req, res) => {
   try {
     const { email } = req.user;
     const user = getUser(email);
     const clock = getDelta();
-    const date = dayjs().add(clock.delta, 'day').format("YYYY-MM-DD");
+    const date = dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
     if (!user) {
       return res.status(500).json({ message: "Internal server error" });
     }
     let proposals;
     if (user.role === "student") {
-      proposals = getProposalsByDegree(user.cod_degree)
-      .filter( ( proposal ) => {
-       dayjs(date).isBefore(proposal.expiration_date, 'day') || dayjs(date).isSame(proposal.expiration_date, 'day');
-      }
-      );
+      proposals = getProposalsByDegree(user.cod_degree).filter((proposal) => {
+        dayjs(date).isBefore(proposal.expiration_date, "day") ||
+          dayjs(date).isSame(proposal.expiration_date, "day");
+      });
     } else if (user.role === "teacher") {
       proposals = getProposalsBySupervisor(user.id);
     } else {
@@ -294,18 +292,19 @@ router.post(
         });
       }
       const clock = getDelta();
-      const date = dayjs().add(clock.delta, 'day').format("YYYY-MM-DD");
-      if ( dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day") ){
+      const date = dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
+      if (dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day")) {
         return res.status(400).json({
           message: `The proposal ${proposal} is expired, cannot apply`,
         });
       }
       const application = insertApplication(proposal, user.id, "pending");
+      notifyNewApplication(application?.proposal_id);
       return res.status(200).json(application);
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
     }
-  },
+  }
 );
 
 router.get("/api/applications", isLoggedIn, (req, res) => {
@@ -319,20 +318,24 @@ router.get("/api/applications", isLoggedIn, (req, res) => {
     const date = dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
     let applications;
     if (user.role === "teacher") {
-      applications = getApplicationsOfTeacher(user.id)
-      .map( ( application ) => {
+      applications = getApplicationsOfTeacher(user.id).map((application) => {
         let db_proposal = getProposal(application.proposal_id);
-        if ( dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day") && application.state === "pending" ){
+        if (
+          dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day") &&
+          application.state === "pending"
+        ) {
           application.state = "canceled";
         }
         return application;
       });
       return res.status(200).json(applications);
     } else if (user.role === "student") {
-      applications = getApplicationsOfStudent(user.id)
-      .map( ( application ) => {
+      applications = getApplicationsOfStudent(user.id).map((application) => {
         let db_proposal = getProposal(application.proposal_id);
-        if ( dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day") && application.state === "pending" ){
+        if (
+          dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day") &&
+          application.state === "pending"
+        ) {
           application.state = "canceled";
         }
         return application;
@@ -384,7 +387,7 @@ router.patch(
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  },
+  }
 );
 
 router.get("/api/notifications", isLoggedIn, (req, res) => {
@@ -394,15 +397,8 @@ router.get("/api/notifications", isLoggedIn, (req, res) => {
     if (!user) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-    if (user.role === "student") {
-      const notifications = getNotificationsOfStudent(user.id);
-      return res.status(200).json(notifications);
-    } else {
-      // todo: professor notifications
-      return res
-        .status(500)
-        .json({ message: "Missing professor notifications feature" });
-    }
+    const notifications = getNotifications(user.id);
+    return res.status(200).json(notifications);
   } catch (e) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
@@ -507,13 +503,13 @@ router.put(
         notes,
         dayjs(expiration_date).format("YYYY-MM-DD"),
         level,
-        cds,
+        cds
       );
       return res.status(200).send({ message: "Proposal updated successfully" });
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }
-  },
+  }
 );
 
 router.delete(
@@ -554,21 +550,19 @@ router.delete(
     }
   }
 );
-    
-router.get("/api/virtualClock",
-  isLoggedIn,
-  async (req, res) => {
-    try {
-      const clock = getDelta();
-      const date = dayjs().add(clock.delta, 'day').format("YYYY-MM-DD");
-      return res.status(200).json(date);
-    } catch (err) {
-      return res.status(500).json({ message: "Internal Server Error" });
-    }
-  }
-);
 
-router.patch("/api/virtualClock",
+router.get("/api/virtualClock", isLoggedIn, async (req, res) => {
+  try {
+    const clock = getDelta();
+    const date = dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
+    return res.status(200).json(date);
+  } catch (err) {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.patch(
+  "/api/virtualClock",
   isLoggedIn,
   check("date").isISO8601().toDate(),
   async (req, res) => {
@@ -578,12 +572,15 @@ router.patch("/api/virtualClock",
     }
     try {
       const clock = getDelta();
-      const newDelta = dayjs(req.body.date).diff(dayjs().format("YYYY-MM-DD"), 'day');
-      if (newDelta<clock.delta){
+      const newDelta = dayjs(req.body.date).diff(
+        dayjs().format("YYYY-MM-DD"),
+        "day"
+      );
+      if (newDelta < clock.delta) {
         return res.status(400).send({ message: "Cannot go back in the past" });
       }
       setDelta(newDelta);
-      return res.status(200).send({ message: "Date successfully changed"});
+      return res.status(200).send({ message: "Date successfully changed" });
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }

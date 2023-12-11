@@ -5,6 +5,7 @@
 const { db } = require("./db");
 const { nodemailer } = require("./smtp");
 const { applicationDecisionTemplate } = require("./mail/application-decision");
+const { newApplicationTemplate } = require("./mail/new-application");
 
 exports.insertApplication = (proposal, student, state) => {
   db.prepare(
@@ -255,6 +256,41 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
   );
 };
 
+exports.notifyNewApplication = async (proposalId) => {
+  // Send email to the supervisor
+  const proposalJoined = db
+    .prepare(
+      "SELECT P.title, T.id, T.email, T.surname, T.name \
+      FROM PROPOSALS P \
+      JOIN TEACHER T ON T.id = P.supervisor \
+      WHERE P.id = ?",
+    )
+    .get(proposalId);
+  const mailBody = newApplicationTemplate({
+    name: proposalJoined.surname + " " + proposalJoined.name,
+    thesis: proposalJoined.title
+  });
+  try {
+    await nodemailer.sendMail({
+      to: proposalJoined.email,
+      subject: "New application on your thesis proposal",
+      text: mailBody.text,
+      html: mailBody.html,
+    });
+  } catch (e) {
+    console.log("[mail service]", e);
+  }
+
+  // Save email in DB
+  db.prepare(
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+  ).run(
+    proposalJoined.id,
+    "New application on your thesis proposal",
+    mailBody.text,
+  );
+};
+
 /**
  * todo: I think it's ugly to return student's info and teacher's info
  * @param teacher_id
@@ -347,10 +383,10 @@ exports.getProposals = () => {
   return db.prepare("select * from PROPOSALS").all();
 };
 
-exports.getNotificationsOfStudent = (student_id) => {
+exports.getNotifications = (user_id) => {
   return db
-    .prepare("SELECT * FROM NOTIFICATIONS WHERE student_id = ?")
-    .all(student_id);
+    .prepare("SELECT * FROM NOTIFICATIONS WHERE student_id = ? OR teacher_id = ?")
+    .all(user_id, user_id);
 };
 
 exports.deleteProposal = (proposal_id) => {

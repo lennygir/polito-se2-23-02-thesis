@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { Alert, Snackbar, ThemeProvider } from "@mui/material";
+import { ThemeProvider } from "@mui/material";
 import { useThemeContext } from "./theme/ThemeContextProvider";
 import CssBaseline from "@mui/material/CssBaseline";
 import RootPage from "./routes/RootPage";
@@ -18,6 +18,7 @@ import ViewProposalPage from "./routes/ViewProposalPage";
 import ViewApplicationPage from "./routes/ViewApplicationPage";
 import API from "./utils/API";
 import EditProposalPage from "./routes/EditProposalPage";
+import AppAlert from "./components/AppAlert";
 
 function App() {
   const { theme } = useThemeContext();
@@ -64,19 +65,13 @@ function Main() {
     severity: "success"
   });
 
-  const handleErrors = (err) => {
-    let errMsg;
-    if (err.errors && err.errors[0] && err.errors[0].msg) {
-      errMsg = err.errors[0].msg;
-    } else if (err.error) {
-      errMsg = err.error;
-    } else if (err.message) {
-      errMsg = err.message;
-    } else {
-      errMsg = JSON.stringify(err);
-    }
-    setAlert({ message: errMsg, severity: "error" });
-  };
+  const handleErrors = useMemo(
+    () => (err) => {
+      const errMsg = err.errors?.[0]?.msg || err.error || err.message || JSON.stringify(err);
+      setAlert({ message: errMsg, severity: "error" });
+    },
+    [setAlert]
+  );
 
   const fetchDynamicData = async () => {
     try {
@@ -161,9 +156,9 @@ function Main() {
       <ErrorContext.Provider value={{ handleErrors }}>
         <Routes>
           {/* prettier-ignore */}
-          <Route path="/" element={user ? <RootPage loading={loading} currentDate={currentDate} fetchProposals={fetchProposals} fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} /> : <LoginPage />}>
-            <Route path="proposals" element={user ? <ProposalsPage setAlert={setAlert} currentDate={currentDate} setDirty={setDirty} proposals={proposals} applications={applications} teachers={teachers} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
-            <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} getTeacherById={getTeacherById} getDegreeById={getDegreeById} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
+          <Route path="/" element={user ? <RootPage loading={loading} currentDate={currentDate} setCurrentDate={setCurrentDate} fetchProposals={fetchProposals} fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} /> : <LoginPage />}>
+            <Route path="proposals" element={user ? <ProposalsPage setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} proposals={proposals} applications={applications} teachers={teachers} groups={groups} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
+            <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} setAlert={setAlert} getTeacherById={getTeacherById} getDegreeById={getDegreeById} applications={applications} /> : <Navigate replace to="/" />} />
             <Route path="add-proposal" element={user ? <CreateProposalPage fetchProposals={fetchProposals} proposals={proposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
             <Route path="edit-proposal/:proposalId" element={user ? <EditProposalPage fetchProposals={fetchProposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
             <Route path="applications" element={user ? <ApplicationsPage applications={applications} /> : <Navigate replace to="/" /> } />
@@ -173,16 +168,7 @@ function Main() {
           </Route>
           <Route path="*" element={<ErrorPage />} />
         </Routes>
-        <Snackbar
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-          open={alert.message !== ""}
-          onClose={() => setAlert({ ...alert, message: "" })}
-          autoHideDuration={5000}
-        >
-          <Alert variant="filled" severity={alert.severity}>
-            {alert.message}
-          </Alert>
-        </Snackbar>
+        <AppAlert alert={alert} setAlert={setAlert} />
       </ErrorContext.Provider>
     </UserContext.Provider>
   );

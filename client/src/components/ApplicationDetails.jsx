@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
@@ -16,7 +17,7 @@ import { useThemeContext } from "../theme/ThemeContextProvider";
 function ApplicationDetails(props) {
   const user = useContext(UserContext);
   const { theme } = useThemeContext();
-  const { application } = props;
+  const { application, evaluateApplication, applications } = props;
 
   const [decision, setDecision] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
@@ -50,19 +51,19 @@ function ApplicationDetails(props) {
       id: application.id,
       state: decision
     };
-    props.evaluateApplication(newApplication);
+    evaluateApplication(newApplication);
   };
 
   const isApplicationAccepted = () => {
-    return props.applications.some((a) => a.id === application.id && a.state === "accepted");
+    return applications.some((a) => a.id === application.id && a.state === "accepted");
   };
 
   const isApplicationRejected = () => {
-    return props.applications.some((a) => a.id === application.id && a.state === "rejected");
+    return applications.some((a) => a.id === application.id && a.state === "rejected");
   };
 
   const isApplicationCanceled = () => {
-    return props.applications.some((a) => a.id === application.id && a.state === "canceled");
+    return applications.some((a) => a.id === application.id && a.state === "canceled");
   };
 
   const renderActionButton = () => {
@@ -141,6 +142,7 @@ function ApplicationDetails(props) {
     <>
       {user?.role === "teacher" && (
         <ConfirmationDialog
+          mode="submit"
           message={dialogMessage}
           open={openDialog}
           handleClose={handleCloseDialog}
@@ -185,5 +187,11 @@ function ApplicationDetails(props) {
     </>
   );
 }
+
+ApplicationDetails.propTypes = {
+  application: PropTypes.object,
+  evaluateApplication: PropTypes.func,
+  applications: PropTypes.array
+};
 
 export default ApplicationDetails;
