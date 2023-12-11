@@ -4,6 +4,31 @@ const { app } = require("../src/server");
 const dayjs = require("dayjs");
 const { db } = require("../src/db");
 const isLoggedIn = require("../src/protect-routes");
+const PDFDocument = require("pdfkit");
+
+function createPDF() {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    const doc = new PDFDocument();
+
+    doc.on("data", (chunk) => {
+      chunks.push(chunk);
+    });
+
+    doc.on("end", () => {
+      const pdfBuffer = Buffer.concat(chunks);
+      resolve(pdfBuffer);
+    });
+
+    doc.on("error", (error) => {
+      reject(error);
+    });
+
+    // Add content to the PDF (e.g., text, images)
+    doc.text("Hello, this is an in-memory PDF!");
+    doc.end();
+  });
+}
 
 jest.mock("../src/db");
 jest.mock("../src/protect-routes");
@@ -343,6 +368,88 @@ describe("Protected routes", () => {
   });
 });*/
 
+describe("Story 13: student CV", () => {
+  afterEach(() => {
+    db.prepare("delete from main.PROPOSALS").run();
+    db.prepare("delete from main.APPLICATIONS").run();
+  });
+  it("Try to upload a pdf", async () => {
+    // login as professor
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+    // insert proposal
+    const proposal_body = {
+      title: "New proposal",
+      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
+      groups: ["SOFTENG"],
+      keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
+      types: ["EXPERIMENTAL", "RESEARCH"],
+      description: "This proposal is used to test the archiving functionality",
+      required_knowledge: "You have to know how to archive the thesis",
+      notes: null,
+      expiration_date: dayjs().format("YYYY-MM-DD"),
+      level: "MSC",
+      cds: "L-8-F",
+    };
+    const proposalId = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body)
+        .expect(200)
+    ).body;
+    // login as a student
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+    // insert application for proposal
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send({
+        proposal: proposalId,
+      })
+      .expect(200);
+
+    // get application id
+    const applications = (
+      await request(app).get("/api/applications").expect(200)
+    ).body;
+
+    // insert pdf for application
+    const pdf = await createPDF();
+    const response = await request(app)
+      .patch(`/api/applications/${applications[0].id}`)
+      .set("Content-Type", "application/pdf")
+      .send(pdf)
+      .expect(200);
+    expect(response.body).toEqual({ message: "File uploaded correctly" });
+
+    // log in as professor
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+
+    // retrieve pdf file
+    const expectedPdf = (
+      await request(app)
+        .get(`/api/applications/${applications[0].id}/attached-file`)
+        .expect(200)
+    ).body;
+    expect(expectedPdf).toEqual(pdf);
+  });
+});
+
 it("prova", async () => {
   const email = "marco.torchiano@teacher.it";
   isLoggedIn.mockImplementation((req, res, next) => {
@@ -626,18 +733,17 @@ describe("Application Insertion Tests", () => {
     application = {
       proposal: proposalId,
     };
-    return request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send(application)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          student_id: "s309618",
-          proposal_id: proposalId,
-          state: "pending",
-        });
-      });
+    const applicationReceived = (
+      await request(app)
+        .post("/api/applications")
+        .set("Content-Type", "application/json")
+        .send(application)
+        .expect(200)
+    ).body;
+    expect(applicationReceived).toHaveProperty("state", "pending");
+    expect(applicationReceived).toHaveProperty("proposal_id", proposalId);
+    expect(applicationReceived).toHaveProperty("student_id", "s309618");
+    expect(applicationReceived).toHaveProperty("application_id");
   });
   it("Insertion of an application for a student who already applied to a proposal", async () => {
     db.prepare(

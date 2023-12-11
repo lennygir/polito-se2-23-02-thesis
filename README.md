@@ -201,16 +201,19 @@ Once the docker container is running you can access the application using [local
   ```
 - PATCH `/api/applications/:id`
   - accept or reject a specific application. If the application is accepted, all the pending applications for that proposal are set as 'cancelled'
-  - request body content example
+  - request body content example (if professor)
   ```
   {
     "state": "pending"
   }
   ```
+  - in case the endpoint is called as a student (logged in), 
+  it is possible to upload a pdf to the application by setting the `Content-Type`
+  to `application/pdf` and by including the raw pdf file as the body of the request
 - POST `/api/applications`
   - notes
     - the initial state is always `pending`
-    - will not work if the student already applied for a proposal
+    - it will not work if the student already applied for a proposal
   - request body content example
   ```
   {
@@ -309,6 +312,35 @@ Once the docker container is running you can access the application using [local
   - 400 Bad Request: If the provided proposal content is invalid or if the proposal is already accepted for another student.
   - 404 Not Found: If the specified proposal ID is not found.
   - 500 Internal Server Error: If there's an internal server error.
+
+- GET `/api/students/:studentId/exams`
+  - Parameters:
+    - `studentId` the id of the student you want to pick the exams from
+  - Returned content example:
+    ```
+    [
+      {
+        id: studentId,
+        cod_course: "01SQMOV",
+        title_course: "Data Science and Database Technologies",
+        cfu: 8,
+        grade: 28,
+        date: "2023-01-23",
+      },
+      {
+        id: studentId,
+        cod_course: "02KPNOV",
+        title_course: "Network Services and Technologies",
+        cfu: 6,
+        grade: 25,
+        date: "2023-01-30",
+      },
+    ]
+    ```
+- GET `/api/applications/:id/attached-file`
+  - Parameters:
+    - `id` the id of the application
+  - Returned content is the raw file of the application
   
 ## Users Credentials
 

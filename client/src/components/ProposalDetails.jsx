@@ -1,6 +1,5 @@
-import { useContext, useState } from "react";
 import dayjs from "dayjs";
-import PropTypes from "prop-types";
+import { useContext, useState } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
@@ -15,19 +14,20 @@ import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import ScienceIcon from "@mui/icons-material/Science";
 import UserContext from "../contexts/UserContext";
 import { useThemeContext } from "../theme/ThemeContextProvider";
-import ConfirmationDialog from "./ConfirmationDialog";
+import DropzoneDialog from "./DropzoneDialog";
 
 const dialogMessage =
-  "Are you sure you want to submit your application for this thesis proposal? This action is irreversible, and your application will be sent to the supervisor for consideration.";
+  "Before proceding, you can upload up to one pdf file (e.g., your personal CV) that is going to be attached to your application.";
 
 function ProposalDetails(props) {
   const { theme } = useThemeContext();
-  const { proposal, applications, createApplication, getTeacherById, getDegreeById } = props;
+  const { proposal, applications, createApplication, getTeacherById, getDegreeById, setAlert } = props;
   const supervisorTeacher = getTeacherById(proposal.supervisor);
   const degree = getDegreeById(proposal.cds);
   const user = useContext(UserContext);
 
   const [openDialog, setOpenDialog] = useState(false);
+  const [files, setFiles] = useState([]);
 
   const handleOpenDialog = () => {
     setOpenDialog(true);
@@ -38,12 +38,25 @@ function ProposalDetails(props) {
   };
 
   const handleSubmit = () => {
-    setOpenDialog(false);
     const application = {
       proposal: proposal.id,
       student: user.id
     };
-    createApplication(application);
+
+    if (files.length > 0) {
+      const file = files[0].file;
+      if (file.type !== "application/pdf") {
+        setAlert({
+          message: `File "${file.name}" is not a pdf`,
+          severity: "warning"
+        });
+        return;
+      }
+      createApplication(application, file);
+    } else {
+      createApplication(application, null);
+    }
+    setOpenDialog(false);
   };
 
   const isApplicationAccepted = () => {
@@ -110,8 +123,9 @@ function ProposalDetails(props) {
   return (
     <>
       {user.role === "student" && (
-        <ConfirmationDialog
-          mode="submit"
+        <DropzoneDialog
+          files={files}
+          setFiles={setFiles}
           message={dialogMessage}
           open={openDialog}
           handleClose={handleCloseDialog}
@@ -192,13 +206,5 @@ function ProposalDetails(props) {
     </>
   );
 }
-
-ProposalDetails.propTypes = {
-  proposal: PropTypes.object,
-  applications: PropTypes.array,
-  createApplication: PropTypes.func,
-  getTeacherById: PropTypes.func,
-  getDegreeById: PropTypes.func
-};
 
 export default ProposalDetails;

@@ -86,6 +86,7 @@ CREATE TABLE IF NOT EXISTS APPLICATIONS (
   proposal_id INTEGER,
   student_id TEXT,
   state TEXT,
+  attached_file BLOB,
   FOREIGN KEY (proposal_id) REFERENCES PROPOSALS (id) ON DELETE SET NULL,
   FOREIGN KEY (student_id) REFERENCES STUDENT (id)
 );
