@@ -11,7 +11,6 @@ DROP TABLE IF EXISTS DEGREE;
 DROP TABLE IF EXISTS TEACHER;
 DROP TABLE IF EXISTS GROUPS;
 DROP TABLE IF EXISTS DEPARTMENTS;
-DROP TABLE IF EXISTS USERS;
 
 CREATE TABLE IF NOT EXISTS DEGREE ( 
   cod_degree TEXT PRIMARY KEY,
@@ -91,18 +90,16 @@ CREATE TABLE IF NOT EXISTS APPLICATIONS (
   FOREIGN KEY (student_id) REFERENCES STUDENT (id)
 );
 
-CREATE TABLE IF NOT EXISTS USERS (
-  email TEXT NOT NULL,
-  password TEXT NOT NULL
-);
-
 CREATE TABLE "NOTIFICATIONS" (
 	"id"	INTEGER PRIMARY KEY AUTOINCREMENT,
 	"date"	TEXT NOT NULL DEFAULT (DATETIME('now')),
 	"object"	TEXT NOT NULL,
 	"content"	TEXT NOT NULL,
-	"student_id"	TEXT NOT NULL,
-	FOREIGN KEY("student_id") REFERENCES "STUDENT"("id")
+	"student_id"	TEXT,
+	"teacher_id"	TEXT,
+	FOREIGN KEY("student_id") REFERENCES "STUDENT"("id"),
+  FOREIGN KEY("teacher_id") REFERENCES "TEACHER"("id"),
+  CONSTRAINT ck_student_teacher CHECK ((student_id IS NOT NULL AND teacher_id IS NULL) OR (student_id IS NULL AND teacher_id IS NOT NULL))
 );
 
 CREATE TABLE IF NOT EXISTS VIRTUAL_CLOCK (
@@ -299,14 +296,6 @@ VALUES  ('s308747', '01SQMOV', 'Data Science and Database Technologies', 8, 30, 
         ('s309618', '02JEUOV', 'Formal Languages and Compilers', 6, 26, '2023-07-17'),
         ('s309618', '02GRSOV', 'Systems and Device Programming', 10, 29, '2023-08-02'),
         ('s309618', '01SQNOV', 'Software Engineering II', 6, 30, '2023-08-14');
-
-INSERT INTO USERS (email, password)
-VALUES ('marco.torchiano@teacher.it', 's123456'),
-       ('maurizio.morisio@polito.it', 's234567'),
-       ('s319823@studenti.polito.it', 's319823'),
-       ('s321503@studenti.polito.it', 's321503'),
-       ('s308747@studenti.polito.it', 's308747'),
-       ('s309618@studenti.polito.it', 's309618');
 
 -- ACTIVATE FOREIGN KEYS
 PRAGMA foreign_keys = ON;

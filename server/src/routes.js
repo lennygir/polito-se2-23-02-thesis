@@ -238,10 +238,11 @@ router.get("/api/proposals", isLoggedIn, (req, res) => {
     }
     let proposals;
     if (user.role === "student") {
-      proposals = getProposalsByDegree(user.cod_degree).filter((proposal) => {
-        dayjs(date).isBefore(proposal.expiration_date, "day") ||
-          dayjs(date).isSame(proposal.expiration_date, "day");
-      });
+      proposals = getProposalsByDegree(user.cod_degree).filter(
+        (proposal) =>
+          dayjs(date).isBefore(dayjs(proposal.expiration_date)) ||
+          dayjs(date).isSame(dayjs(proposal.expiration_date))
+      );
     } else if (user.role === "teacher") {
       proposals = getProposalsBySupervisor(user.id);
     } else {
