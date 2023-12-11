@@ -373,6 +373,10 @@ describe("Story 13: student CV", () => {
     db.prepare("delete from main.PROPOSALS").run();
     db.prepare("delete from main.APPLICATIONS").run();
   });
+  beforeEach(() => {
+    db.prepare("delete from main.PROPOSALS").run();
+    db.prepare("delete from main.APPLICATIONS").run();
+  });
   it("Try to upload a pdf", async () => {
     // login as professor
     isLoggedIn.mockImplementation((req, res, next) => {

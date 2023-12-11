@@ -30,7 +30,7 @@ const {
   notifyNewApplication,
   getDelta,
   setDelta,
-  getNotificationsOfStudent,
+  getNotifications,
   getExamsOfStudent,
   insertPDFInApplication,
 } = require("./theses-dao");
@@ -225,7 +225,7 @@ router.get("/api/proposals", isLoggedIn, (req, res) => {
       proposals = getProposalsByDegree(user.cod_degree).filter(
         (proposal) =>
           dayjs(date).isBefore(dayjs(proposal.expiration_date)) ||
-          dayjs(date).isSame(dayjs(proposal.expiration_date))
+          dayjs(date).isSame(dayjs(proposal.expiration_date)),
       );
     } else if (user.role === "teacher") {
       proposals = getProposalsBySupervisor(user.id);
@@ -450,15 +450,8 @@ router.get("/api/notifications", isLoggedIn, (req, res) => {
     if (!user) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-    if (user.role === "student") {
-      const notifications = getNotificationsOfStudent(user.id);
-      return res.status(200).json(notifications);
-    } else {
-      // todo: professor notifications
-      return res
-        .status(500)
-        .json({ message: "Missing professor notifications feature" });
-    }
+    const notifications = getNotifications(user.id);
+    return res.status(200).json(notifications);
   } catch (e) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
@@ -608,7 +601,7 @@ router.delete(
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  }
+  },
 );
 
 router.get("/api/virtualClock", isLoggedIn, async (req, res) => {
@@ -634,7 +627,7 @@ router.patch(
       const clock = getDelta();
       const newDelta = dayjs(req.body.date).diff(
         dayjs().format("YYYY-MM-DD"),
-        "day"
+        "day",
       );
       if (newDelta < clock.delta) {
         return res.status(400).send({ message: "Cannot go back in the past" });
@@ -644,7 +637,7 @@ router.patch(
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  }
+  },
 );
 // ==================================================
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS
