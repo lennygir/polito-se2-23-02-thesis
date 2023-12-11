@@ -23,7 +23,7 @@ import UserContext from "../contexts/UserContext";
 import ConfirmationDialog from "./ConfirmationDialog";
 
 function ProposalRow(props) {
-  const { proposal, getTeacherById, deleteProposal, archiveProposal } = props;
+  const { proposal, getTeacherById, deleteProposal, archiveProposal, teacherFilter } = props;
   const user = useContext(UserContext);
   const teacher = user.role === "student" ? getTeacherById(proposal.supervisor) : null;
 
@@ -109,6 +109,11 @@ function ProposalRow(props) {
           </Stack>
         </TableCell>
         <TableCell align="center">{dayjs(proposal.expiration_date).format("DD/MM/YYYY")}</TableCell>
+        {user.role === "teacher" && teacherFilter === "archive" && (
+          <TableCell align="center">
+            <Chip label="EXPIRED" />
+          </TableCell>
+        )}
         {user.role === "teacher" && (
           <TableCell align="right">
             <IconButton onClick={handleOpenMenu}>
@@ -140,31 +145,35 @@ function ProposalRow(props) {
           Edit
         </MenuItem>
 
-        <MenuItem
-          color="inherit"
-          underline="none"
-          onClick={() => {
-            setAction("archive");
-            setOpenDialog(true);
-          }}
-          sx={{ borderRadius: 2 }}
-        >
-          <ArchiveIcon sx={{ mr: 3 }} />
-          Archive
-        </MenuItem>
+        {teacherFilter === "active" && (
+          <>
+            <MenuItem
+              color="inherit"
+              underline="none"
+              onClick={() => {
+                setAction("archive");
+                setOpenDialog(true);
+              }}
+              sx={{ borderRadius: 2 }}
+            >
+              <ArchiveIcon sx={{ mr: 3 }} />
+              Archive
+            </MenuItem>
 
-        <Divider />
+            <Divider />
 
-        <MenuItem
-          onClick={() => {
-            setAction("delete");
-            setOpenDialog(true);
-          }}
-          sx={{ color: "error.main", borderRadius: 2 }}
-        >
-          <DeleteIcon sx={{ mr: 3 }} />
-          Delete
-        </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setAction("delete");
+                setOpenDialog(true);
+              }}
+              sx={{ color: "error.main", borderRadius: 2 }}
+            >
+              <DeleteIcon sx={{ mr: 3 }} />
+              Delete
+            </MenuItem>
+          </>
+        )}
       </Popover>
     </>
   );
@@ -174,7 +183,8 @@ ProposalRow.propTypes = {
   proposal: PropTypes.object,
   getTeacherById: PropTypes.func,
   deleteProposal: PropTypes.func,
-  archiveProposal: PropTypes.func
+  archiveProposal: PropTypes.func,
+  teacherFilter: PropTypes.string
 };
 
 export default ProposalRow;

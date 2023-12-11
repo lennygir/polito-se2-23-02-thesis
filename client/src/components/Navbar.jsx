@@ -8,13 +8,22 @@ import MenuIcon from "@mui/icons-material/Menu";
 
 import ButtonDatePicker from "./ButtonDatePicker";
 import AccountPopover from "./AccountPopover";
+import API from "../utils/API";
 
 function Navbar(props) {
-  const { navbarHeight, drawerWidth, handleDrawerToggle, currentDate, setCurrentDate } = props;
+  const { navbarHeight, drawerWidth, handleDrawerToggle, currentDate, setAlert, setDirty } = props;
 
   const handleDateChange = (newDate) => {
-    setCurrentDate(dayjs(newDate).format("YYYY-MM-DD"));
-    // Call other apis
+    const date = {
+      date: dayjs(newDate).format("YYYY-MM-DD")
+    };
+    API.updateVirtualClock(date).then(() => {
+      setDirty(true);
+      setAlert({
+        message: "Date changed successfully",
+        severity: "success"
+      });
+    });
   };
 
   return (
@@ -58,7 +67,8 @@ Navbar.propTypes = {
   drawerWidth: PropTypes.number,
   handleDrawerToggle: PropTypes.func,
   currentDate: PropTypes.string,
-  setCurrentDate: PropTypes.func
+  setAlert: PropTypes.func,
+  setDirty: PropTypes.func
 };
 
 export default Navbar;

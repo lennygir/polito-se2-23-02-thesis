@@ -12,7 +12,7 @@ const logoHeight = 80;
 const navbarHeight = 75;
 
 function RootPage(props) {
-  const { loading, currentDate, setCurrentDate, fetchProposals, fetchApplications, fetchNotifications } = props;
+  const { loading, setAlert, setDirty, currentDate, fetchProposals, fetchApplications, fetchNotifications } = props;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState("proposals");
 
@@ -43,7 +43,8 @@ function RootPage(props) {
           drawerWidth={drawerWidth}
           handleDrawerToggle={handleDrawerToggle}
           currentDate={currentDate}
-          setCurrentDate={setCurrentDate}
+          setAlert={setAlert}
+          setDirty={setDirty}
         />
         <Sidebar
           selectedTab={selectedTab}
@@ -75,8 +76,9 @@ function RootPage(props) {
 
 RootPage.propTypes = {
   loading: PropTypes.bool,
+  setAlert: PropTypes.func,
+  setDirty: PropTypes.func,
   currentDate: PropTypes.string,
-  setCurrentDate: PropTypes.func,
   fetchProposals: PropTypes.func,
   fetchApplications: PropTypes.func,
   fetchNotifications: PropTypes.func

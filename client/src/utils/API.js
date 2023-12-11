@@ -204,9 +204,9 @@ const deleteProposal = async (proposal_id) => {
  * @returns {Promise} A promise that resolves with the actual date.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
-const getVirtualClock = async () =>  {
-  return getJson(fetch(SERVER_URL + "/virtualClock"));
-}
+const getVirtualClock = async () => {
+  return getJson(fetch(SERVER_URL + "/virtualClock", { credentials: "include" }));
+};
 
 /**
  * Update the virtual clock on the server given the actual date as input.
@@ -215,16 +215,19 @@ const getVirtualClock = async () =>  {
  * @throws {Error} If there is an issue with the HTTP request or parsing the server response.
  */
 const updateVirtualClock = async (date) => {
+  console.log(date);
   return getJson(
-    fetch(SERVER_URL + "/virtualClock" , {
+    fetch(SERVER_URL + "/virtualClock", {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(date)
+      body: JSON.stringify(date),
+      credentials: "include"
     })
   );
-}
+};
+
 /**
  * Get currently logged in user information.
  * @returns {Promise} - A promise that resolves with the result of the deletion.
@@ -252,7 +255,7 @@ const API = {
   updateProposal,
   deleteProposal,
   updateVirtualClock,
-  getVirtualClock,
+  getVirtualClock
 };
 
 export default API;

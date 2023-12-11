@@ -118,7 +118,7 @@ function ProposalForm(props) {
     const supervisorGroup = user.cod_group;
 
     const selectedCoSupervisorsGroups = coSupervisors.map((email) => {
-      const coSupervisor = teachers.find((teacher) => teacher.email === email);
+      const coSupervisor = teachersList.find((teacher) => teacher.email === email);
       return coSupervisor ? coSupervisor.cod_group : null;
     });
     // Remove null values and duplicate groups
@@ -210,16 +210,18 @@ function ProposalForm(props) {
       return;
     }
 
-    // Check for proposal with same title and description
-    const dupedProposal = proposals.find(
-      (proposal) => proposal.title === formData.title && proposal.description === formData.description
-    );
-    if (dupedProposal) {
-      setAlert({
-        message: "Proposal with the same title and description already exists",
-        severity: "warning"
-      });
-      return;
+    if (mode === "create") {
+      // Check for proposal with same title and description
+      const dupedProposal = proposals.find(
+        (proposal) => proposal.title === formData.title && proposal.description === formData.description
+      );
+      if (dupedProposal) {
+        setAlert({
+          message: "Proposal with the same title and description already exists",
+          severity: "warning"
+        });
+        return;
+      }
     }
 
     const data = {
