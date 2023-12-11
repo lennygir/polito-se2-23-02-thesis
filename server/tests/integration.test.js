@@ -169,8 +169,10 @@ describe("Story 12: Archive Proposals", () => {
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toStrictEqual({
+
       ...inserted_proposal,
       archived: true,
+      id: inserted_proposal_id
     });
   });
   it("The admitted field on the body should be only 'true'", async () => {
@@ -198,6 +200,7 @@ describe("Story 12: Archive Proposals", () => {
     ).toStrictEqual({
       ...inserted_proposal,
       archived: false,
+      id: inserted_proposal_id
     });
   });
 
@@ -288,16 +291,31 @@ describe("Story 12: Archive Proposals", () => {
         .send(proposal_body)
     ).body;
 
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
     // insert application for the proposal just inserted
     await request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
       .send({
-        student: "s309618",
         proposal: inserted_proposal_id,
       });
+
+    
     // find application id
-    const applications = (await request(app).get("/api/applications")).body;
+    const application = (await request(app).get("/api/applications")).body;
+
+    
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
 
     // the proposal should not be archived
     let proposals = (await request(app).get("/api/proposals")).body;
@@ -306,11 +324,13 @@ describe("Story 12: Archive Proposals", () => {
     ).toStrictEqual({
       ...inserted_proposal,
       archived: false,
+      id: inserted_proposal_id
     });
 
+    
     // accept application
     await request(app)
-      .patch(`/api/applications/${applications[0].id}`)
+      .patch(`/api/applications/${application[0].id}`)
       .set("Content-Type", "application/json")
       .send({
         state: "accepted",
@@ -323,6 +343,7 @@ describe("Story 12: Archive Proposals", () => {
     ).toStrictEqual({
       ...inserted_proposal,
       archived: true,
+      id: inserted_proposal_id
     });
   });
 });

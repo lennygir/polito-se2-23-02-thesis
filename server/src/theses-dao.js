@@ -113,6 +113,10 @@ exports.getProposalsBySupervisor = (id) => {
   return db.prepare("select * from PROPOSALS where supervisor = ?").all(id);
 };
 
+exports.getProposalsByAchived = (state) => {
+  return db.prepare("select * from PROPOSALS where archived = ?").all(state);
+};
+
 exports.getTeacher = (id) => {
   return db.prepare("select * from TEACHER where id = ?").get(id);
 };
