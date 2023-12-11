@@ -29,6 +29,7 @@ const {
   findRejectedApplication,
   notifyApplicationDecision,
   getNotifications,
+  getNotRejectedStartRequest,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 
@@ -196,7 +197,15 @@ router.post(
           message: "You must be authenticated as student to add a start request",
         });
       }
-      newStartRequest.co_supervisors = newStartRequest.co_supervisors.join(", ");
+      const userStartRequests = getNotRejectedStartRequest(user.id);
+      if (userStartRequests.length !== 0) {
+        return res.status(409).json({
+          message: 'You already have a start request pending or accepted',
+        });
+      }
+      if(newStartRequest.co_supervisors) {
+        newStartRequest.co_supervisors = newStartRequest.co_supervisors.join(", ");
+      }
       newStartRequest.approvalDate = null;
       newStartRequest.studentId = user.id;
       const startRequest = insertStartRequest(newStartRequest);

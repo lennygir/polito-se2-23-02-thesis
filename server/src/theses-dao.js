@@ -109,6 +109,14 @@ exports.insertStartRequest = (startRequest) => {
     ).lastInsertRowid;
 };
 
+exports.getNotRejectedStartRequest = (userId) => {
+  return db
+    .prepare(
+      "SELECT * FROM START_REQUESTS WHERE student_id = ? AND status != 'rejected'"
+    )
+    .all(userId);
+};
+
 exports.getApplicationById = (id) => {
   return db.prepare("select * from APPLICATIONS where id = ?").get(id);
 };

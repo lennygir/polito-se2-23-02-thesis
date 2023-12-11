@@ -19,6 +19,7 @@ const {
   getNotifications,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
+  getNotRejectedStartRequest,
 } = require("../src/theses-dao");
 const isLoggedIn = require("../src/protect-routes");
 
@@ -578,6 +579,7 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
+    getNotRejectedStartRequest.mockReturnValue([]);
     return request(app)
       .post(`/api/start-requests`)
       .send({
@@ -599,6 +601,7 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
+    getNotRejectedStartRequest.mockReturnValue([]);
     return request(app)
       .post(`/api/start-requests`)
       .send({
@@ -613,13 +616,14 @@ describe("POST /api/start-requests", () => {
       .set("Content-Type", "application/json")
       .expect(401);
   });
-  test("Valid start request without co-supervisors", () => {
+  test("Valid start request without co-supervisors - returns 200", () => {
     isLoggedIn.mockImplementation((req, res, next) => {
       req.user = {
         email: "s309618@studenti.polito.it",
       };
       next();
     });
+    getNotRejectedStartRequest.mockReturnValue([]);
     return request(app)
       .post(`/api/start-requests`)
       .send({
@@ -629,5 +633,28 @@ describe("POST /api/start-requests", () => {
       })
       .set("Content-Type", "application/json")
       .expect(200);
+  });
+  test("Valid start request by a student that already has a start request - returns 409", () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+    getNotRejectedStartRequest.mockReturnValue([{
+      title: "fake start request",
+      description: "fake description",
+      supervisor: "s123456",
+      status: "requested"
+    }]);
+    return request(app)
+      .post(`/api/start-requests`)
+      .send({
+        title: "test",
+        description: "desc test",
+        supervisor: "s123456",
+      })
+      .set("Content-Type", "application/json")
+      .expect(409);
   });
 });
