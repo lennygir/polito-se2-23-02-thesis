@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS PROPOSALS (
   expiration_date DATE,
   level TEXT,
   cds TEXT,
+  manually_archived INTEGER DEFAULT 0,
   FOREIGN KEY (supervisor) REFERENCES TEACHER (id),
   FOREIGN KEY (cds) REFERENCES DEGREE (cod_degree)
 );

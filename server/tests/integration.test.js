@@ -37,6 +37,7 @@ let proposal;
 let application;
 
 beforeEach(() => {
+  db.prepare("update VIRTUAL_CLOCK set delta = ? where id = ?").run(0, 1);
   proposal = {
     title: "Proposta di tesi fighissima",
     co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
@@ -83,19 +84,25 @@ describe("Protected routes", () => {
   });
 });
 
-/*describe("Story 12: Archive Proposals", () => {
+function logIn(email) {
+  isLoggedIn.mockImplementation((req, res, next) => {
+    req.user = {
+      email: email,
+    };
+    next();
+  });
+}
+
+describe("Story 12: Archive Proposals", () => {
   let proposal_body;
   let inserted_proposal;
   const email = "marco.torchiano@teacher.it";
   const future_date = dayjs().add(7, "day").format("YYYY-MM-DD");
   const past_date = dayjs().subtract(7, "day").format("YYYY-MM-DD");
   beforeEach(() => {
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: email,
-      };
-      next();
-    });
+    db.prepare("delete from main.PROPOSALS").run();
+    db.prepare("delete from main.APPLICATIONS").run();
+    logIn(email);
     proposal_body = {
       title: "New proposal",
       co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
@@ -114,9 +121,37 @@ describe("Protected routes", () => {
       supervisor: email,
     };
   });
-  afterEach(() => {
-    db.prepare("delete from main.PROPOSALS").run();
-    db.prepare("delete from main.APPLICATIONS").run();
+  it("A proposal manually archived should not be modifiable", async () => {
+    logIn("marco.torchiano@teacher.it");
+    // insert proposal as marco.torchiano
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body)
+    ).body;
+
+    // try to modify the proposal
+    await request(app)
+      .put(`/api/proposals/${inserted_proposal_id}`)
+      .set("Content-Type", "application/json")
+      .send(proposal_body)
+      .expect(200);
+
+    // archive the proposal
+    await request(app)
+      .patch(`/api/proposals/${inserted_proposal_id}`)
+      .set("Content-Type", "application/json")
+      .send({
+        archived: true,
+      });
+
+    // try to modify the proposal
+    await request(app)
+      .put(`/api/proposals/${inserted_proposal_id}`)
+      .set("Content-Type", "application/json")
+      .send(proposal_body)
+      .expect(401);
   });
   it("Create a proposal, then archive it", async () => {
     // insert proposal as marco.torchiano
@@ -137,10 +172,12 @@ describe("Protected routes", () => {
         .expect(200)
     ).body;
 
-    expect(archived_proposal).toEqual({
-      ...inserted_proposal,
-      archived: true,
-    });
+    expect(archived_proposal).toHaveProperty("archived", true);
+
+    // get all the proposals
+    const proposals = (await request(app).get("/api/proposals")).body;
+    expect(proposals[0]).toHaveProperty("id", inserted_proposal_id);
+    expect(proposals[0]).toHaveProperty("archived", true);
   });
   it("Multiple tries should not trigger any errors (idempotency)", async () => {
     // insert proposal
@@ -170,10 +207,7 @@ describe("Protected routes", () => {
         .expect(200)
     ).body;
 
-    expect(archived_proposal).toEqual({
-      ...inserted_proposal,
-      archived: true,
-    });
+    expect(archived_proposal).toHaveProperty("archived", true);
   });
 
   it("An expired proposal should be archived", async () => {
@@ -193,10 +227,7 @@ describe("Protected routes", () => {
 
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
-    ).toEqual({
-      ...inserted_proposal,
-      archived: true,
-    });
+    ).toHaveProperty("archived", true);
   });
   it("The admitted field on the body should be only 'true'", async () => {
     const inserted_proposal_id = (
@@ -220,10 +251,7 @@ describe("Protected routes", () => {
     // the proposal should remain unarchived
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
-    ).toEqual({
-      ...inserted_proposal,
-      archived: false,
-    });
+    ).toHaveProperty("archived", false);
   });
 
   it("The proposal should exist", async () => {
@@ -344,10 +372,7 @@ describe("Protected routes", () => {
     let proposals = (await request(app).get("/api/proposals")).body;
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
-    ).toEqual({
-      ...inserted_proposal,
-      archived: false,
-    });
+    ).toHaveProperty("archived", false);
 
     // accept application
     await request(app)
@@ -361,12 +386,9 @@ describe("Protected routes", () => {
     proposals = (await request(app).get("/api/proposals")).body;
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
-    ).toEqual({
-      ...inserted_proposal,
-      archived: true,
-    });
+    ).toHaveProperty("archived", true);
   });
-});*/
+});
 
 describe("Story 13: student CV", () => {
   afterEach(() => {
@@ -483,7 +505,10 @@ it("prova", async () => {
   let returned_proposal = db
     .prepare("select * from main.PROPOSALS where id = ?")
     .get(proposal_id);
-  expect(returned_proposal).toEqual(expected_proposal);
+  expect(returned_proposal).toEqual({
+    ...expected_proposal,
+    manually_archived: 0,
+  });
 });
 
 it("CRUD on proposal", async () => {
@@ -511,6 +536,7 @@ it("CRUD on proposal", async () => {
     groups: proposal.groups.join(", "),
     keywords: proposal.keywords.join(", "),
     expiration_date: dayjs(proposal.expiration_date).format("YYYY-MM-DD"),
+    archived: false,
   };
   delete expectedProposal.types;
   expect(proposals.find((proposal) => proposal.id === proposalId)).toEqual(
@@ -1006,9 +1032,10 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
   beforeEach(() => {
     db.prepare("delete from main.PROPOSALS").run();
     db.prepare("delete from main.APPLICATIONS").run();
+    db.prepare("update VIRTUAL_CLOCK set delta = ? where id = ?").run(0, 1);
   });
 
-  it("a pending application for a proposal that expires should be set cancelled", async () => {
+  it("a pending application for a proposal that expires should be set canceled", async () => {
     isLoggedIn.mockImplementation((req, res, next) => {
       req.user = {
         email: "marco.torchiano@teacher.it",
@@ -1186,6 +1213,60 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toBe(undefined);
   });
+
+  it("A proposal that expires should become archived", async () => {
+    logIn("marco.torchiano@teacher.it");
+
+    // set expiration date to the future
+    proposal.expiration_date = dayjs().add(3, "day").format("YYYY-MM-DD");
+
+    // insert proposal as professor
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+
+    // set the expiration date to the past
+    const pastDate = dayjs().subtract(3, "day").format("YYYY-MM-DD");
+    db.prepare("update PROPOSALS set expiration_date = ? where id = ?").run(
+      pastDate,
+      inserted_proposal_id,
+    );
+
+    // now the proposal should be archived
+    const proposals = (await request(app).get("/api/proposals").expect(200))
+      .body;
+    expect(proposals[0]).toHaveProperty("archived", true);
+  });
+
+  it("A proposal that expires today should not be archived", async () => {
+    logIn("marco.torchiano@teacher.it");
+
+    // set expiration date to the future
+    proposal.expiration_date = dayjs().add(3, "day").format("YYYY-MM-DD");
+
+    // insert proposal as professor
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+
+    // set the expiration date to today
+    const today = dayjs().format("YYYY-MM-DD");
+    db.prepare("update PROPOSALS set expiration_date = ? where id = ?").run(
+      today,
+      inserted_proposal_id,
+    );
+
+    // the proposal should not be archived
+    const proposals = (await request(app).get("/api/proposals").expect(200))
+      .body;
+    expect(proposals[0]).toHaveProperty("archived", false);
+  });
 });
 
 describe("Proposal acceptance", () => {
@@ -1291,6 +1372,23 @@ describe("Proposal acceptance", () => {
       .body;
 
     expect(applicationsStudent2[0].state).toBe("canceled");
+  });
+});
+describe("Virtual clock", () => {
+  it("Setting the virtual clock two times", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => next());
+
+    // set the virtual clock to 7 days after
+    await request(app)
+      .patch("/api/virtualClock")
+      .send({ date: dayjs().add(7, "day").format("YYYY-MM-DD") })
+      .expect(200);
+
+    // set the virtual clock to 5 days after
+    await request(app)
+      .patch("/api/virtualClock")
+      .send({ date: dayjs().add(8, "day").format("YYYY-MM-DD") })
+      .expect(200);
   });
 });
 

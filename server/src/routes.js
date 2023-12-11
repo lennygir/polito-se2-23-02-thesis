@@ -33,6 +33,7 @@ const {
   getNotifications,
   getExamsOfStudent,
   insertPDFInApplication,
+  updateArchivedStateProposal,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 
@@ -211,32 +212,60 @@ router.get("/api/degrees", isLoggedIn, (req, res) => {
   }
 });
 
-router.get("/api/proposals", isLoggedIn, (req, res) => {
-  try {
-    const { email } = req.user;
-    const user = getUser(email);
-    const clock = getDelta();
-    const date = dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
-    if (!user) {
-      return res.status(500).json({ message: "Internal server error" });
+function getDate() {
+  const clock = getDelta();
+  return dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
+}
+
+router.get(
+  "/api/proposals",
+  check("archived").isBoolean().optional({ values: "falsy" }),
+  isLoggedIn,
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ message: "Invalid parameters" });
     }
-    let proposals;
-    if (user.role === "student") {
-      proposals = getProposalsByDegree(user.cod_degree).filter(
-        (proposal) =>
-          dayjs(date).isBefore(dayjs(proposal.expiration_date)) ||
-          dayjs(date).isSame(dayjs(proposal.expiration_date)),
-      );
-    } else if (user.role === "teacher") {
-      proposals = getProposalsBySupervisor(user.id);
-    } else {
-      return res.status(500).json({ message: "Internal server error" });
+    try {
+      const { email } = req.user;
+      const user = getUser(email);
+      const date = getDate();
+      if (!user) {
+        return res.status(500).json({ message: "Internal server error" });
+      }
+      let proposals;
+      if (user.role === "student") {
+        proposals = getProposalsByDegree(user.cod_degree).filter(
+          (proposal) =>
+            dayjs(date).isBefore(dayjs(proposal.expiration_date)) ||
+            dayjs(date).isSame(dayjs(proposal.expiration_date)),
+        );
+      } else if (user.role === "teacher") {
+        proposals = getProposalsBySupervisor(user.id);
+      } else {
+        return res.status(500).json({ message: "Internal server error" });
+      }
+      proposals.map((proposal) => {
+        if (proposal.manually_archived === 1) {
+          proposal.archived = true;
+        } else
+          proposal.archived = !!dayjs(proposal.expiration_date).isBefore(
+            dayjs(date),
+          );
+        delete proposal.manually_archived;
+        return proposal;
+      });
+      if (req.query.archived !== undefined) {
+        proposals = proposals.filter((proposal) => {
+          return proposal.archived === req.query.archived;
+        });
+      }
+      return res.status(200).json(proposals);
+    } catch (err) {
+      return res.status(500).json({ message: "Internal Server Error" });
     }
-    return res.status(200).json(proposals);
-  } catch (err) {
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+  },
+);
 
 router.post(
   "/api/applications",
@@ -276,8 +305,7 @@ router.post(
             "The student has already applied for this application and it was rejected",
         });
       }
-      const clock = getDelta();
-      const date = dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
+      const date = getDate();
       if (dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day")) {
         return res.status(400).json({
           message: `The proposal ${proposal} is expired, cannot apply`,
@@ -299,8 +327,7 @@ router.get("/api/applications", isLoggedIn, (req, res) => {
     if (!user) {
       return res.status(500).json({ message: "Internal server error" });
     }
-    const clock = getDelta();
-    const date = dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
+    const date = getDate();
     let applications;
     if (user.role === "teacher") {
       applications = getApplicationsOfTeacher(user.id).map((application) => {
@@ -373,6 +400,7 @@ async function setStateToApplication(req, res, state) {
     });
   }
   updateApplication(application.id, state);
+  updateArchivedStateProposal(1, application.proposal_id);
   await notifyApplicationDecision(application.id, state);
   if (state === "accepted") {
     cancelPendingApplications(application.proposal_id);
@@ -457,8 +485,41 @@ router.get("/api/notifications", isLoggedIn, (req, res) => {
   }
 });
 
-// todo: to be modified. Should be used to story #12
-router.patch("/api/proposals/:id", isLoggedIn, (req, res) => {});
+router.patch(
+  "/api/proposals/:id",
+  check("id").isInt(),
+  check("archived").equals("true"),
+  isLoggedIn,
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ message: "Invalid proposal content" });
+    }
+    try {
+      const { email } = req.user;
+      const user = getUser(email);
+      if (!user || user.role !== "teacher") {
+        return res
+          .status(401)
+          .json({ message: "Only teachers can archive proposals" });
+      }
+      const { id } = req.params;
+      const proposal = getProposal(id);
+      if (proposal === undefined) {
+        return res.status(404).json({ message: "Proposal not found" });
+      }
+      if (proposal.supervisor !== user.id) {
+        return res.status(401).json({
+          message: "Unauthorized to change other teacher's proposal",
+        });
+      }
+      updateArchivedStateProposal(1, id);
+      return res.status(200).json({ ...proposal, archived: true });
+    } catch (e) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
 
 router.put(
   "/api/proposals/:id",
@@ -514,6 +575,11 @@ router.put(
         return res.status(404).json({
           message: `Proposal ${proposal_id} not found`,
         });
+      }
+      if (proposal.manually_archived === 1) {
+        return res
+          .status(401)
+          .json({ message: "The proposal is manually archived" });
       }
       if (proposal.supervisor !== user.id) {
         return res
@@ -606,8 +672,7 @@ router.delete(
 
 router.get("/api/virtualClock", isLoggedIn, async (req, res) => {
   try {
-    const clock = getDelta();
-    const date = dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
+    const date = getDate();
     return res.status(200).json(date);
   } catch (err) {
     return res.status(500).json({ message: "Internal Server Error" });
