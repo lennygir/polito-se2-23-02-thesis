@@ -115,6 +115,10 @@ exports.getTeacher = (id) => {
   return db.prepare("select * from TEACHER where id = ?").get(id);
 };
 
+exports.getCds = (cds) => {
+  return db.prepare("select * from DEGREE where cod_degree = ?").get(cds);
+};
+
 exports.getTeacherByEmail = (email) => {
   return db.prepare("select * from TEACHER where email = ?").get(email);
 };
@@ -452,3 +456,12 @@ exports.updateProposal = (
       proposal_id,
     );
 };
+
+exports.getDelta = () => {
+  return db.prepare("select delta from VIRTUAL_CLOCK where id = 1").get();
+};
+
+exports.setDelta = (delta) => {
+  return db.prepare("UPDATE VIRTUAL_CLOCK SET delta = ? WHERE id = 1").run(delta);
+};
+

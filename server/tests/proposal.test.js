@@ -2,6 +2,7 @@
 
 const request = require("supertest");
 const { app } = require("../src/server");
+
 const {
   getGroups,
   getTeachers,
@@ -17,9 +18,13 @@ const {
   findAcceptedProposal,
   findRejectedApplication,
   getNotifications,
+  getDelta,
+  setDelta,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
 } = require("../src/theses-dao");
+
+const dayjs = require("dayjs");
 const isLoggedIn = require("../src/protect-routes");
 
 jest.mock("../src/theses-dao");
@@ -166,7 +171,9 @@ describe("Application Insertion Tests", () => {
   test("Correct insertion of a right application", () => {
     getProposal.mockReturnValue({
       proposal: "something",
+      expiration_date: dayjs().add(1, "day"),
     });
+    getDelta.mockReturnValue(0);
     getStudent.mockReturnValue({
       student: "something",
     });
@@ -303,6 +310,10 @@ describe("Applications retrieval tests", () => {
       },
     ];
     getApplicationsOfStudent.mockReturnValue(expectedApplications);
+    getDelta.mockReturnValue({ delta: 0 });
+    getProposal.mockReturnValue({
+      expiration_date: dayjs().add(2, "day").format("YYYY-MM-DD"),
+    });
     const applications = (
       await request(app)
         .get("/api/applications")
@@ -324,7 +335,7 @@ describe("Applications retrieval tests", () => {
       .set("Content-Type", "application/json")
       .expect(200);
     expect(getApplicationsOfTeacher).toBeCalledWith(
-      "s123456", //"marco.torchiano@teacher.it",
+      "s123456" //"marco.torchiano@teacher.it",
     );
   });
 });
@@ -368,7 +379,7 @@ describe("Get All Teachers Test", () => {
   });
   test("Get 500 for an internal server error", () => {
     getTeachers.mockImplementation(() => {
-      throw "SQLITE_ERROR_SOMETHING";
+      throw new Error("SQLITE_ERROR_SOMETHING");
     });
     return request(app)
       .get("/api/teachers")
@@ -391,16 +402,16 @@ describe("Get All Groups Test", () => {
       .expect("Content-Type", /json/)
       .expect(200);
   });
-  test("Get 404 for an empty group table db", () => {
+  test("Get 200 for an empty group table db", () => {
     getGroups.mockReturnValue([]);
     return request(app)
       .get("/api/groups")
       .expect("Content-Type", /json/)
-      .expect(404);
+      .expect(200);
   });
   test("Get 500 for an internal server error", () => {
     getGroups.mockImplementation(() => {
-      throw "SQLITE_ERROR_SOMETHING";
+      throw new Error("SQLITE_ERROR_SOMETHING");
     });
     return request(app)
       .get("/api/groups")
@@ -423,16 +434,16 @@ describe("Get All Degrees Test", () => {
       .expect("Content-Type", /json/)
       .expect(200);
   });
-  test("Get 404 for an empty degree table db", () => {
+  test("Get 200 for an empty degree table db", () => {
     getDegrees.mockReturnValue([]);
     return request(app)
       .get("/api/degrees")
       .expect("Content-Type", /json/)
-      .expect(404);
+      .expect(200);
   });
   test("Get 500 for an internal server error", () => {
     getDegrees.mockImplementation(() => {
-      throw "SQLITE_ERROR_SOMETHING";
+      throw new Error("SQLITE_ERROR_SOMETHING");
     });
     return request(app)
       .get("/api/degrees")
@@ -504,7 +515,7 @@ describe("PATCH /api/applications/:id", () => {
   });
   test("It should return 500 in case of database error", () => {
     getApplicationById.mockImplementation(() => {
-      throw "SQLITE_ERROR_SOMETHING";
+      throw new Error("SQLITE_ERROR_SOMETHING");
     });
     return request(app)
       .patch("/api/applications/1")
@@ -568,4 +579,57 @@ describe("GET /api/notifications", () => {
   });
 
   // Add more test cases for validation errors, server errors, etc.
+});
+
+describe("GET /api/virtualClock", () => {
+  it("should respond with status 200 and date", async () => {
+    getDelta.mockReturnValueOnce({ delta: 3 });
+    const response = await request(app).get("/api/virtualClock");
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(dayjs().add("3", "day").format("YYYY-MM-DD"));
+  });
+  it("should handle server error and respond with status 500", async () => {
+    getDelta.mockImplementation(() => {
+      throw new Error("Simulated server error");
+    });
+
+    const response = await request(app).get("/api/virtualClock");
+    expect(response.status).toBe(500);
+    expect(response.body).toHaveProperty("message", "Internal Server Error");
+  });
+});
+
+describe("PATCH /api/virtualClock", () => {
+  it("should respond with status 200 and success message", async () => {
+    setDelta.mockReturnValueOnce({ message: "Date successfully changed" });
+    getDelta.mockReturnValueOnce({ delta: 0 });
+    const response = await request(app)
+      .patch("/api/virtualClock")
+      .send({ date: dayjs().add(1, "day").format("YYYY-MM-DD") });
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty(
+      "message",
+      "Date successfully changed"
+    );
+  });
+
+  it("should handle invalid date content and respond with status 400", async () => {
+    const response = await request(app)
+      .patch("/api/virtualClock")
+      .send({ date: "invalid-date" });
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty("message", "Invalid date content");
+  });
+
+  it("should handle going back in the past and respond with status 400", async () => {
+    getDelta.mockReturnValueOnce({ delta: 4 });
+    const response = await request(app)
+      .patch("/api/virtualClock")
+      .send({ date: dayjs().add(1, "day").format("YYYY-MM-DD") });
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty(
+      "message",
+      "Cannot go back in the past"
+    );
+  });
 });

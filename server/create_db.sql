@@ -1,6 +1,7 @@
 -- TO RUN THIS SCRIPT:
 -- sqlite3 theses_management.db < create_db.sql
 
+DROP TABLE IF EXISTS VIRTUAL_CLOCK;
 DROP TABLE IF EXISTS NOTIFICATIONS;
 DROP TABLE IF EXISTS APPLICATIONS;
 DROP TABLE IF EXISTS CAREER;
@@ -10,7 +11,6 @@ DROP TABLE IF EXISTS DEGREE;
 DROP TABLE IF EXISTS TEACHER;
 DROP TABLE IF EXISTS GROUPS;
 DROP TABLE IF EXISTS DEPARTMENTS;
-DROP TABLE IF EXISTS USERS;
 
 CREATE TABLE IF NOT EXISTS DEGREE ( 
   cod_degree TEXT PRIMARY KEY,
@@ -90,11 +90,6 @@ CREATE TABLE IF NOT EXISTS APPLICATIONS (
   FOREIGN KEY (student_id) REFERENCES STUDENT (id)
 );
 
-CREATE TABLE IF NOT EXISTS USERS (
-  email TEXT NOT NULL,
-  password TEXT NOT NULL
-);
-
 CREATE TABLE "NOTIFICATIONS" (
 	"id"	INTEGER PRIMARY KEY AUTOINCREMENT,
 	"date"	TEXT NOT NULL DEFAULT (DATETIME('now')),
@@ -106,6 +101,13 @@ CREATE TABLE "NOTIFICATIONS" (
   FOREIGN KEY("teacher_id") REFERENCES "TEACHER"("id"),
   CONSTRAINT ck_student_teacher CHECK ((student_id IS NOT NULL AND teacher_id IS NULL) OR (student_id IS NULL AND teacher_id IS NOT NULL))
 );
+
+CREATE TABLE IF NOT EXISTS VIRTUAL_CLOCK (
+	id INTEGER PRIMARY KEY,
+  delta	INTEGER
+);
+INSERT INTO VIRTUAL_CLOCK (id, delta)
+VALUES (1, 0);
 
 INSERT INTO DEGREE (cod_degree, title_degree)
 VALUES  ('L-4-A', 'Design and Communication'),
@@ -325,14 +327,6 @@ VALUES  (1, 'Gamification di attività di modellazione UML', 's123456', 'luigi.d
         (28, 'Explainable AI for Trustworthy Decision Support Systems', 's998899', 'debora.fino@teacher.it, antonio.lioy@teacher.it', 'EXPLAINABLE AI, DECISION SUPPORT SYSTEMS, MACHINE LEARNING, INTERPRETABLE MODELS', 'EXPERIMENTAL', 'TORSEC, EMC', 'Explainability is crucial in decision support systems, especially when powered by machine learning models. This thesis focuses on developing explainable AI for trustworthy decision support systems. Students will explore interpretable machine learning models, explainability techniques, and their application to decision support scenarios. The research may involve the development of prototypes and the evaluation of the explainability and trustworthiness of the proposed systems. The goal is to contribute to the advancement of decision support systems that provide transparent and understandable insights.', 'Strong background in machine learning, programming skills (preferably in Python), and interest in decision support systems.', NULL, '2024-08-25', 'MSC', 'LM-32-D'),
         (29, 'Resilient Communication Networks for Disaster-Prone Areas', 's567890', 'debora.fino@teacher.it, flavio.canavero@teacher.it', 'COMMUNICATION NETWORKS, RESILIENCE, DISASTER MANAGEMENT, WIRELESS TECHNOLOGIES', 'EXPERIMENTAL, RESEARCH', 'EMC, TORSEC', 'Communication networks are crucial for disaster management, but they are often vulnerable to disruptions. This thesis aims to develop resilient communication networks for disaster-prone areas. Students will explore wireless technologies, network resilience strategies, and disaster response scenarios to design and implement resilient communication solutions. The research may involve simulation studies and experimentation to evaluate the effectiveness of the proposed solutions. The goal is to contribute to the development of communication networks that can withstand challenges in disaster-affected regions.', 'Strong background in communication networks, programming skills (preferably in Python or Java), and interest in disaster management and resilience.', NULL, '2024-08-30', 'MSC', 'LM-32-D'),
         (30, 'Human-Centric Design of Augmented Reality Interfaces', 's238411', 'antonio.lioy@teacher.it, debora.fino@teacher.it', 'AUGMENTED REALITY, HUMAN-CENTRIC DESIGN, USER INTERFACE, USER EXPERIENCE', 'RESEARCH, COMPANY', 'TORSEC, EMC', 'The design of augmented reality (AR) interfaces plays a crucial role in user experience and acceptance. This thesis focuses on human-centric design principles for AR interfaces. Students will explore user interface design, interaction techniques, and usability studies in the context of augmented reality. The research may involve the creation of AR prototypes, user studies, and the evaluation of the impact of AR on user experience. The goal is to contribute to the development of AR interfaces that prioritize user needs and preferences.', 'Programming skills (preferably in Unity, C#, or related AR development frameworks), understanding of human-computer interaction, and interest in AR applications.', NULL, '2024-09-01', 'MSC', 'LM-32-D');
-
-INSERT INTO USERS (email, password)
-VALUES ('marco.torchiano@teacher.it', 's123456'),
-       ('maurizio.morisio@teacher.it', 's234567'),
-       ('s319823@studenti.polito.it', 's319823'),
-       ('s321503@studenti.polito.it', 's321503'),
-       ('s308747@studenti.polito.it', 's308747'),
-       ('s309618@studenti.polito.it', 's309618');
 
 INSERT INTO APPLICATIONS (proposal_id,student_id,state)
 VALUES (1,'s309618','rejected'),

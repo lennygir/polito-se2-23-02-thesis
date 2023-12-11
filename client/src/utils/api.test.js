@@ -257,3 +257,43 @@ describe("Test the deletion of a proposal", () => {
     }
   });
 });
+
+describe('Test the virtual clock', () => {
+  it('getVirtualClock - should successfully get virtual clock', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ date: '2023-12-31' })
+    });
+    const result = await API.getVirtualClock();
+    expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/virtualClock`);
+    expect(result).toEqual({ date: '2023-12-31' });
+  });
+
+  it('updateVirtualClock - should successfully update virtual clock', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ message: 'Update successful' })
+    });
+    const result = await API.updateVirtualClock('2023-12-31');
+    expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/virtualClock`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify('2023-12-31'),
+    });
+    expect(result).toEqual({ message: 'Update successful' });
+  });
+
+  it('updateVirtualClock - should handle updateVirtualClock failure', async () => {
+    try{ 
+      fetch.mockResolvedValueOnce({
+        ok: false,
+        json: () => Promise.resolve({ error: "error on updating the clock" }),
+      });
+      await API.updateVirtualClock('2022-12-31')
+    } catch (error) {
+      expect(error).toEqual({ error: "error on updating the clock" });
+    }
+  });
+});

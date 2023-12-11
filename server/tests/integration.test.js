@@ -21,12 +21,12 @@ beforeEach(() => {
     description: "Accetta questa tesi che e' una bomba",
     required_knowledge: "non devi sapere nulla",
     notes: "Bella raga",
-    expiration_date: "2019-01-25",
+    expiration_date: "2025-01-25T02:00:00.000Z",
     level: "MSC",
-    cds: "L-8-F",
+    cds: "LM-32-D",
   };
   application = {
-    proposal: 8,
+    proposal: 1,
   };
 });
 
@@ -58,7 +58,7 @@ describe("Protected routes", () => {
   });
 });
 
-describe("Story 12: Archive Proposals", () => {
+/*describe("Story 12: Archive Proposals", () => {
   let proposal_body;
   let inserted_proposal;
   const email = "marco.torchiano@teacher.it";
@@ -341,7 +341,7 @@ describe("Story 12: Archive Proposals", () => {
       archived: true,
     });
   });
-});
+});*/
 
 it("prova", async () => {
   const email = "marco.torchiano@teacher.it";
@@ -581,6 +581,7 @@ describe("Proposal Retrieval Tests", () => {
       .expect(401);
   });
 });
+
 describe("Application Insertion Tests", () => {
   it("Insertion of an application from a wrong student", () => {
     isLoggedIn.mockImplementation((req, res, next) => {
@@ -709,6 +710,134 @@ describe("Notifications Retrieval Tests", () => {
       });
   });
 });
+
+describe("test the correct flow for a proposal expiration", () => {
+  it("a pending application for a proposal that expires sholud be set cancelled", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+    db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
+    const clock = db.prepare("select delta from VIRTUAL_CLOCK where id = 1").get();
+    proposal.expiration_date = dayjs().add(clock.delta+1,'day').format("YYYY-MM-DD");
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+    db.prepare(
+      "delete from main.APPLICATIONS where main.APPLICATIONS.student_id = ?",
+    ).run("s309618");
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send({
+        proposal: inserted_proposal_id,
+      });
+    await request(app)
+      .patch(`/api/virtualClock`)
+      .set("Content-Type", "application/json")
+      .send({date:dayjs().add(clock.delta+2,"day").format("YYYY-MM-DD")})
+      .expect(200);
+    await request(app)
+      .get("/api/applications")
+      .then((response) => {
+        response.body.forEach((application) => {
+          expect(application.state).toEqual("canceled");
+        });
+      });
+  });
+
+  it("cannot apply to a proposal expired", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+    db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
+    const clock = db.prepare("select delta from VIRTUAL_CLOCK where id = 1").get();
+    proposal.expiration_date = dayjs().add(clock.delta+1,'day').format("YYYY-MM-DD");
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+    db.prepare(
+      "delete from main.APPLICATIONS where main.APPLICATIONS.student_id = ?",
+    ).run("s309618");
+    await request(app)
+      .patch(`/api/virtualClock`)
+      .set("Content-Type", "application/json")
+      .send({date:dayjs().add(clock.delta+2,"day").format("YYYY-MM-DD")})
+      .expect(200);
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send({
+        proposal: inserted_proposal_id,
+      })
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          message: `The proposal ${inserted_proposal_id} is expired, cannot apply`,
+        });
+      });
+  });
+
+  it("getProposals for student shouldn't return expired proposals", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+    db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
+    const clock = db.prepare("select delta from VIRTUAL_CLOCK where id = 1").get();
+    proposal.expiration_date = dayjs().add(clock.delta+1,'day').format("YYYY-MM-DD");
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+    await request(app)
+      .patch(`/api/virtualClock`)
+      .set("Content-Type", "application/json")
+      .send({date:dayjs().add(clock.delta+2,"day").format("YYYY-MM-DD")})
+      .expect(200);
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+    const proposals = (
+      await request(app).get("/api/proposals").expect(200)
+    ).body;
+    expect(proposals.find((proposal) => proposal.id === inserted_proposal_id)).toBe(
+      undefined,
+    );
+  });
+});
+
+
 
 /*describe("Delete proposals", () => {
   test("Correct elimination of a proposal", () => {

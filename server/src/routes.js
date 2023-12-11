@@ -29,6 +29,8 @@ const {
   notifyApplicationDecision,
   notifyNewApplication,
   getNotifications,
+  getDelta,
+  setDelta,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 
@@ -48,7 +50,7 @@ router.get(
   }),
   (_req, res) => {
     return res.redirect("http://localhost:5173");
-  },
+  }
 );
 
 /** Endpoint called by Auth0 using Passport */
@@ -60,7 +62,7 @@ router.post(
   }),
   (_req, res) => {
     return res.redirect("http://localhost:5173");
-  },
+  }
 );
 
 /** Check for user authentication
@@ -164,19 +166,25 @@ router.post(
         notes,
         dayjs(expiration_date).format("YYYY-MM-DD"),
         level,
-        cds,
+        cds
       );
       return res.status(200).json(teacher);
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }
-  },
+  }
 );
 
 // endpoint to get all teachers {id, surname, name, email}
 router.get("/api/teachers", isLoggedIn, (req, res) => {
   try {
     const teachers = getTeachers();
+
+    if (teachers.length === 0) {
+      return res
+        .status(200)
+        .send({ message: "No teacher found in the database" });
+    }
 
     return res.status(200).json(teachers);
   } catch (e) {
@@ -192,7 +200,7 @@ router.get("/api/groups", isLoggedIn, (req, res) => {
 
     if (groups.length === 0) {
       return res
-        .status(404)
+        .status(200)
         .send({ message: "No group found in the database" });
     }
 
@@ -209,7 +217,7 @@ router.get("/api/degrees", isLoggedIn, (req, res) => {
 
     if (degrees.length === 0) {
       return res
-        .status(404)
+        .status(200)
         .send({ message: "No degree found in the database" });
     }
 
@@ -223,12 +231,18 @@ router.get("/api/proposals", isLoggedIn, (req, res) => {
   try {
     const { email } = req.user;
     const user = getUser(email);
+    const clock = getDelta();
+    const date = dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
     if (!user) {
       return res.status(500).json({ message: "Internal server error" });
     }
     let proposals;
     if (user.role === "student") {
-      proposals = getProposalsByDegree(user.cod_degree);
+      proposals = getProposalsByDegree(user.cod_degree).filter(
+        (proposal) =>
+          dayjs(date).isBefore(dayjs(proposal.expiration_date)) ||
+          dayjs(date).isSame(dayjs(proposal.expiration_date))
+      );
     } else if (user.role === "teacher") {
       proposals = getProposalsBySupervisor(user.id);
     } else {
@@ -278,13 +292,20 @@ router.post(
             "The student has already applied for this application and it was rejected",
         });
       }
+      const clock = getDelta();
+      const date = dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
+      if (dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day")) {
+        return res.status(400).json({
+          message: `The proposal ${proposal} is expired, cannot apply`,
+        });
+      }
       const application = insertApplication(proposal, user.id, "pending");
       notifyNewApplication(application?.proposal_id);
       return res.status(200).json(application);
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
     }
-  },
+  }
 );
 
 router.get("/api/applications", isLoggedIn, (req, res) => {
@@ -294,12 +315,32 @@ router.get("/api/applications", isLoggedIn, (req, res) => {
     if (!user) {
       return res.status(500).json({ message: "Internal server error" });
     }
+    const clock = getDelta();
+    const date = dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
     let applications;
     if (user.role === "teacher") {
-      applications = getApplicationsOfTeacher(user.id);
+      applications = getApplicationsOfTeacher(user.id).map((application) => {
+        let db_proposal = getProposal(application.proposal_id);
+        if (
+          dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day") &&
+          application.state === "pending"
+        ) {
+          application.state = "canceled";
+        }
+        return application;
+      });
       return res.status(200).json(applications);
     } else if (user.role === "student") {
-      applications = getApplicationsOfStudent(user.id);
+      applications = getApplicationsOfStudent(user.id).map((application) => {
+        let db_proposal = getProposal(application.proposal_id);
+        if (
+          dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day") &&
+          application.state === "pending"
+        ) {
+          application.state = "canceled";
+        }
+        return application;
+      });
       return res.status(200).json(applications);
     } else {
       return res.status(500).json({ message: "Internal server error" });
@@ -347,7 +388,7 @@ router.patch(
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  },
+  }
 );
 
 router.get("/api/notifications", isLoggedIn, (req, res) => {
@@ -463,13 +504,13 @@ router.put(
         notes,
         dayjs(expiration_date).format("YYYY-MM-DD"),
         level,
-        cds,
+        cds
       );
       return res.status(200).send({ message: "Proposal updated successfully" });
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }
-  },
+  }
 );
 
 router.delete(
@@ -508,8 +549,45 @@ router.delete(
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  },
+  }
 );
+
+router.get("/api/virtualClock", isLoggedIn, async (req, res) => {
+  try {
+    const clock = getDelta();
+    const date = dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
+    return res.status(200).json(date);
+  } catch (err) {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.patch(
+  "/api/virtualClock",
+  isLoggedIn,
+  check("date").isISO8601().toDate(),
+  async (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ message: "Invalid date content" });
+    }
+    try {
+      const clock = getDelta();
+      const newDelta = dayjs(req.body.date).diff(
+        dayjs().format("YYYY-MM-DD"),
+        "day"
+      );
+      if (newDelta < clock.delta) {
+        return res.status(400).send({ message: "Cannot go back in the past" });
+      }
+      setDelta(newDelta);
+      return res.status(200).send({ message: "Date successfully changed" });
+    } catch (err) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
+
 // ==================================================
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS
 // ==================================================
