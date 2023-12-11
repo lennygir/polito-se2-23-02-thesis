@@ -230,6 +230,69 @@ describe("Application Insertion Tests", () => {
   });
 });
 
+describe("Attached-file retrieval", () => {
+  isLoggedIn.mockImplementation((req, res, next) => next());
+  test("Wrong application", async () => {
+    const applicationId = "wrong parameter";
+    await request(app)
+      .get(`/api/applications/${applicationId}/attached-file`)
+      .expect(400);
+  });
+  test("Application not existent", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => next());
+    const applicationId = 20;
+    getApplicationById.mockReturnValue(undefined);
+    const response = await request(app)
+      .get(`/api/applications/${applicationId}/attached-file`)
+      .expect(404);
+    expect(response.body).toEqual({ message: "Application not found" });
+  });
+  test("Error in the database", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => next());
+    const applicationId = 20;
+    getApplicationById.mockImplementation(() => {
+      throw new Error("SQLITE_ERROR_SOMETHING");
+    });
+    const response = await request(app)
+      .get(`/api/applications/${applicationId}/attached-file`)
+      .expect(500);
+    expect(response.body).toEqual({
+      message: "Internal Server Error",
+    });
+  });
+  test("Correct retrieval", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => next());
+    const applicationId = 20;
+    getApplicationById.mockReturnValue({
+      application_id: applicationId,
+      state: "pending",
+      student_id: "s309618",
+      proposal_id: 8,
+      attached_file: "mocked file",
+    });
+    const response = await request(app)
+      .get(`/api/applications/${applicationId}/attached-file`)
+      .expect(200);
+    expect(response.text).toBe("mocked file");
+  });
+  test("Application exists, but has not any attached file", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => next());
+    const applicationId = 20;
+    getApplicationById.mockReturnValue({
+      application_id: applicationId,
+      state: "pending",
+      student_id: "s309618",
+      proposal_id: 8,
+    });
+    const response = await request(app)
+      .get(`/api/applications/${applicationId}/attached-file`)
+      .expect(404);
+    expect(response.body).toEqual({
+      message: "The application has not any attached files",
+    });
+  });
+});
+
 test("Proposal insertion ", () => {
   isLoggedIn.mockImplementation((req, res, next) => {
     req.user = {
@@ -582,6 +645,52 @@ describe("PATCH /api/applications/:id", () => {
             "You cannot modify an application already accepted or rejected",
         });
       });
+  });
+  test("The teacher tries to attach a file", async () => {
+    const response = await request(app)
+      .patch("/api/applications/1")
+      .send(Buffer.alloc(5))
+      .expect(400);
+    expect(response.body).toEqual({
+      message:
+        "You have to tell if you want to accept or reject the application",
+    });
+  });
+  test("Attach a file to an application not pending", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+    getApplicationById.mockReturnValue({
+      state: "accepted",
+    });
+    const response = await request(app)
+      .patch("/api/applications/1")
+      .send(Buffer.alloc(5))
+      .expect(401);
+    expect(response.body).toEqual({
+      message: "You cannot attach a file to a request not pending",
+    });
+  });
+  test("Correct upload", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+    getApplicationById.mockReturnValue({
+      state: "pending",
+    });
+    const response = await request(app)
+      .patch("/api/applications/1")
+      .send(Buffer.alloc(5))
+      .expect(200);
+    expect(response.body).toEqual({
+      message: "File uploaded correctly",
+    });
   });
 });
 

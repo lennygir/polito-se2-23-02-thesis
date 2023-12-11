@@ -201,16 +201,19 @@ Once the docker container is running you can access the application using [local
   ```
 - PATCH `/api/applications/:id`
   - accept or reject a specific application. If the application is accepted, all the pending applications for that proposal are set as 'cancelled'
-  - request body content example
+  - request body content example (if professor)
   ```
   {
     "state": "pending"
   }
   ```
+  - in case the endpoint is called as a student (logged in), 
+  it is possible to upload a pdf to the application by setting the `Content-Type`
+  to `application/pdf` and by including the raw pdf file as the body of the request
 - POST `/api/applications`
   - notes
     - the initial state is always `pending`
-    - will not work if the student already applied for a proposal
+    - it will not work if the student already applied for a proposal
   - request body content example
   ```
   {
@@ -334,6 +337,10 @@ Once the docker container is running you can access the application using [local
       },
     ]
     ```
+- GET `/api/applications/:id/attached-file`
+  - Parameters:
+    - `id` the id of the application
+  - Returned content is the raw file of the application
   
 ## Users Credentials
 

@@ -729,18 +729,17 @@ describe("Application Insertion Tests", () => {
     application = {
       proposal: proposalId,
     };
-    return request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send(application)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          student_id: "s309618",
-          proposal_id: proposalId,
-          state: "pending",
-        });
-      });
+    const applicationReceived = (
+      await request(app)
+        .post("/api/applications")
+        .set("Content-Type", "application/json")
+        .send(application)
+        .expect(200)
+    ).body;
+    expect(applicationReceived).toHaveProperty("state", "pending");
+    expect(applicationReceived).toHaveProperty("proposal_id", proposalId);
+    expect(applicationReceived).toHaveProperty("student_id", "s309618");
+    expect(applicationReceived).toHaveProperty("application_id");
   });
   it("Insertion of an application for a student who already applied to a proposal", async () => {
     db.prepare(
