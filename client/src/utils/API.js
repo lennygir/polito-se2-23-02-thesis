@@ -134,6 +134,44 @@ const createApplication = async (application) => {
 };
 
 /**
+ * Inserts a file to an existing application by sending a PATCH request to the server's applications endpoint.
+ * @param {Object} applicationId - The id of an existing application.
+ * @param {Object} file - An object containing the file in binary format. Can be null since it's optional.
+ */
+const attachFileToApplication = async (applicationId, file) => {
+  return getJson(
+    fetch(SERVER_URL + "/applications/" + applicationId, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/pdf"
+      },
+      credentials: "include",
+      body: file
+    })
+  );
+};
+
+/**
+ * Retrieves a file attached to an existing application.
+ * @param {Object} applicationId - The id of an existing application.
+ * @returns {Promise} A promise that resolves to the blob of the file.
+ */
+const getApplicationFile = async (applicationId) => {
+  return fetch(SERVER_URL + "/applications/" + applicationId + "/attached-file", {
+    credentials: "include"
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch file. Status: ${response.status}`);
+      }
+      return response.blob();
+    })
+    .catch((error) => {
+      console.error("Error fetching file:", error);
+    });
+};
+
+/**
  * Evaluates an application by sending a PATCH request to the server's applications endpoint with updated application state.
  * @param {Object} application - An object containing the application ID and the updated state.
  * @returns {Promise} A promise that resolves to the parsed JSON content of the updated application response.
@@ -213,8 +251,10 @@ const getUserInfo = async () => {
 };
 
 const API = {
+  attachFileToApplication,
   createProposal,
   createApplication,
+  getApplicationFile,
   getDegrees,
   getGroups,
   getTeachers,
@@ -224,7 +264,7 @@ const API = {
   getUserInfo,
   evaluateApplication,
   updateProposal,
-  deleteProposal,
+  deleteProposal
 };
 
 export default API;
