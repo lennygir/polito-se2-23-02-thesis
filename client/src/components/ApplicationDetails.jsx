@@ -15,6 +15,7 @@ import UserContext from "../contexts/UserContext";
 import ConfirmationDialog from "./ConfirmationDialog";
 import { useThemeContext } from "../theme/ThemeContextProvider";
 import API from "../utils/API";
+import StudentCareerTable from "./StudentCareerTable";
 
 function ApplicationDetails(props) {
   const user = useContext(UserContext);
@@ -25,6 +26,7 @@ function ApplicationDetails(props) {
   const [decision, setDecision] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
+  const [studentCareer, setStudentCareer] = useState([]);
 
   useEffect(() => {
     let message = "";
@@ -37,6 +39,16 @@ function ApplicationDetails(props) {
     }
     setDialogMessage(message);
   }, [decision]);
+
+  useEffect(() => {
+    fetchStudentCareer(application.student_id);
+  }, []);
+
+  const fetchStudentCareer = (studentId) => {
+    API.getCareerOfStudent(studentId).then((career) => {
+      setStudentCareer(career);
+    });
+  }
 
   const handleOpenDialog = () => {
     setOpenDialog(true);
@@ -185,6 +197,10 @@ function ApplicationDetails(props) {
       <Typography variant="body1" gutterBottom>
         <span style={{ fontWeight: "bold" }}>Email: </span>
         {application.student_id + "@studenti.polito.it"}
+      </Typography>
+      <Typography variant="body1" gutterBottom>
+        <span style={{ fontWeight: "bold" }}>Career: </span>
+        <StudentCareerTable career={studentCareer} />
       </Typography>
       {application.attached_file && (
         <Stack direction="row" spacing={5} alignItems="center" marginY={3}>
