@@ -134,7 +134,6 @@ const createApplication = async (application) => {
 };
 
 /**
- * MISSING SERVER
  * Inserts a file to an existing application by sending a PATCH request to the server's applications endpoint.
  * @param {Object} applicationId - The id of an existing application.
  * @param {Object} file - An object containing the file in binary format. Can be null since it's optional.
@@ -153,7 +152,6 @@ const attachFileToApplication = async (applicationId, file) => {
 };
 
 /**
- * MISSING SERVER
  * Retrieves a file attached to an existing application.
  * @param {Object} applicationId - The id of an existing application.
  * @returns {Promise} A promise that resolves to the blob of the file.
@@ -253,7 +251,6 @@ const getUserInfo = async () => {
 };
 
 /**
- * MISSING SERVER
  * Retrieve the virtual clock.
  * @returns {Promise} A promise that resolves with the actual date.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
@@ -263,14 +260,12 @@ const getVirtualClock = async () => {
 };
 
 /**
- * MISSING SERVER
  * Update the virtual clock on the server given the actual date as input.
  * @param {string} date - The new actual date.
  * @returns {Promise} A promise that resolves to the parsed JSON content of the updated virtual clock response.
  * @throws {Error} If there is an issue with the HTTP request or parsing the server response.
  */
 const updateVirtualClock = async (date) => {
-  console.log(date);
   return getJson(
     fetch(SERVER_URL + "/virtualClock", {
       method: "PATCH",

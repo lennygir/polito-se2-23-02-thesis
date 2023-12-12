@@ -17,7 +17,8 @@ import { LEVELS, TYPES } from "../utils/constants";
 
 function ProposalForm(props) {
   const user = useContext(UserContext);
-  const { mode, proposal, teachersList, degrees, proposals, createProposal, editProposal, setAlert } = props;
+  const { mode, proposal, teachersList, degrees, proposals, createProposal, editProposal, setAlert, currentDate } =
+    props;
 
   const filteredTeachers = teachersList.filter((teacher) => teacher.id !== user.id).map((teacher) => teacher.email);
 
@@ -297,6 +298,7 @@ function ProposalForm(props) {
           }}
           value={formData.expirationDate ? dayjs(formData.expirationDate) : null}
           onChange={(newDate) => handleFormInputChange("expirationDate", dayjs(newDate).format("YYYY-MM-DD"))}
+          minDate={dayjs(currentDate)}
           disableFuture={false}
           disablePast
           format="MMMM D, YYYY"
@@ -561,7 +563,8 @@ ProposalForm.propTypes = {
   proposals: PropTypes.array,
   createProposal: PropTypes.func,
   editProposal: PropTypes.func,
-  setAlert: PropTypes.func
+  setAlert: PropTypes.func,
+  currentDate: PropTypes.string
 };
 
 export default ProposalForm;

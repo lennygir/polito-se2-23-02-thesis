@@ -147,7 +147,7 @@ function ProposalsPage(props) {
           resetMenuFilters={resetMenuFilters}
         />
       </Toolbar>
-      <ProposalTable data={filteredStudentProposals} getTeacherById={getTeacherById} />
+      <ProposalTable data={filteredStudentProposals} getTeacherById={getTeacherById} applications={applications} />
       <Box height={5} marginTop={3} />
     </>
   );
