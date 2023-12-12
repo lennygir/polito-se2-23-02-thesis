@@ -200,17 +200,19 @@ router.post(
       const user = getUser(email);
       if (!user || user.role !== "student") {
         return res.status(401).json({
-          message: "You must be authenticated as student to add a start request",
+          message:
+            "You must be authenticated as student to add a start request",
         });
       }
       const userStartRequests = getNotRejectedStartRequest(user.id);
       if (userStartRequests.length !== 0) {
         return res.status(409).json({
-          message: 'You already have a start request pending or accepted',
+          message: "You already have a start request pending or accepted",
         });
       }
-      if(newStartRequest.co_supervisors) {
-        newStartRequest.co_supervisors = newStartRequest.co_supervisors.join(", ");
+      if (newStartRequest.co_supervisors) {
+        newStartRequest.co_supervisors =
+          newStartRequest.co_supervisors.join(", ");
       }
       newStartRequest.approvalDate = null;
       newStartRequest.studentId = user.id;

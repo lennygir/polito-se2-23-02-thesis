@@ -2,6 +2,7 @@
 -- sqlite3 theses_management.db < create_db.sql
 
 DROP TABLE IF EXISTS VIRTUAL_CLOCK;
+DROP TABLE IF EXISTS START_REQUESTS;
 DROP TABLE IF EXISTS NOTIFICATIONS;
 DROP TABLE IF EXISTS APPLICATIONS;
 DROP TABLE IF EXISTS CAREER;
@@ -77,7 +78,7 @@ CREATE TABLE IF NOT EXISTS PROPOSALS (
   expiration_date DATE,
   level TEXT,
   cds TEXT,
-  manually_archived INTEGER DEFAULT 0,
+  manually_archived INTEGER DEFAULT 0, -- 0 false, 1 true
   FOREIGN KEY (supervisor) REFERENCES TEACHER (id),
   FOREIGN KEY (cds) REFERENCES DEGREE (cod_degree)
 );
@@ -111,6 +112,19 @@ CREATE TABLE IF NOT EXISTS VIRTUAL_CLOCK (
 
 INSERT INTO VIRTUAL_CLOCK (id, delta)
 VALUES (1, 0);
+
+CREATE TABLE START_REQUESTS (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  supervisor TEXT NOT NULL,
+  co_supervisors TEXT,
+  approval_date DATETIME,
+  student_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'requested',
+  FOREIGN KEY (supervisor) REFERENCES TEACHER (id),
+  FOREIGN KEY (student_id) REFERENCES STUDENT (id)
+);
 
 INSERT INTO DEGREE (cod_degree, title_degree)
 VALUES  ('L-4-A', 'Design and Communication'),

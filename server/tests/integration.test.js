@@ -1392,6 +1392,79 @@ describe("Virtual clock", () => {
   });
 });
 
+describe("Story Insert Student Request", () => {
+  beforeEach(() => {
+    db.prepare("delete from START_REQUESTS").run();
+  });
+  it("Correct student request insertion", async () => {
+    logIn("s309618@studenti.polito.it");
+    await request(app)
+      .post("/api/start-requests")
+      .set("Content-Type", "application/json")
+      .send({
+        title: "Title",
+        supervisor: "s123456",
+        description: "description",
+      })
+      .expect(200);
+  });
+  it("Two different students request insertion", async () => {
+    logIn("s309618@studenti.polito.it");
+    await request(app)
+      .post("/api/start-requests")
+      .set("Content-Type", "application/json")
+      .send({
+        title: "Title",
+        supervisor: "s123456",
+        description: "description",
+      })
+      .expect(200);
+    logIn("s308747@studenti.polito.it");
+    await request(app)
+      .post("/api/start-requests")
+      .set("Content-Type", "application/json")
+      .send({
+        title: "New Title",
+        supervisor: "s234567",
+        description: "different description",
+      })
+      .expect(200);
+  });
+  it("Double student request insertion", async () => {
+    logIn("s309618@studenti.polito.it");
+    await request(app)
+      .post("/api/start-requests")
+      .set("Content-Type", "application/json")
+      .send({
+        title: "Title",
+        supervisor: "s123456",
+        description: "description",
+      })
+      .expect(200);
+    await request(app)
+      .post("/api/start-requests")
+      .set("Content-Type", "application/json")
+      .send({
+        title: "New Title",
+        supervisor: "s234567",
+        description: "different description",
+      })
+      .expect(409);
+  });
+  it("Must be a student to start a request", async () => {
+    logIn("marco.torchiano@teacher.it");
+    await request(app)
+      .post("/api/start-requests")
+      .set("Content-Type", "application/json")
+      .send({
+        title: "Title",
+        supervisor: "s123456",
+        description: "description",
+      })
+      .expect(401);
+  });
+});
+
 /*describe("Delete proposals", () => {
   test("Correct elimination of a proposal", () => {
     const id = 2;
