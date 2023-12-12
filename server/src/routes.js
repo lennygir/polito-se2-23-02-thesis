@@ -247,19 +247,25 @@ router.patch(
           .status(401)
           .json({ message: "Only a teacher or a secretary can approve a thesis request" });
       }
+
       const approved = req.body.approved;
       const req_id = req.params.thesisRequestId;
       let new_status;
       let old_status = getStatusStartRequest(req_id)
-      if(old_status.status !== 'requested'){
-        return res.status(401).json({ message: "The request has been already approved / rejected" });
+      if(user.role === "secretary_clerk"){
+        
+        
+        if(old_status.status === 'rejected' || old_status.status === 'secretary_accepted'){
+          return res.status(401).json({ message: "The request has been already approved / rejected" });
+        }
+        if(approved == true){
+          new_status = 'secretary_accepted';
+        }else{
+          new_status = 'rejected';
+        }
+        updateStatusStartRequest(new_status, req_id)
       }
-      if(approved == true){
-        new_status = 'secretary_accecpted';
-      }else{
-        new_status = 'rejected';
-      }
-      updateStatusStartRequest(new_status, req_id)
+      
       return res.status(200).json({ message: "Request updated succefuly" });;
     } catch (e) {
       return res.tatus(500).json({ message: "Internal server error" });
