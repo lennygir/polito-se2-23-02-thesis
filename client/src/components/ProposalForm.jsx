@@ -17,7 +17,8 @@ import { LEVELS, TYPES } from "../utils/constants";
 
 function ProposalForm(props) {
   const user = useContext(UserContext);
-  const { mode, proposal, teachersList, degrees, proposals, createProposal, editProposal, setAlert } = props;
+  const { mode, proposal, teachersList, degrees, proposals, createProposal, editProposal, setAlert, currentDate } =
+    props;
 
   const filteredTeachers = teachersList.filter((teacher) => teacher.id !== user.id).map((teacher) => teacher.email);
 
@@ -116,9 +117,8 @@ function ProposalForm(props) {
   // Get groups based on the selected co-supervisors
   const getAvailableGroups = (coSupervisors) => {
     const supervisorGroup = user.cod_group;
-
     const selectedCoSupervisorsGroups = coSupervisors.map((email) => {
-      const coSupervisor = teachers.find((teacher) => teacher.email === email);
+      const coSupervisor = teachersList.find((teacher) => teacher.email === email);
       return coSupervisor ? coSupervisor.cod_group : null;
     });
     // Remove null values and duplicate groups
@@ -210,16 +210,18 @@ function ProposalForm(props) {
       return;
     }
 
-    // Check for proposal with same title and description
-    const dupedProposal = proposals.find(
-      (proposal) => proposal.title === formData.title && proposal.description === formData.description
-    );
-    if (dupedProposal) {
-      setAlert({
-        message: "Proposal with the same title and description already exists",
-        severity: "warning"
-      });
-      return;
+    if (mode === "create") {
+      // Check for proposal with same title and description
+      const dupedProposal = proposals.find(
+        (proposal) => proposal.title === formData.title && proposal.description === formData.description
+      );
+      if (dupedProposal) {
+        setAlert({
+          message: "Proposal with the same title and description already exists",
+          severity: "warning"
+        });
+        return;
+      }
     }
 
     const data = {
@@ -239,7 +241,6 @@ function ProposalForm(props) {
       data.id = proposal.id;
       editProposal(data);
     } else if (mode === "create") {
-      console.log(data);
       createProposal(data);
     }
   };
@@ -297,6 +298,7 @@ function ProposalForm(props) {
           }}
           value={formData.expirationDate ? dayjs(formData.expirationDate) : null}
           onChange={(newDate) => handleFormInputChange("expirationDate", dayjs(newDate).format("YYYY-MM-DD"))}
+          minDate={dayjs(currentDate)}
           disableFuture={false}
           disablePast
           format="MMMM D, YYYY"
@@ -561,7 +563,8 @@ ProposalForm.propTypes = {
   proposals: PropTypes.array,
   createProposal: PropTypes.func,
   editProposal: PropTypes.func,
-  setAlert: PropTypes.func
+  setAlert: PropTypes.func,
+  currentDate: PropTypes.string
 };
 
 export default ProposalForm;

@@ -20,16 +20,17 @@ app.use(
     secret: "Alright, then, keep your secrets.",
     resave: false,
     saveUninitialized: false,
-  }),
+  })
 );
 
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));
+app.use(express.raw({ type: "application/pdf" }));
 
 app.use(function (req, res, next) {
   console.log(
-    `[${new Date().toLocaleTimeString("it-IT")}] - ${req.method} ${req.url}`,
+    `[${new Date().toLocaleTimeString("it-IT")}] - ${req.method} ${req.url}`
   );
   next();
 });
