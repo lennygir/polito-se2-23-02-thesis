@@ -374,32 +374,23 @@ router.get("/api/applications", isLoggedIn, (req, res) => {
     const date = getDate();
     let applications;
     if (user.role === "teacher") {
-      applications = getApplicationsOfTeacher(user.id).map((application) => {
-        let db_proposal = getProposal(application.proposal_id);
-        if (
-          dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day") &&
-          application.state === "pending"
-        ) {
-          application.state = "canceled";
-        }
-        return application;
-      });
-      return res.status(200).json(applications);
+      applications = getApplicationsOfTeacher(user.id);
     } else if (user.role === "student") {
-      applications = getApplicationsOfStudent(user.id).map((application) => {
-        let db_proposal = getProposal(application.proposal_id);
-        if (
-          dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day") &&
-          application.state === "pending"
-        ) {
-          application.state = "canceled";
-        }
-        return application;
-      });
-      return res.status(200).json(applications);
+      applications = getApplicationsOfStudent(user.id);
     } else {
       return res.status(500).json({ message: "Internal server error" });
     }
+    applications = applications.map((application) => {
+      let db_proposal = getProposal(application.proposal_id);
+      if (
+        dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day") &&
+        application.state === "pending"
+      ) {
+        application.state = "canceled";
+      }
+      return application;
+    });
+    return res.status(200).json(applications);
   } catch (e) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
@@ -444,9 +435,9 @@ async function setStateToApplication(req, res, state) {
     });
   }
   updateApplication(application.id, state);
-  updateArchivedStateProposal(1, application.proposal_id);
   await notifyApplicationDecision(application.id, state);
   if (state === "accepted") {
+    updateArchivedStateProposal(1, application.proposal_id);
     cancelPendingApplications(application.proposal_id);
   }
   return res.status(200).json({ message: `Application ${state}` });
@@ -558,6 +549,7 @@ router.patch(
         });
       }
       updateArchivedStateProposal(1, id);
+      cancelPendingApplications(id);
       return res.status(200).json({ ...proposal, archived: true });
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
