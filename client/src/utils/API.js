@@ -327,7 +327,7 @@ const API = {
   evaluateApplication,
   updateProposal,
   archiveProposal,
-  deleteProposal
+  deleteProposal,
   getRequests,
 };
 
