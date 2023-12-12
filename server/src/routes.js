@@ -18,12 +18,14 @@ const {
   insertApplication,
   insertStartRequest,
   updateStatusStartRequest,
+  getStatusStartRequest,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   deleteProposal,
   updateProposal,
   getApplicationById,
   getTeacherByEmail,
+  getTeacherEmailById,
   cancelPendingApplications,
   getPendingOrAcceptedApplicationsOfStudent,
   findAcceptedProposal,
@@ -198,6 +200,7 @@ router.post(
     }
     try {
       const newStartRequest = req.body;
+      
       const { email } = req.user;
       const user = getUser(email);
       if (!user || user.role !== "student") {
@@ -206,6 +209,7 @@ router.post(
             "You must be authenticated as student to add a start request",
         });
       }
+
       const userStartRequests = getNotRejectedStartRequest(user.id);
       if (userStartRequests.length !== 0) {
         return res.status(409).json({
@@ -246,15 +250,19 @@ router.patch(
       const approved = req.body.approved;
       const req_id = req.params.thesisRequestId;
       let new_status;
-      if(approved == true){
-        new_status = 'accepted';
-      }else{
-        new_status = 'requested';
+      let old_status = getStatusStartRequest(req_id)
+      if(old_status.status !== 'requested'){
+        return res.status(401).json({ message: "The request has been already approved / rejected" });
       }
-      updateStatusStartRequest()
-      return res.status(200).json(application);
+      if(approved == true){
+        new_status = 'secretary_accecpted';
+      }else{
+        new_status = 'rejected';
+      }
+      updateStatusStartRequest(new_status, req_id)
+      return res.status(200).json({ message: "Request updated succefuly" });;
     } catch (e) {
-      return res.status(500).json({ message: "Internal server error" });
+      return res.tatus(500).json({ message: "Internal server error" });
     }
   }
 );

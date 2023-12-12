@@ -1,5 +1,5 @@
 -- TO RUN THIS SCRIPT:
--- sqlite3 theses_management.db < create_db.sql
+-- sqlite3 theses_test.db < create_db.sql
 
 DROP TABLE IF EXISTS VIRTUAL_CLOCK;
 DROP TABLE IF EXISTS START_REQUESTS;
