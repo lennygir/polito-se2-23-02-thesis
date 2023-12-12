@@ -5,6 +5,7 @@ const dayjs = require("dayjs");
 const { db } = require("../src/db");
 const isLoggedIn = require("../src/protect-routes");
 const PDFDocument = require("pdfkit");
+const { login } = require("passport/lib/http/request");
 
 function createPDF() {
   return new Promise((resolve, reject) => {
@@ -1462,6 +1463,318 @@ describe("Story Insert Student Request", () => {
         description: "description",
       })
       .expect(401);
+  });
+  it("The supervisor must exist", async () => {
+    logIn("s309618@studenti.polito.it");
+    await request(app)
+      .post("/api/start-requests")
+      .set("Content-Type", "application/json")
+      .send({
+        title: "Title",
+        supervisor: "s000000",
+        description: "description",
+      })
+      .expect(400);
+  });
+});
+
+describe("Secretary clerk story", () => {
+  beforeEach(() => {
+    db.prepare("delete from START_REQUESTS").run();
+  });
+  it("Approve a student thesis request", async () => {
+    logIn("s309618@studenti.polito.it");
+
+    // insert a thesis request
+    const thesisRequestId = (
+      await request(app)
+        .post("/api/start-requests")
+        .set("Content-Type", "application/json")
+        .send({
+          title: "Title",
+          supervisor: "s123456",
+          description: "description",
+        })
+        .expect(200)
+    ).body;
+
+    logIn("john.doe@secretary.it");
+
+    // get all thesis requests
+    const thesisRequests = (
+      await request(app).get("/api/start-requests").expect(200)
+    ).body;
+    expect(thesisRequests).toContain({
+      id: thesisRequestId,
+      supervisor: "marco.torchiano@teacher.it",
+      student: "s309618@studenti.polito.it",
+      description: "description",
+      state: "pending",
+    });
+
+    // approve the request
+    await request(app)
+      .patch(`/api/start-requests/${thesisRequestId}`)
+      .set("Content-Type", "application/json")
+      .send({
+        approved: true,
+      })
+      .expect(200);
+
+    // get all thesis requests
+    const newThesisRequests = (
+      await request(app).get("/api/start-requests").expect(200)
+    ).body;
+    expect(newThesisRequests).toContain({
+      id: thesisRequestId,
+      supervisor: "marco.torchiano@teacher.it",
+      student: "s309618@studenti.polito.it",
+      description: "description",
+      state: "accepted",
+    });
+  });
+  it("Reject a student thesis request", async () => {
+    logIn("s309618@studenti.polito.it");
+
+    // insert a thesis request
+    const thesisRequestId = (
+      await request(app)
+        .post("/api/start-requests")
+        .set("Content-Type", "application/json")
+        .send({
+          title: "Title",
+          supervisor: "s123456",
+          description: "description",
+          co_supervisors: ["luigi.derussis@teacher.it"],
+        })
+        .expect(200)
+    ).body;
+
+    logIn("john.doe@secretary.it");
+
+    // get all thesis requests
+    const thesisRequests = (
+      await request(app).get("/api/start-requests").expect(200)
+    ).body;
+    expect(thesisRequests).toContain({
+      id: thesisRequestId,
+      supervisor: "marco.torchiano@teacher.it",
+      student: "s309618@studenti.polito.it",
+      co_supervisors: ["luigi.derussis@teacher.it"],
+      description: "description",
+      state: "pending",
+    });
+
+    await request(app)
+      .patch(`/api/start-requests/${thesisRequestId}`)
+      .set("Content-Type", "application/json")
+      .send({
+        approved: false,
+      })
+      .expect(200);
+
+    // get all thesis requests
+    const newThesisRequests = (
+      await request(app).get("/api/start-requests").expect(200)
+    ).body;
+    expect(newThesisRequests).toContain({
+      id: thesisRequestId,
+      supervisor: "marco.torchiano@teacher.it",
+      student: "s309618@studenti.polito.it",
+      co_supervisors: ["luigi.derussis@teacher.it"],
+      description: "description",
+      state: "rejected",
+    });
+  });
+  it("If a student thesis request is already evaluated, it should not be approved/rejected", async () => {
+    logIn("s309618@studenti.polito.it");
+
+    // insert a thesis request
+    const thesisRequestId = (
+      await request(app)
+        .post("/api/start-requests")
+        .set("Content-Type", "application/json")
+        .send({
+          title: "Title",
+          supervisor: "s123456",
+          description: "description",
+          co_supervisors: ["luigi.derussis@teacher.it"],
+        })
+        .expect(200)
+    ).body;
+
+    logIn("john.doe@secretary.it");
+
+    // approve the thesis request
+    await request(app)
+      .patch(`/api/start-requests/${thesisRequestId}`)
+      .set("Content-Type", "application/json")
+      .send({
+        approved: true,
+      })
+      .expect(200);
+
+    // reject the thesis request, again
+    await request(app)
+      .patch(`/api/start-requests/${thesisRequestId}`)
+      .set("Content-Type", "application/json")
+      .send({
+        approved: false,
+      })
+      .expect(401);
+
+    // get all thesis requests
+    const newThesisRequests = (
+      await request(app).get("/api/start-requests").expect(200)
+    ).body;
+
+    // the thesis should remain untouched
+    expect(newThesisRequests).toContain({
+      id: thesisRequestId,
+      supervisor: "marco.torchiano@teacher.it",
+      student: "s309618@studenti.polito.it",
+      co_supervisors: ["luigi.derussis@teacher.it"],
+      description: "description",
+      state: "approved",
+    });
+  });
+  it("To approve/reject a student thesis request you must be a secretary clerk", async () => {
+    logIn("s309618@studenti.polito.it");
+
+    // insert a thesis request
+    const thesisRequestId = (
+      await request(app)
+        .post("/api/start-requests")
+        .set("Content-Type", "application/json")
+        .send({
+          title: "Title",
+          supervisor: "s123456",
+          description: "description",
+        })
+        .expect(200)
+    ).body;
+
+    // try to approve the thesis request
+    await request(app)
+      .patch(`/api/start-requests/${thesisRequestId}`)
+      .set("Content-Type", "application/json")
+      .send({
+        approved: true,
+      })
+      .expect(401);
+
+    // try to reject the thesis request
+    await request(app)
+      .patch(`/api/start-requests/${thesisRequestId}`)
+      .set("Content-Type", "application/json")
+      .send({
+        approved: false,
+      })
+      .expect(401);
+
+    logIn("john.doe@secretary.it");
+
+    // get all the requests
+    const newThesisRequests = (
+      await request(app).get("/api/start-requests").expect(200)
+    ).body;
+
+    // the thesis should remain untouched
+    expect(newThesisRequests).toContain({
+      id: thesisRequestId,
+      supervisor: "marco.torchiano@teacher.it",
+      student: "s309618@studenti.polito.it",
+      co_supervisors: ["luigi.derussis@teacher.it"],
+      description: "description",
+      state: "pending",
+    });
+  });
+  it("A student can view only his thesis requests, whereas the secretary clerk can view all the requests", async () => {
+    logIn("s309618@studenti.polito.it");
+
+    // insert a thesis request
+    await request(app)
+      .post("/api/start-requests")
+      .set("Content-Type", "application/json")
+      .send({
+        title: "Title",
+        supervisor: "s123456",
+        description: "description",
+      })
+      .expect(200);
+
+    logIn("s308747@studenti.polito.it");
+
+    // insert a thesis request
+    await request(app)
+      .post("/api/start-requests")
+      .set("Content-Type", "application/json")
+      .send({
+        title: "Different title",
+        supervisor: "s234567",
+        description: "different description",
+      })
+      .expect(200);
+
+    // get all the requests as student 2
+    const student2ThesisRequests = (
+      await request(app).get("/api/start-requests").expect(200)
+    ).body;
+
+    expect(student2ThesisRequests).toHaveLength(1);
+    expect(student2ThesisRequests).toContain({
+      title: "Different title",
+      supervisor: "s234567",
+      description: "different description",
+      state: "pending",
+    });
+
+    // back to student1
+    logIn("s309618@studenti.polito.it");
+
+    // get all the requests as student 1
+    const student1ThesisRequests = (
+      await request(app).get("/api/start-requests").expect(200)
+    ).body;
+    expect(student1ThesisRequests).toHaveLength(1);
+    expect(student1ThesisRequests).toContain({
+      title: "Title",
+      supervisor: "s123456",
+      description: "description",
+      state: "pending",
+    });
+
+    // login as secretary clerk
+    logIn("john.doe@secretary.it");
+
+    // get all the requests as secretary clerk
+    const secretaryThesisRequests = (
+      await request(app).get("/api/start-requests").expect(200)
+    ).body;
+    expect(secretaryThesisRequests).toHaveLength(2);
+    expect(secretaryThesisRequests).toContain({
+      title: "Title",
+      supervisor: "s123456",
+      student: "s309618@studenti.polito.it",
+      description: "description",
+      state: "pending",
+    });
+    expect(secretaryThesisRequests).toContain({
+      title: "Different title",
+      supervisor: "s234567",
+      student: "s308747@studenti.polito.it",
+      description: "different description",
+      state: "pending",
+    });
+  });
+  it("An empty list of thesis requests is not an error", async () => {
+    logIn("john.doe@secretary.it");
+
+    // get all the requests
+    const emptyThesisRequests = (
+      await request(app).get("/api/start-requests").expect(200)
+    ).body;
+    expect(emptyThesisRequests).toHaveLength(0);
   });
 });
 
