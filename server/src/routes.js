@@ -224,6 +224,36 @@ router.post(
   }
 );
 
+router.patch(
+  "/api/start-requests/:thesisRequestId",
+  isLoggedIn,
+  check("approved").isBoolean(),
+  (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).json({ message: "Invalid application content" });
+    }
+    try {
+      const { email } = req.user;
+      const user = getUser(email);
+      if (!user || user.role === "student") {
+        return res
+          .status(401)
+          .json({ message: "Only a teacher or a secretary can approve a thesis request" });
+      }
+      let approved = req.body.approved;
+      if(approved == true){
+        approved = 1;
+      }else{
+        approved = 0;
+      }
+      
+      return res.status(200).json(application);
+    } catch (e) {
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  }
+);
 // endpoint to get all teachers {id, surname, name, email}
 router.get("/api/teachers", isLoggedIn, (req, res) => {
   try {
@@ -710,6 +740,8 @@ router.delete(
     }
   }
 );
+
+
 
 router.get("/api/virtualClock", isLoggedIn, async (req, res) => {
   try {

@@ -95,6 +95,14 @@ exports.getNotRejectedStartRequest = (userId) => {
     .all(userId);
 };
 
+exports.updateStatusStartRequest = (request_id, new_status) => {
+  return db
+    .prepare(
+      "update START_REQUESTS set status = ? where id = ?"
+    )
+    .run(new_status, request_id);
+};
+
 exports.getApplicationById = (id) => {
   return db.prepare("select * from APPLICATIONS where id = ?").get(id);
 };
