@@ -7,6 +7,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import RootPage from "./routes/RootPage";
 import ProposalsPage from "./routes/ProposalsPage";
 import CreateProposalPage from "./routes/CreateProposalPage";
+import RequestPage from "./routes/RequestPage";
 import ApplicationsPage from "./routes/ApplicationsPage";
 import NotificationsPage from "./routes/NotificationsPage";
 import SettingsPage from "./routes/SettingsPage";
@@ -165,6 +166,7 @@ function Main() {
           <Route path="/" element={user ? <RootPage loading={loading} currentDate={currentDate} setCurrentDate={setCurrentDate} fetchProposals={fetchProposals} fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} /> : <LoginPage />}>
             <Route path="proposals" element={user ? <ProposalsPage setAlert={setAlert} currentDate={currentDate} setDirty={setDirty} proposals={proposals} applications={applications} teachers={teachers} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
             <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} getTeacherById={getTeacherById} getDegreeById={getDegreeById} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
+            <Route path="add-request" element={user ? <RequestPage fetchProposals={fetchProposals} proposals={proposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
             <Route path="add-proposal" element={user ? <CreateProposalPage fetchProposals={fetchProposals} proposals={proposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
             <Route path="edit-proposal/:proposalId" element={user ? <EditProposalPage fetchProposals={fetchProposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
             <Route path="applications" element={user ? <ApplicationsPage applications={applications} /> : <Navigate replace to="/" /> } />
