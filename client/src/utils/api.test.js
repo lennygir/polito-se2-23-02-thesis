@@ -257,3 +257,15 @@ describe("Test the deletion of a proposal", () => {
     }
   });
 });
+
+test("getRequests - should return correct data", async () => {
+  fetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve(mockApiResponse)
+  });
+  const result = await API.getRequests();
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/start-requests`,{
+    credentials: "include"
+  });
+  expect(result).toEqual(mockApiResponse);
+});

@@ -29,6 +29,7 @@ const {
   notifyApplicationDecision,
   notifyNewApplication,
   getNotifications,
+  getRequestForClerk,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 
@@ -510,6 +511,33 @@ router.delete(
     }
   },
 );
+router.get(
+  "/api/start-requests",
+  isLoggedIn,
+  async (req, res) => {
+    try {
+      const { email } = req.user;
+      const user = getUser(email);
+      if (!user) {
+        return res.status(500).json({ message: "Internal server error" });
+      }
+      let requests;
+      if (user.role === "secretary_clerk") {
+        requests = getRequestForClerk();
+      } else if (user.role === "teacher") {
+        // requests = getRequestForTeacher();
+      } else if (user.role === "student") {
+        
+      } else {
+        return res.status(500).json({ message: "Internal server error" });
+      }
+      return res.status(200).json(requests);
+      } catch (err) {
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+    },
+);
+
 // ==================================================
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS
 // ==================================================
