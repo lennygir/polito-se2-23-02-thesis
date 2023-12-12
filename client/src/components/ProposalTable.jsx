@@ -1,14 +1,14 @@
 import { useContext } from "react";
-import Card from "@mui/material/Card";
+import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import ProposalRow from "./ProposalRow";
 import UserContext from "../contexts/UserContext";
-import { Typography } from "@mui/material";
 
 const TEACHER_HEADERS = ["Thesis", "Expiration Date", ""];
 const STUDENT_HEADERS = ["Supervisor", "Thesis", "Expiration Date"];
@@ -17,17 +17,9 @@ function ProposalTable(props) {
   const user = useContext(UserContext);
 
   return (
-    <Card
-      sx={{
-        marginTop: { md: 1, sm: 0 },
-        marginX: { md: 4, sm: 0 },
-        maxHeight: "60vh",
-        overflowY: "auto",
-        borderRadius: 4
-      }}
-    >
-      <TableContainer sx={{ overflowX: "auto" }}>
-        <Table>
+    <Paper sx={{ mt: { md: 3, xs: 1 }, mx: { md: 4, xs: 0 }, overflow: "hidden", borderRadius: 4 }}>
+      <TableContainer sx={{ maxHeight: "60vh" }}>
+        <Table stickyHeader>
           <TableHead>
             <TableRow>
               {user?.role === "student" &&
@@ -37,7 +29,9 @@ function ProposalTable(props) {
                     align={headCell === "Expiration Date" ? "center" : "inherit"}
                     variant="head"
                   >
-                    <Typography fontWeight={700}>{headCell}</Typography>
+                    <Typography fontWeight={700} fontSize={18}>
+                      {headCell}
+                    </Typography>
                   </TableCell>
                 ))}
               {user?.role === "teacher" &&
@@ -47,7 +41,9 @@ function ProposalTable(props) {
                     align={headCell === "Expiration Date" ? "center" : "inherit"}
                     variant="head"
                   >
-                    <Typography fontWeight={700}>{headCell}</Typography>
+                    <Typography fontWeight={700} fontSize={18}>
+                      {headCell}
+                    </Typography>
                   </TableCell>
                 ))}
             </TableRow>
@@ -65,7 +61,7 @@ function ProposalTable(props) {
           </TableBody>
         </Table>
       </TableContainer>
-    </Card>
+    </Paper>
   );
 }
 

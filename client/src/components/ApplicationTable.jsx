@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import Card from "@mui/material/Card";
+import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -18,29 +18,25 @@ function ApplicationTable(props) {
   const user = useContext(UserContext);
 
   return (
-    <Card
-      sx={{
-        marginTop: { md: 1, sm: 0 },
-        marginX: { md: 4, sm: 0 },
-        maxHeight: "70vh",
-        overflowY: "auto",
-        borderRadius: 4
-      }}
-    >
-      <TableContainer sx={{ overflowX: "auto" }}>
-        <Table>
+    <Paper sx={{ mt: { md: 3, xs: 1 }, mx: { md: 4, xs: 0 }, overflow: "hidden", borderRadius: 4 }}>
+      <TableContainer sx={{ maxHeight: "60vh" }}>
+        <Table stickyHeader>
           <TableHead>
             <TableRow>
               {user?.role === "student" &&
                 STUDENT_HEADERS.map((headCell) => (
                   <TableCell key={headCell} align={headCell === "Status" ? "center" : "inherit"} variant="head">
-                    <Typography fontWeight={700}>{headCell}</Typography>
+                    <Typography fontWeight={700} fontSize={18}>
+                      {headCell}
+                    </Typography>
                   </TableCell>
                 ))}
               {user?.role === "teacher" &&
                 TEACHER_HEADERS.map((headCell) => (
                   <TableCell key={headCell} align={headCell === "Status" ? "center" : "inherit"} variant="head">
-                    <Typography fontWeight={700}>{headCell}</Typography>
+                    <Typography fontWeight={700} fontSize={18}>
+                      {headCell}
+                    </Typography>
                   </TableCell>
                 ))}
             </TableRow>
@@ -52,7 +48,7 @@ function ApplicationTable(props) {
           </TableBody>
         </Table>
       </TableContainer>
-    </Card>
+    </Paper>
   );
 }
 
