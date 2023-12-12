@@ -5,7 +5,6 @@ const dayjs = require("dayjs");
 const { db } = require("../src/db");
 const isLoggedIn = require("../src/protect-routes");
 const PDFDocument = require("pdfkit");
-const { login } = require("passport/lib/http/request");
 
 function createPDF() {
   return new Promise((resolve, reject) => {
@@ -253,6 +252,51 @@ describe("Story 12: Archive Proposals", () => {
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toHaveProperty("archived", false);
+  });
+
+  it("If a proposal is manually archived, its pending applications become canceled", async () => {
+    logIn("marco.torchiano@teacher.it");
+
+    // Insert a proposal
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body)
+    ).body;
+
+    logIn("s309618@studenti.polito.it");
+
+    // apply for that proposal
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send({
+        proposal: inserted_proposal_id,
+      });
+
+    logIn("marco.torchiano@teacher.it");
+
+    // the teacher archives the proposal
+    await request(app)
+      .patch(`/api/proposals/${inserted_proposal_id}`)
+      .set("Content-Type", "application/json")
+      .send({
+        archived: true,
+      });
+
+    logIn("s309618@studenti.polito.it");
+
+    // the student gets all his applications
+    const applications = (await request(app).get("/api/applications")).body;
+
+    expect(applications[0]).toHaveProperty("state", "canceled");
+
+    logIn("marco.torchiano@teacher.it");
+
+    const teacherApplications = (await request(app).get("/api/applications"))
+      .body;
+    expect(teacherApplications[0]).toHaveProperty("state", "canceled");
   });
 
   it("The proposal should exist", async () => {
