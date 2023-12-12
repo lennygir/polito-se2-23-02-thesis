@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { ThemeProvider } from "@mui/material";
 import { useThemeContext } from "./theme/ThemeContextProvider";
@@ -66,28 +66,29 @@ function Main() {
     severity: "success"
   });
 
-  const handleErrors = (err) => {
-    let errMsg;
-    if (err.errors && err.errors[0] && err.errors[0].msg) {
-      errMsg = err.errors[0].msg;
-    } else if (err.error) {
-      errMsg = err.error;
-    } else if (err.message) {
-      errMsg = err.message;
-    } else {
-      errMsg = JSON.stringify(err);
-    }
-    setAlert({ message: errMsg, severity: "error" });
-  };
+  const handleErrors = useMemo(
+    () => (err) => {
+      const errMsg = err.errors?.[0]?.msg || err.error || err.message || JSON.stringify(err);
+      setAlert({ message: errMsg, severity: "error" });
+    },
+    [setAlert]
+  );
 
   const fetchDynamicData = async () => {
     try {
+      await fetchCurrentDate();
       await fetchProposals();
       await fetchApplications();
       await fetchNotifications();
     } catch (err) {
       return handleErrors(err);
     }
+  };
+
+  const fetchCurrentDate = async () => {
+    API.getVirtualClock()
+      .then((date) => setCurrentDate(date))
+      .catch((err) => handleErrors(err));
   };
 
   const fetchProposals = async () => {
@@ -112,10 +113,16 @@ function Main() {
   useEffect(() => {
     const fetchStaticData = async () => {
       try {
-        const [teachers, groups, degrees] = await Promise.all([API.getTeachers(), API.getGroups(), API.getDegrees()]);
+        const [teachers, groups, degrees, clock] = await Promise.all([
+          API.getTeachers(),
+          API.getGroups(),
+          API.getDegrees(),
+          API.getVirtualClock()
+        ]);
         setTeachers(teachers);
         setGroups(groups);
         setDegrees(degrees);
+        setCurrentDate(clock);
       } catch (err) {
         return handleErrors(err);
       }
@@ -163,16 +170,16 @@ function Main() {
       <ErrorContext.Provider value={{ handleErrors }}>
         <Routes>
           {/* prettier-ignore */}
-          <Route path="/" element={user ? <RootPage loading={loading} currentDate={currentDate} setCurrentDate={setCurrentDate} fetchProposals={fetchProposals} fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} /> : <LoginPage />}>
-            <Route path="proposals" element={user ? <ProposalsPage setAlert={setAlert} currentDate={currentDate} setDirty={setDirty} proposals={proposals} applications={applications} teachers={teachers} groups={groups} degrees={degrees} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
-            <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} getTeacherById={getTeacherById} getDegreeById={getDegreeById} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
+          <Route path="/" element={user ? <RootPage loading={loading} setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} fetchProposals={fetchProposals} fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} /> : <LoginPage />}>
+            <Route path="proposals" element={user ? <ProposalsPage setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} proposals={proposals} applications={applications} teachers={teachers} groups={groups} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
+            <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} setAlert={setAlert} getTeacherById={getTeacherById} getDegreeById={getDegreeById} applications={applications} /> : <Navigate replace to="/" />} />
             <Route path="add-request" element={user ? <RequestPage fetchProposals={fetchProposals} proposals={proposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
-            <Route path="add-proposal" element={user ? <CreateProposalPage fetchProposals={fetchProposals} proposals={proposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
-            <Route path="edit-proposal/:proposalId" element={user ? <EditProposalPage fetchProposals={fetchProposals} teachers={teachers} groups={groups} degrees={degrees} setAlert={setAlert}/> : <Navigate replace to="/" />} />
+            <Route path="add-proposal" element={user ? <CreateProposalPage currentDate={currentDate} fetchProposals={fetchProposals} proposals={proposals} teachers={teachers} degrees={degrees} setAlert={setAlert} /> : <Navigate replace to="/" />} />
+            <Route path="edit-proposal/:proposalId" element={user ? <EditProposalPage currentDate={currentDate} fetchProposals={fetchProposals} teachers={teachers} degrees={degrees} setAlert={setAlert} /> : <Navigate replace to="/" />} />
             <Route path="applications" element={user ? <ApplicationsPage applications={applications} /> : <Navigate replace to="/" /> } />
             <Route path="applications/:applicationId" element={user ? <ViewApplicationPage fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
             <Route path="notifications" element={user ? <NotificationsPage notifications={notifications} fetchNotifications={fetchNotifications} /> : <Navigate replace to="/" />} />
-            <Route path="settings" element={user ? <SettingsPage currentDate={currentDate} setCurrentDate={setCurrentDate} /> : <Navigate replace to="/" />} />
+            <Route path="settings" element={user ? <SettingsPage /> : <Navigate replace to="/" />} />
           </Route>
           <Route path="*" element={<ErrorPage />} />
         </Routes>

@@ -35,7 +35,7 @@ function ErrorPage() {
             Oops...
           </Typography>
           <Typography variant="h5" align="center" color="text.secondary" component="p">
-            This is not the route you're looking for.
+            This is not the route you&apos;re looking for.
           </Typography>
           <Box marginTop={4}>
             <Button variant="contained" onClick={() => navigate(-1)}>

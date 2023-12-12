@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import dayjs from "dayjs";
+import PropTypes from "prop-types";
 import validator from "validator";
 import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
@@ -9,15 +10,17 @@ import FormHelperText from "@mui/material/FormHelperText";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
+import Tooltip from "@mui/material/Tooltip";
 import UserContext from "../contexts/UserContext";
 import { DatePicker } from "@mui/x-date-pickers";
 import { LEVELS, TYPES } from "../utils/constants";
-import { Tooltip } from "@mui/material";
 
 function ProposalForm(props) {
   const user = useContext(UserContext);
-  const proposal = props.proposal || null;
-  const filteredTeachers = props.teachers.filter((teacher) => teacher.id !== user.id).map((teacher) => teacher.email);
+  const { mode, proposal, teachersList, degrees, proposals, createProposal, editProposal, setAlert, currentDate } =
+    props;
+
+  const filteredTeachers = teachersList.filter((teacher) => teacher.id !== user.id).map((teacher) => teacher.email);
 
   const [teachers, setTeachers] = useState(filteredTeachers);
   const [groupOptions, setGroupOptions] = useState([user.cod_group]);
@@ -54,7 +57,7 @@ function ProposalForm(props) {
   });
 
   const getCdsFormatted = (cds) => {
-    const degree = props.degrees.find((degree) => degree.cod_degree === cds);
+    const degree = degrees.find((degree) => degree.cod_degree === cds);
     if (degree) {
       return `${degree.cod_degree} ${degree.title_degree}`;
     } else {
@@ -103,20 +106,19 @@ function ProposalForm(props) {
   // Filter degrees based on the selected level
   const getCdsOptions = () => {
     if (formData.level === "Master Degree") {
-      return props.degrees.filter((degree) => degree.cod_degree.startsWith("LM"));
+      return degrees.filter((degree) => degree.cod_degree.startsWith("LM"));
     } else if (formData.level === "Bachelor Degree") {
-      return props.degrees.filter((degree) => !degree.cod_degree.startsWith("LM"));
+      return degrees.filter((degree) => !degree.cod_degree.startsWith("LM"));
     } else {
-      return props.degrees;
+      return degrees;
     }
   };
 
   // Get groups based on the selected co-supervisors
   const getAvailableGroups = (coSupervisors) => {
     const supervisorGroup = user.cod_group;
-
     const selectedCoSupervisorsGroups = coSupervisors.map((email) => {
-      const coSupervisor = props.teachers.find((teacher) => teacher.email === email);
+      const coSupervisor = teachersList.find((teacher) => teacher.email === email);
       return coSupervisor ? coSupervisor.cod_group : null;
     });
     // Remove null values and duplicate groups
@@ -208,16 +210,18 @@ function ProposalForm(props) {
       return;
     }
 
-    // Check for proposal with same title and description
-    const dupedProposal = props.proposals.find(
-      (proposal) => proposal.title === formData.title && proposal.description === formData.description
-    );
-    if (dupedProposal) {
-      props.setAlert({
-        message: "Proposal with the same title and description already exists",
-        severity: "warning"
-      });
-      return;
+    if (mode === "create") {
+      // Check for proposal with same title and description
+      const dupedProposal = proposals.find(
+        (proposal) => proposal.title === formData.title && proposal.description === formData.description
+      );
+      if (dupedProposal) {
+        setAlert({
+          message: "Proposal with the same title and description already exists",
+          severity: "warning"
+        });
+        return;
+      }
     }
 
     const data = {
@@ -233,12 +237,11 @@ function ProposalForm(props) {
       level: formData.level === "Bachelor Degree" ? "BSC" : "MSC",
       cds: formData.cds.split(" ")[0]
     };
-    if (props.mode === "update") {
+    if (mode === "update") {
       data.id = proposal.id;
-      props.editProposal(data);
-    } else if (props.mode === "create") {
-      console.log(data);
-      props.createProposal(data);
+      editProposal(data);
+    } else if (mode === "create") {
+      createProposal(data);
     }
   };
 
@@ -296,6 +299,7 @@ function ProposalForm(props) {
           }}
           value={formData.expirationDate ? dayjs(formData.expirationDate) : null}
           onChange={(newDate) => handleFormInputChange("expirationDate", dayjs(newDate).format("YYYY-MM-DD"))}
+          minDate={dayjs(currentDate)}
           disableFuture={false}
           disablePast
           format="MMMM D, YYYY"
@@ -546,10 +550,22 @@ function ProposalForm(props) {
         />
       </FormControl>
       <Button fullWidth type="submit" variant="contained" sx={{ mt: 4, mb: 2 }}>
-        {props.mode === "update" ? "Update Proposal" : "Create Proposal"}
+        {mode === "update" ? "Update Proposal" : "Create Proposal"}
       </Button>
     </Box>
   );
 }
+
+ProposalForm.propTypes = {
+  mode: PropTypes.string,
+  proposal: PropTypes.object,
+  teachersList: PropTypes.array,
+  degrees: PropTypes.array,
+  proposals: PropTypes.array,
+  createProposal: PropTypes.func,
+  editProposal: PropTypes.func,
+  setAlert: PropTypes.func,
+  currentDate: PropTypes.string
+};
 
 export default ProposalForm;

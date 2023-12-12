@@ -1,19 +1,22 @@
 import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import ProposalForm from "../components/ProposalForm";
 import ErrorContext from "../contexts/ErrorContext";
 import API from "../utils/API";
-import { Menu, MenuItem } from "@mui/material";
 
 function CreateProposalPage(props) {
   const navigate = useNavigate();
+  const { currentDate, fetchProposals, proposals, teachers, degrees, setAlert } = props;
   const { handleErrors } = useContext(ErrorContext);
 
   const [anchorEl, setAnchorEl] = useState();
@@ -37,11 +40,11 @@ function CreateProposalPage(props) {
   const createProposal = (proposal) => {
     API.createProposal(proposal)
       .then(() => {
-        props.setAlert({
+        setAlert({
           message: "Proposal created successfully",
           severity: "success"
         });
-        props.fetchProposals();
+        fetchProposals();
         navigate("/proposals");
       })
       .catch((err) => handleErrors(err));
@@ -88,7 +91,7 @@ function CreateProposalPage(props) {
           sx={{ maxWidth: "400px" }}
           slotProps={{ paper: { sx: { borderRadius: 3, px: 1 } } }}
         >
-          {props.proposals.map((proposal) => (
+          {proposals.map((proposal) => (
             <MenuItem key={proposal.id} onClick={() => handleSelectedOption(proposal)} sx={{ borderRadius: 2 }}>
               <Typography variant="inherit" noWrap>
                 {proposal.title}
@@ -105,12 +108,12 @@ function CreateProposalPage(props) {
           <ProposalForm
             mode="create"
             proposal={copiedProposal}
-            teachers={props.teachers}
-            groups={props.groups}
-            degrees={props.degrees}
-            proposals={props.proposals}
+            teachersList={teachers}
+            degrees={degrees}
+            proposals={proposals}
             createProposal={createProposal}
-            setAlert={props.setAlert}
+            setAlert={setAlert}
+            currentDate={currentDate}
           />
         </Box>
       </Paper>
@@ -118,5 +121,14 @@ function CreateProposalPage(props) {
     </div>
   );
 }
+
+CreateProposalPage.propTypes = {
+  currentDate: PropTypes.string,
+  fetchProposals: PropTypes.func,
+  proposals: PropTypes.array,
+  teachers: PropTypes.array,
+  degrees: PropTypes.array,
+  setAlert: PropTypes.func
+};
 
 export default CreateProposalPage;

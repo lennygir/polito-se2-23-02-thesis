@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -11,6 +12,7 @@ import NotificationRow from "./NotificationRow";
 const HEADERS = ["Object", "Message", "Date"];
 
 function NotificationTable(props) {
+  const { data } = props;
   return (
     <Paper sx={{ mt: { md: 3, xs: 1 }, mx: { md: 4, xs: 0 }, overflow: "hidden", borderRadius: 4 }}>
       <TableContainer sx={{ maxHeight: "60vh" }}>
@@ -19,15 +21,13 @@ function NotificationTable(props) {
             <TableRow>
               {HEADERS.map((headCell) => (
                 <TableCell key={headCell} align="center" variant="head">
-                  <Typography fontWeight={700} fontSize={18}>
-                    {headCell}
-                  </Typography>
+                  <Typography fontWeight={700}>{headCell}</Typography>
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {props.data.map((notification) => (
+            {data.map((notification) => (
               <NotificationRow key={notification.id} notification={notification} />
             ))}
           </TableBody>
@@ -36,5 +36,9 @@ function NotificationTable(props) {
     </Paper>
   );
 }
+
+NotificationTable.propTypes = {
+  data: PropTypes.array
+};
 
 export default NotificationTable;

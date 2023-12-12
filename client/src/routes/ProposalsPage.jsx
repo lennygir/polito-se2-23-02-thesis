@@ -1,31 +1,29 @@
-import dayjs from "dayjs";
 import { useContext, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import dayjs from "dayjs";
+import PropTypes from "prop-types";
 import AddIcon from "@mui/icons-material/Add";
+import SearchIcon from "@mui/icons-material/Search";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Fab from "@mui/material/Fab";
 import Hidden from "@mui/material/Hidden";
+import InputAdornment from "@mui/material/InputAdornment";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
+import ProposalFilters from "../components/ProposalFilters";
+import ProposalTable from "../components/ProposalTable";
 import ErrorContext from "../contexts/ErrorContext";
 import UserContext from "../contexts/UserContext";
-import ProposalTable from "../components/ProposalTable";
-import InputAdornment from "@mui/material/InputAdornment";
-import SearchIcon from "@mui/icons-material/Search";
-import ProposalFilters from "../components/ProposalFilters";
-import { TEACHER_PROPOSALS_FILTERS } from "../utils/constants";
+import { TEACHER_PROPOSALS_FILTERS, TEACHER_HEADERS_ACTIVE, TEACHER_HEADERS_EXPIRED } from "../utils/constants";
 import API from "../utils/API";
 import { Card, Paper } from "@mui/material";
 
 function ProposalsPage(props) {
-  const navigate = useNavigate();
-  const proposals = props.proposals;
-  const applications = props.applications;
-  const currentDate = props.currentDate;
+  const { setAlert, setDirty, currentDate, proposals, applications, teachers, groups, getTeacherById } = props;
   const user = useContext(UserContext);
   const { handleErrors } = useContext(ErrorContext);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -36,7 +34,7 @@ function ProposalsPage(props) {
     startDate: null,
     endDate: null
   });
-  const [selectedTeacherFilter, setSelectedTeacherFilter] = useState("all");
+  const [selectedTeacherFilter, setSelectedTeacherFilter] = useState("active");
 
   const handleTeacherFilterChange = (selectedFilter) => {
     setSelectedTeacherFilter(selectedFilter);
@@ -71,7 +69,7 @@ function ProposalsPage(props) {
       const { title, co_supervisors, keywords, description, required_knowledge, notes } = proposal;
 
       // Convert supervisor ID to name
-      const supervisor = props.teachers.find((teacher) => teacher.id === proposal.supervisor);
+      const supervisor = teachers.find((teacher) => teacher.id === proposal.supervisor);
       const supervisorName = supervisor?.name || "";
       const supervisorSurname = supervisor?.surname || "";
 
@@ -167,7 +165,7 @@ function ProposalsPage(props) {
           />
         </Card>
       </Toolbar>
-      <ProposalTable data={filteredStudentProposals} getTeacherById={props.getTeacherById} />
+      <ProposalTable data={filteredStudentProposals} getTeacherById={getTeacherById} applications={applications} />
       <Box height={5} marginTop={3} />
       <Hidden smUp>
         <Stack
@@ -185,33 +183,35 @@ function ProposalsPage(props) {
   );
 
   const filteredTeacherProposals = proposals.filter((proposal) => {
-    if (selectedTeacherFilter === "all") {
-      return true;
-    }
     if (selectedTeacherFilter === "active") {
-      const isNotExpired = dayjs(proposal.expiration_date).isAfter(currentDate);
-      const hasAcceptedApplications = applications.some(
-        (application) => application.proposal_id === proposal.id && application.state === "accepted"
-      );
-      return isNotExpired && !hasAcceptedApplications;
+      return !proposal.archived;
+    }
+    if (selectedTeacherFilter === "archive") {
+      return proposal.archived;
     }
     return true;
   });
 
   const archiveProposal = (proposalId) => {
-    // TODO: Get archived proposals from server
-
-    console.log("Proposal " + proposalId + " archived");
+    API.archiveProposal(proposalId)
+      .then(() => {
+        setAlert({
+          message: "Proposal archived successfully",
+          severity: "success"
+        });
+        setDirty(true);
+      })
+      .catch((err) => handleErrors(err));
   };
 
   const deleteProposal = (proposalId) => {
     API.deleteProposal(proposalId)
       .then(() => {
-        props.setAlert({
+        setAlert({
           message: "Proposal deleted successfully",
           severity: "success"
         });
-        props.setDirty(true);
+        setDirty(true);
       })
       .catch((err) => handleErrors(err));
   };
@@ -249,9 +249,13 @@ function ProposalsPage(props) {
         </Stack>
       </Toolbar>
       <ProposalTable
+        headers={selectedTeacherFilter === "active" ? TEACHER_HEADERS_ACTIVE : TEACHER_HEADERS_EXPIRED}
         data={filteredTeacherProposals}
         deleteProposal={deleteProposal}
         archiveProposal={archiveProposal}
+        teacherFilter={selectedTeacherFilter}
+        applications={applications}
+        currentDate={currentDate}
       />
       <Box height={5} marginTop={3} />
       <Hidden smUp>
@@ -271,5 +275,16 @@ function ProposalsPage(props) {
 
   return <div id="proposals-page">{user?.role === "student" ? studentView : teacherView}</div>;
 }
+
+ProposalsPage.propTypes = {
+  setAlert: PropTypes.func,
+  setDirty: PropTypes.func,
+  currentDate: PropTypes.string,
+  proposals: PropTypes.array,
+  applications: PropTypes.array,
+  teachers: PropTypes.array,
+  groups: PropTypes.array,
+  getTeacherById: PropTypes.func
+};
 
 export default ProposalsPage;

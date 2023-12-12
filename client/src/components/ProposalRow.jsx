@@ -2,7 +2,15 @@ import dayjs from "dayjs";
 import PropTypes from "prop-types";
 import { useContext, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { IconButton, Chip, Link, MenuItem, Popover, Stack, TableCell, TableRow, Divider } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import Chip from "@mui/material/Chip";
+import Divider from "@mui/material/Divider";
+import Link from "@mui/material/Link";
+import MenuItem from "@mui/material/MenuItem";
+import Popover from "@mui/material/Popover";
+import Stack from "@mui/material/Stack";
+import TableCell from "@mui/material/TableCell";
+import TableRow from "@mui/material/TableRow";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
@@ -15,7 +23,7 @@ import UserContext from "../contexts/UserContext";
 import ConfirmationDialog from "./ConfirmationDialog";
 
 function ProposalRow(props) {
-  const { proposal, getTeacherById, deleteProposal, archiveProposal } = props;
+  const { proposal, getTeacherById, deleteProposal, archiveProposal, teacherFilter, applications, currentDate } = props;
   const user = useContext(UserContext);
   const teacher = user.role === "student" ? getTeacherById(proposal.supervisor) : null;
 
@@ -23,6 +31,14 @@ function ProposalRow(props) {
   const [action, setAction] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
+
+  const proposalIsAccepted = applications.some(
+    (application) => application.proposal_id === proposal.id && application.state === "accepted"
+  );
+
+  const proposalIsExpired = dayjs(proposal.expiration_date).isBefore(currentDate);
+
+  const proposalIsManual = !proposalIsAccepted && !proposalIsExpired && proposal.archived;
 
   useEffect(() => {
     let message = "";
@@ -69,6 +85,16 @@ function ProposalRow(props) {
     }
   };
 
+  const renderReason = () => {
+    if (proposalIsAccepted) {
+      return <Chip label="ACCEPTED" />;
+    }
+    if (proposalIsExpired) {
+      return <Chip label="EXPIRED" />;
+    }
+    return <Chip label="MANUAL" />;
+  };
+
   return (
     <>
       <ConfirmationDialog
@@ -101,11 +127,16 @@ function ProposalRow(props) {
           </Stack>
         </TableCell>
         <TableCell align="center">{dayjs(proposal.expiration_date).format("DD/MM/YYYY")}</TableCell>
+        {user.role === "teacher" && teacherFilter === "archive" && (
+          <TableCell align="center">{renderReason()}</TableCell>
+        )}
         {user.role === "teacher" && (
           <TableCell align="right">
-            <IconButton onClick={handleOpenMenu}>
-              <MoreVertIcon />
-            </IconButton>
+            {!proposalIsAccepted && !proposalIsManual && (
+              <IconButton onClick={handleOpenMenu}>
+                <MoreVertIcon />
+              </IconButton>
+            )}
           </TableCell>
         )}
       </TableRow>
@@ -132,31 +163,35 @@ function ProposalRow(props) {
           Edit
         </MenuItem>
 
-        <MenuItem
-          color="inherit"
-          underline="none"
-          onClick={() => {
-            setAction("archive");
-            setOpenDialog(true);
-          }}
-          sx={{ borderRadius: 2 }}
-        >
-          <ArchiveIcon sx={{ mr: 3 }} />
-          Archive
-        </MenuItem>
+        {teacherFilter === "active" && (
+          <>
+            <MenuItem
+              color="inherit"
+              underline="none"
+              onClick={() => {
+                setAction("archive");
+                setOpenDialog(true);
+              }}
+              sx={{ borderRadius: 2 }}
+            >
+              <ArchiveIcon sx={{ mr: 3 }} />
+              Archive
+            </MenuItem>
 
-        <Divider />
+            <Divider />
 
-        <MenuItem
-          onClick={() => {
-            setAction("delete");
-            setOpenDialog(true);
-          }}
-          sx={{ color: "error.main", borderRadius: 2 }}
-        >
-          <DeleteIcon sx={{ mr: 3 }} />
-          Delete
-        </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setAction("delete");
+                setOpenDialog(true);
+              }}
+              sx={{ color: "error.main", borderRadius: 2 }}
+            >
+              <DeleteIcon sx={{ mr: 3 }} />
+              Delete
+            </MenuItem>
+          </>
+        )}
       </Popover>
     </>
   );
@@ -166,7 +201,10 @@ ProposalRow.propTypes = {
   proposal: PropTypes.object,
   getTeacherById: PropTypes.func,
   deleteProposal: PropTypes.func,
-  archiveProposal: PropTypes.func
+  archiveProposal: PropTypes.func,
+  teacherFilter: PropTypes.string,
+  applications: PropTypes.array,
+  currentDate: PropTypes.string
 };
 
 export default ProposalRow;

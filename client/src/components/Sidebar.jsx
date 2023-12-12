@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import BookRoundedIcon from "@mui/icons-material/BookRounded";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
@@ -45,6 +46,8 @@ const settingsTab = {
 
 function Sidebar(props) {
   const { mode } = useThemeContext();
+  const { selectedTab, logoHeight, drawerWidth, mobileOpen, closeDrawer, handleDrawerToggle, handleTabSelection } =
+    props;
 
   const drawer = (
     <Box
@@ -61,7 +64,7 @@ function Sidebar(props) {
           style={{
             filter: mode === "dark" ? "brightness(0) invert(1)" : "invert(0)"
           }}
-          height={props.logoHeight}
+          height={logoHeight}
         />
       </Box>
       <Divider />
@@ -71,10 +74,10 @@ function Sidebar(props) {
             <ListItemButton
               component={Link}
               to={tab.path}
-              selected={props.selectedTab === tab.id}
+              selected={selectedTab === tab.id}
               onClick={() => {
-                props.handleTabSelection(tab.id);
-                props.closeDrawer();
+                handleTabSelection(tab.id);
+                closeDrawer();
               }}
             >
               <ListItemIcon>{tab.icon}</ListItemIcon>
@@ -90,10 +93,10 @@ function Sidebar(props) {
             <ListItemButton
               component={Link}
               to={settingsTab.path}
-              selected={props.selectedTab === settingsTab.id}
+              selected={selectedTab === settingsTab.id}
               onClick={() => {
-                props.handleTabSelection(settingsTab.id);
-                props.closeDrawer();
+                handleTabSelection(settingsTab.id);
+                closeDrawer();
               }}
             >
               <ListItemIcon>{settingsTab.icon}</ListItemIcon>
@@ -109,11 +112,11 @@ function Sidebar(props) {
   );
 
   return (
-    <Box component="nav" sx={{ width: { sm: props.drawerWidth }, flexShrink: { sm: 0 } }}>
+    <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
       <Drawer
         variant="temporary"
-        open={props.mobileOpen}
-        onClose={props.handleDrawerToggle}
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
         ModalProps={{
           keepMounted: true
         }}
@@ -121,7 +124,7 @@ function Sidebar(props) {
           display: { xs: "block", sm: "none" },
           "& .MuiDrawer-paper": {
             boxSizing: "border-box",
-            width: props.drawerWidth
+            width: drawerWidth
           }
         }}
       >
@@ -133,7 +136,7 @@ function Sidebar(props) {
           display: { xs: "none", sm: "block" },
           "& .MuiDrawer-paper": {
             boxSizing: "border-box",
-            width: props.drawerWidth
+            width: drawerWidth
           }
         }}
         open
@@ -143,5 +146,15 @@ function Sidebar(props) {
     </Box>
   );
 }
+
+Sidebar.propTypes = {
+  selectedTab: PropTypes.string,
+  logoHeight: PropTypes.number,
+  drawerWidth: PropTypes.number,
+  mobileOpen: PropTypes.bool,
+  closeDrawer: PropTypes.func,
+  handleDrawerToggle: PropTypes.func,
+  handleTabSelection: PropTypes.func
+};
 
 export default Sidebar;

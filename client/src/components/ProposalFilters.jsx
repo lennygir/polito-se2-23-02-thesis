@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import PropTypes from "prop-types";
 import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -140,5 +141,14 @@ function ProposalFilters(props) {
     </>
   );
 }
+
+ProposalFilters.propTypes = {
+  groups: PropTypes.array,
+  isDrawerOpen: PropTypes.bool,
+  toggleDrawer: PropTypes.func,
+  filterValues: PropTypes.object,
+  handleMenuInputChange: PropTypes.func,
+  resetMenuFilters: PropTypes.func
+};
 
 export default ProposalFilters;

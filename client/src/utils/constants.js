@@ -36,10 +36,6 @@ export const LEVELS = ["Bachelor Degree", "Master Degree"];
  */
 export const TEACHER_PROPOSALS_FILTERS = [
   {
-    id: "all",
-    label: "ALL"
-  },
-  {
     id: "active",
     label: "ACTIVE"
   },
@@ -48,6 +44,12 @@ export const TEACHER_PROPOSALS_FILTERS = [
     label: "ARCHIVED"
   }
 ];
+
+/** Teacher's proposals page table headers in the Active tab  */
+export const TEACHER_HEADERS_ACTIVE = ["Thesis", "Expiration", ""];
+
+/** Teacher's proposals page table headers in the Archived tab  */
+export const TEACHER_HEADERS_EXPIRED = ["Thesis", "Expiration", "Reason", ""];
 
 /**
  * Color Palette
