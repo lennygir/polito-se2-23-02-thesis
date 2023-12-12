@@ -705,6 +705,11 @@ router.delete(
           message: `The proposal ${req.params.id} is already accepted for another student`,
         });
       }
+      if (dayjs(proposal.expiration_date).isBefore(dayjs(getDate()))) {
+        return res.status(401).json({
+          message: "The proposal is expired, so it cannot be deleted",
+        });
+      }
       cancelPendingApplications(req.params.id);
       deleteProposal(req.params.id);
       return res
