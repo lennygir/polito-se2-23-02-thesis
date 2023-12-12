@@ -24,6 +24,7 @@ const {
   getApplicationsOfStudent,
   getExamsOfStudent,
   getNotRejectedStartRequest,
+  getRequestForClerk,
 } = require("../src/theses-dao");
 
 const dayjs = require("dayjs");
@@ -880,5 +881,48 @@ describe("POST /api/start-requests", () => {
       })
       .set("Content-Type", "application/json")
       .expect(409);
+  });
+});
+
+describe("GET /api/start-requests", () => {
+  test("Get all the start thesis request to be approved", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "laura.ferrari@example.com",
+      };
+      next();
+    });
+
+    const expectedRequests = [
+      {
+        id: 1,
+        status: "requested",
+      },
+      {
+        id: 2,
+        status: "requested",
+      },
+    ];
+    getRequestForClerk.mockReturnValue(expectedRequests);
+    const requests = (
+      await request(app)
+        .get("/api/start-requests")
+        .set("Content-Type", "application/json")
+        .expect(200)
+    ).body;
+    expect(requests).toEqual(expectedRequests);
+  });
+  test("No requests", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "laura.ferrari@example.com",
+      };
+      next();
+    });
+    getRequestForClerk.mockReturnValue([]);
+    await request(app)
+      .get("/api/start-requests")
+      .set("Content-Type", "application/json")
+      .expect(200);
   });
 });

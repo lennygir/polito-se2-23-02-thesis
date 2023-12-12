@@ -297,3 +297,15 @@ describe("Test the virtual clock", () => {
     }
   });
 });
+
+test("getRequests - should return correct data", async () => {
+  fetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve(mockApiResponse)
+  });
+  const result = await API.getRequests();
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/start-requests`,{
+    credentials: "include"
+  });
+  expect(result).toEqual(mockApiResponse);
+});

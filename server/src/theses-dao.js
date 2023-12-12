@@ -457,3 +457,7 @@ exports.updateProposal = (
       proposal_id
     );
 };
+
+exports.getRequestForClerk = () => {
+  return db.prepare("select * from START_REQUESTS where status = ?").all("requested");
+};
