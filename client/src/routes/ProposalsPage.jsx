@@ -154,26 +154,24 @@ function ProposalsPage(props) {
 
   const filteredTeacherProposals = proposals.filter((proposal) => {
     if (selectedTeacherFilter === "active") {
-      const isNotExpired = dayjs(proposal.expiration_date).isAfter(currentDate);
-      const hasAcceptedApplications = applications.some(
-        (application) => application.proposal_id === proposal.id && application.state === "accepted"
-      );
-      return isNotExpired && !hasAcceptedApplications;
+      return !proposal.archived;
     }
     if (selectedTeacherFilter === "archive") {
-      const isExpired = dayjs(proposal.expiration_date).isBefore(currentDate);
-      const hasAcceptedApplications = applications.some(
-        (application) => application.proposal_id === proposal.id && application.state === "accepted"
-      );
-      return isExpired || hasAcceptedApplications;
+      return proposal.archived;
     }
     return true;
   });
 
   const archiveProposal = (proposalId) => {
-    // TODO: Get archived proposals from server
-
-    console.log("Proposal " + proposalId + " archived");
+    API.archiveProposal(proposalId)
+      .then(() => {
+        setAlert({
+          message: "Proposal archived successfully",
+          severity: "success"
+        });
+        setDirty(true);
+      })
+      .catch((err) => handleErrors(err));
   };
 
   const deleteProposal = (proposalId) => {

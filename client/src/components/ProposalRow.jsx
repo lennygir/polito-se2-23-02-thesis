@@ -36,6 +36,10 @@ function ProposalRow(props) {
     (application) => application.proposal_id === proposal.id && application.state === "accepted"
   );
 
+  const proposalIsExpired = dayjs(proposal.expiration_date).isBefore(currentDate);
+
+  const proposalIsManual = !proposalIsAccepted && !proposalIsExpired && proposal.archived;
+
   useEffect(() => {
     let message = "";
     if (action === "archive") {
@@ -82,11 +86,10 @@ function ProposalRow(props) {
   };
 
   const renderReason = () => {
-    const isExpired = dayjs(proposal.expiration_date).isBefore(currentDate);
     if (proposalIsAccepted) {
       return <Chip label="ACCEPTED" />;
     }
-    if (isExpired) {
+    if (proposalIsExpired) {
       return <Chip label="EXPIRED" />;
     }
     return <Chip label="MANUAL" />;
@@ -129,7 +132,7 @@ function ProposalRow(props) {
         )}
         {user.role === "teacher" && (
           <TableCell align="right">
-            {!proposalIsAccepted && (
+            {!proposalIsAccepted && !proposalIsManual && (
               <IconButton onClick={handleOpenMenu}>
                 <MoreVertIcon />
               </IconButton>

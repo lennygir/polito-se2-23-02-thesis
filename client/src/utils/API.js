@@ -223,6 +223,25 @@ const updateProposal = async (proposal) => {
 };
 
 /**
+ * Archive a proposal by sending a PATCH request to the server's proposals endpoint with only fields to change.
+ * @param {Object} proposalId - The id of the proposal to be archived.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the archived proposal response.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
+const archiveProposal = async (proposalId) => {
+  return getJson(
+    fetch(SERVER_URL + "/proposals/" + proposalId, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify({ archived: true })
+    })
+  );
+};
+
+/**
  * Deletes a proposal with the specified ID from the server.
  * @param {number} proposal_id - The ID of the proposal to be deleted.
  * @returns {Promise} A promise that resolves with the result of the deletion.
@@ -294,6 +313,7 @@ const API = {
   updateVirtualClock,
   evaluateApplication,
   updateProposal,
+  archiveProposal,
   deleteProposal
 };
 
