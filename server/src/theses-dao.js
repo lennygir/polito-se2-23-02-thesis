@@ -115,6 +115,29 @@ exports.getExamsOfStudent = (id) => {
   return db.prepare("select * from main.CAREER where id = ?").all(id);
 };
 
+exports.insertStartRequest = (startRequest) => {
+  const { title, description, supervisor, co_supervisors, studentId } = startRequest;
+  return db
+    .prepare(
+      "insert into START_REQUESTS(title, description, supervisor, co_supervisors, student_id) values(?,?,?,?,?)",
+    )
+    .run(
+      title,
+      description,
+      supervisor,
+      co_supervisors,
+      studentId
+    ).lastInsertRowid;
+};
+
+exports.getNotRejectedStartRequest = (userId) => {
+  return db
+    .prepare(
+      "SELECT * FROM START_REQUESTS WHERE student_id = ? AND status != 'rejected'"
+    )
+    .all(userId);
+};
+
 exports.getApplicationById = (id) => {
   return db.prepare("select * from APPLICATIONS where id = ?").get(id);
 };
