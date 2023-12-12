@@ -134,6 +134,7 @@ const createApplication = async (application) => {
 };
 
 /**
+ * MISSING SERVER
  * Inserts a file to an existing application by sending a PATCH request to the server's applications endpoint.
  * @param {Object} applicationId - The id of an existing application.
  * @param {Object} file - An object containing the file in binary format. Can be null since it's optional.
@@ -152,6 +153,7 @@ const attachFileToApplication = async (applicationId, file) => {
 };
 
 /**
+ * MISSING SERVER
  * Retrieves a file attached to an existing application.
  * @param {Object} applicationId - The id of an existing application.
  * @returns {Promise} A promise that resolves to the blob of the file.
@@ -225,7 +227,7 @@ const updateProposal = async (proposal) => {
 /**
  * Deletes a proposal with the specified ID from the server.
  * @param {number} proposal_id - The ID of the proposal to be deleted.
- * @returns {Promise} - A promise that resolves with the result of the deletion.
+ * @returns {Promise} A promise that resolves with the result of the deletion.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
 const deleteProposal = async (proposal_id) => {
@@ -250,6 +252,37 @@ const getUserInfo = async () => {
   );
 };
 
+/**
+ * MISSING SERVER
+ * Retrieve the virtual clock.
+ * @returns {Promise} A promise that resolves with the actual date.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
+const getVirtualClock = async () => {
+  return getJson(fetch(SERVER_URL + "/virtualClock", { credentials: "include" }));
+};
+
+/**
+ * MISSING SERVER
+ * Update the virtual clock on the server given the actual date as input.
+ * @param {string} date - The new actual date.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the updated virtual clock response.
+ * @throws {Error} If there is an issue with the HTTP request or parsing the server response.
+ */
+const updateVirtualClock = async (date) => {
+  console.log(date);
+  return getJson(
+    fetch(SERVER_URL + "/virtualClock", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(date),
+      credentials: "include"
+    })
+  );
+};
+
 const API = {
   attachFileToApplication,
   createProposal,
@@ -262,6 +295,8 @@ const API = {
   getApplications,
   getNotifications,
   getUserInfo,
+  getVirtualClock,
+  updateVirtualClock,
   evaluateApplication,
   updateProposal,
   deleteProposal

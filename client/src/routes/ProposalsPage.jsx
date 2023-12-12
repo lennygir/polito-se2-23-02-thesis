@@ -18,7 +18,7 @@ import ProposalFilters from "../components/ProposalFilters";
 import ProposalTable from "../components/ProposalTable";
 import ErrorContext from "../contexts/ErrorContext";
 import UserContext from "../contexts/UserContext";
-import { TEACHER_PROPOSALS_FILTERS } from "../utils/constants";
+import { TEACHER_PROPOSALS_FILTERS, TEACHER_HEADERS_ACTIVE, TEACHER_HEADERS_EXPIRED } from "../utils/constants";
 import API from "../utils/API";
 
 function ProposalsPage(props) {
@@ -33,7 +33,7 @@ function ProposalsPage(props) {
     startDate: null,
     endDate: null
   });
-  const [selectedTeacherFilter, setSelectedTeacherFilter] = useState("all");
+  const [selectedTeacherFilter, setSelectedTeacherFilter] = useState("active");
 
   const handleTeacherFilterChange = (selectedFilter) => {
     setSelectedTeacherFilter(selectedFilter);
@@ -153,15 +153,19 @@ function ProposalsPage(props) {
   );
 
   const filteredTeacherProposals = proposals.filter((proposal) => {
-    if (selectedTeacherFilter === "all") {
-      return true;
-    }
     if (selectedTeacherFilter === "active") {
       const isNotExpired = dayjs(proposal.expiration_date).isAfter(currentDate);
       const hasAcceptedApplications = applications.some(
         (application) => application.proposal_id === proposal.id && application.state === "accepted"
       );
       return isNotExpired && !hasAcceptedApplications;
+    }
+    if (selectedTeacherFilter === "archive") {
+      const isExpired = dayjs(proposal.expiration_date).isBefore(currentDate);
+      const hasAcceptedApplications = applications.some(
+        (application) => application.proposal_id === proposal.id && application.state === "accepted"
+      );
+      return isExpired || hasAcceptedApplications;
     }
     return true;
   });
@@ -217,9 +221,13 @@ function ProposalsPage(props) {
         </Stack>
       </Toolbar>
       <ProposalTable
+        headers={selectedTeacherFilter === "active" ? TEACHER_HEADERS_ACTIVE : TEACHER_HEADERS_EXPIRED}
         data={filteredTeacherProposals}
         deleteProposal={deleteProposal}
         archiveProposal={archiveProposal}
+        teacherFilter={selectedTeacherFilter}
+        applications={applications}
+        currentDate={currentDate}
       />
       <Box height={5} marginTop={3} />
       <Hidden smUp>
