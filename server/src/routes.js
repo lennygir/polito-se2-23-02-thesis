@@ -17,6 +17,7 @@ const {
   getProposal,
   insertApplication,
   insertStartRequest,
+  updateStatusStartRequest,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   deleteProposal,
@@ -241,13 +242,15 @@ router.patch(
           .status(401)
           .json({ message: "Only a teacher or a secretary can approve a thesis request" });
       }
-      let approved = req.body.approved;
+      const approved = req.body.approved;
+      const req_id = req.params.thesisRequestId;
+      let new_status;
       if(approved == true){
-        approved = 1;
+        new_status = 'accepted';
       }else{
-        approved = 0;
+        new_status = 'requested';
       }
-      
+      updateStatusStartRequest()
       return res.status(200).json(application);
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
