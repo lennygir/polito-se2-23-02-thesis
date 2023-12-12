@@ -1,6 +1,8 @@
 -- TO RUN THIS SCRIPT:
 -- sqlite3 theses_management.db < create_db.sql
 
+DROP TABLE IF EXISTS VIRTUAL_CLOCK;
+DROP TABLE IF EXISTS START_REQUESTS;
 DROP TABLE IF EXISTS NOTIFICATIONS;
 DROP TABLE IF EXISTS APPLICATIONS;
 DROP TABLE IF EXISTS CAREER;
@@ -10,7 +12,6 @@ DROP TABLE IF EXISTS DEGREE;
 DROP TABLE IF EXISTS TEACHER;
 DROP TABLE IF EXISTS GROUPS;
 DROP TABLE IF EXISTS DEPARTMENTS;
-DROP TABLE IF EXISTS USERS;
 DROP TABLE IF EXISTS SECRETARY_CLERK;
 
 
@@ -66,7 +67,7 @@ CREATE TABLE IF NOT EXISTS TEACHER (
 );
 
 CREATE TABLE IF NOT EXISTS SECRETARY_CLERK (
-  id TEXT PRIMARY KEY, 
+  id TEXT PRIMARY KEY,
   surname TEXT,
   name TEXT,
   email TEXT NOT NULL UNIQUE
@@ -86,6 +87,7 @@ CREATE TABLE IF NOT EXISTS PROPOSALS (
   expiration_date DATE,
   level TEXT,
   cds TEXT,
+  manually_archived INTEGER DEFAULT 0, -- 0 false, 1 true
   FOREIGN KEY (supervisor) REFERENCES TEACHER (id),
   FOREIGN KEY (cds) REFERENCES DEGREE (cod_degree)
 );
@@ -95,13 +97,9 @@ CREATE TABLE IF NOT EXISTS APPLICATIONS (
   proposal_id INTEGER,
   student_id TEXT,
   state TEXT,
+  attached_file BLOB,
   FOREIGN KEY (proposal_id) REFERENCES PROPOSALS (id) ON DELETE SET NULL,
   FOREIGN KEY (student_id) REFERENCES STUDENT (id)
-);
-
-CREATE TABLE IF NOT EXISTS USERS (
-  email TEXT NOT NULL,
-  password TEXT NOT NULL
 );
 
 CREATE TABLE "NOTIFICATIONS" (
@@ -109,8 +107,32 @@ CREATE TABLE "NOTIFICATIONS" (
 	"date"	TEXT NOT NULL DEFAULT (DATETIME('now')),
 	"object"	TEXT NOT NULL,
 	"content"	TEXT NOT NULL,
-	"student_id"	TEXT NOT NULL,
-	FOREIGN KEY("student_id") REFERENCES "STUDENT"("id")
+	"student_id"	TEXT,
+	"teacher_id"	TEXT,
+	FOREIGN KEY("student_id") REFERENCES "STUDENT"("id"),
+  FOREIGN KEY("teacher_id") REFERENCES "TEACHER"("id"),
+  CONSTRAINT ck_student_teacher CHECK ((student_id IS NOT NULL AND teacher_id IS NULL) OR (student_id IS NULL AND teacher_id IS NOT NULL))
+);
+
+CREATE TABLE IF NOT EXISTS VIRTUAL_CLOCK (
+	id INTEGER PRIMARY KEY,
+  delta	INTEGER
+);
+
+INSERT INTO VIRTUAL_CLOCK (id, delta)
+VALUES (1, 0);
+
+CREATE TABLE START_REQUESTS (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  supervisor TEXT NOT NULL,
+  co_supervisors TEXT,
+  approval_date DATETIME,
+  student_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'requested',
+  FOREIGN KEY (supervisor) REFERENCES TEACHER (id),
+  FOREIGN KEY (student_id) REFERENCES STUDENT (id)
 );
 
 INSERT INTO DEGREE (cod_degree, title_degree)
@@ -246,31 +268,31 @@ VALUES  ('s319823', 'Tortore', 'Luca', 'Male', 'Italy', 's319823@studenti.polito
 
 INSERT INTO TEACHER (id, surname, name, email, cod_group, cod_department)
 VALUES  ('s123456', 'Torchiano', 'Marco', 'marco.torchiano@teacher.it', 'SOFTENG', 'DAUIN'),
-        ('s234567', 'Morisio', 'Maurizio', 'maurizio.morisio@polito.it', 'SOFTENG', 'DAUIN'),
-        ('s345678', 'De Russis', 'Luigi', 'luigi.derussis@polito.it', 'ELITE', 'DAUIN'),
-        ('s456789', 'Corno', 'Fulvio', 'fulvio.corno@polito.it', 'ELITE', 'DAUIN'),
-        ('s567890', 'Lioy', 'Antonio', 'antonio.lioy@polito.it', 'TORSEC', 'DAUIN'),
-        ('s678901', 'Basile', 'Cataldo', 'cataldo.basile@polito.it', 'TORSEC', 'DAUIN'),
-        ('s789012', 'Fino', 'Debora', 'debora.fino@polito.it', 'CMPCS', 'DISAT'),
-        ('s890123', 'Petruzzo', 'Angela', 'angela.petruzzo@polito.it', 'CMPCS', 'DISAT'),
-        ('s901234', 'Onida', 'Barbara', 'barbara.onida@polito.it', 'SMAC', 'DISAT'),
-        ('s012345', 'Manna', 'Luigi', 'luigi.manna@polito.it', 'SMAC', 'DISAT'),
-        ('s123345', 'Brischetto', 'Salvatore', 'salvatore.brischetto@polito.it', 'ASTRA', 'DIMEAS'),
-        ('s940590', 'Maggiore', 'Paolo', 'paolo.maggiore@polito.it', 'ASTRA', 'DIMEAS'),
-        ('s298399', 'Romano', 'Marcello', 'marcello.romano@polito.it', 'ASTRADORS', 'DIMEAS'),
-        ('s384788', 'Gherlone', 'Marco', 'marco.gherlone@polito.it', 'AESDO', 'DIMEAS'),
-        ('s112343', 'Esposito', 'Marco', 'marco.esposito@polito.it', 'AESDO', 'DIMEAS'),
-        ('s238411', 'Canavero', 'Flavio', 'flavio.canavero@polito.it', 'EMC', 'DET'),
-        ('s998899', 'Stievano', 'Igor', 'igor.stievano@polito.it', 'EMC', 'DET'),
-        ('s221800', 'Amati', 'Nicola', 'nicola.amati@polito.it', 'LIM', 'DET'),
-        ('s122349', 'Bonifitto', 'Angelo', 'angelo.bonfitto@polito.it', 'LIM', 'DET'),
-        ('s009666', 'Canova', 'Aldo', 'aldo.canova@polito.it', 'CADEMA', 'DENERG'),
-        ('s293040', 'Freschi', 'Fabio', 'fabio.freschi@polito.it', 'CADEMA', 'DENERG'),
-        ('s104858', 'Savoldi', 'Laura', 'laura.savoldi@polito.it', 'MAHTEP', 'DENERG'),
-        ('s909920', 'Lerede', 'Daniele', 'daniele.lerede@polito.it', 'MAHTEP', 'DENERG'),
-        ('s328382', 'Millo', 'Federico', 'federico.millo@polito.it', 'E3', 'DENERG');
+        ('s234567', 'Morisio', 'Maurizio', 'maurizio.morisio@teacher.it', 'SOFTENG', 'DAUIN'),
+        ('s345678', 'De Russis', 'Luigi', 'luigi.derussis@teacher.it', 'ELITE', 'DAUIN'),
+        ('s456789', 'Corno', 'Fulvio', 'fulvio.corno@teacher.it', 'ELITE', 'DAUIN'),
+        ('s567890', 'Lioy', 'Antonio', 'antonio.lioy@teacher.it', 'TORSEC', 'DAUIN'),
+        ('s678901', 'Basile', 'Cataldo', 'cataldo.basile@teacher.it', 'TORSEC', 'DAUIN'),
+        ('s789012', 'Fino', 'Debora', 'debora.fino@teacher.it', 'CMPCS', 'DISAT'),
+        ('s890123', 'Petruzzo', 'Angela', 'angela.petruzzo@teacher.it', 'CMPCS', 'DISAT'),
+        ('s901234', 'Onida', 'Barbara', 'barbara.onida@teacher.it', 'SMAC', 'DISAT'),
+        ('s012345', 'Manna', 'Luigi', 'luigi.manna@teacher.it', 'SMAC', 'DISAT'),
+        ('s123345', 'Brischetto', 'Salvatore', 'salvatore.brischetto@teacher.it', 'ASTRA', 'DIMEAS'),
+        ('s940590', 'Maggiore', 'Paolo', 'paolo.maggiore@teacher.it', 'ASTRA', 'DIMEAS'),
+        ('s298399', 'Romano', 'Marcello', 'marcello.romano@teacher.it', 'ASTRADORS', 'DIMEAS'),
+        ('s384788', 'Gherlone', 'Marco', 'marco.gherlone@teacher.it', 'AESDO', 'DIMEAS'),
+        ('s112343', 'Esposito', 'Marco', 'marco.esposito@teacher.it', 'AESDO', 'DIMEAS'),
+        ('s238411', 'Canavero', 'Flavio', 'flavio.canavero@teacher.it', 'EMC', 'DET'),
+        ('s998899', 'Stievano', 'Igor', 'igor.stievano@teacher.it', 'EMC', 'DET'),
+        ('s221800', 'Amati', 'Nicola', 'nicola.amati@teacher.it', 'LIM', 'DET'),
+        ('s122349', 'Bonifitto', 'Angelo', 'angelo.bonfitto@teacher.it', 'LIM', 'DET'),
+        ('s009666', 'Canova', 'Aldo', 'aldo.canova@teacher.it', 'CADEMA', 'DENERG'),
+        ('s293040', 'Freschi', 'Fabio', 'fabio.freschi@teacher.it', 'CADEMA', 'DENERG'),
+        ('s104858', 'Savoldi', 'Laura', 'laura.savoldi@teacher.it', 'MAHTEP', 'DENERG'),
+        ('s909920', 'Lerede', 'Daniele', 'daniele.lerede@teacher.it', 'MAHTEP', 'DENERG'),
+        ('s328382', 'Millo', 'Federico', 'federico.millo@teacher.it', 'E3', 'DENERG');
 
-INSERT INTO SECRETARY_CLERK (id, surname, name, email) 
+INSERT INTO SECRETARY_CLERK (id, surname, name, email)
 VALUES  ('d123456', 'Ferrari', 'Laura', 'laura.ferrari@example.com'),
         ('d234567', 'Russo', 'Fabio', 'fabio.russo@example.com'),
         ('d345678', 'Romano', 'Alessia', 'alessia.romano@example.com'),
@@ -305,14 +327,6 @@ VALUES  ('s308747', '01SQMOV', 'Data Science and Database Technologies', 8, 30, 
         ('s309618', '02JEUOV', 'Formal Languages and Compilers', 6, 26, '2023-07-17'),
         ('s309618', '02GRSOV', 'Systems and Device Programming', 10, 29, '2023-08-02'),
         ('s309618', '01SQNOV', 'Software Engineering II', 6, 30, '2023-08-14');
-
-INSERT INTO USERS (email, password)
-VALUES ('marco.torchiano@teacher.it', 's123456'),
-       ('maurizio.morisio@polito.it', 's234567'),
-       ('s319823@studenti.polito.it', 's319823'),
-       ('s321503@studenti.polito.it', 's321503'),
-       ('s308747@studenti.polito.it', 's308747'),
-       ('s309618@studenti.polito.it', 's309618');
 
 -- ACTIVATE FOREIGN KEYS
 PRAGMA foreign_keys = ON;

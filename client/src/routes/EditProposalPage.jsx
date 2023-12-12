@@ -12,7 +12,7 @@ import ErrorContext from "../contexts/ErrorContext";
 import API from "../utils/API";
 
 function EditProposalPage(props) {
-  const { fetchProposals, teachers, degrees, setAlert } = props;
+  const { currentDate, fetchProposals, teachers, degrees, setAlert } = props;
   const { handleErrors } = useContext(ErrorContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -62,6 +62,7 @@ function EditProposalPage(props) {
             degrees={degrees}
             proposal={proposal}
             editProposal={editProposal}
+            currentDate={currentDate}
           />
         </Box>
       </Paper>
@@ -71,6 +72,7 @@ function EditProposalPage(props) {
 }
 
 EditProposalPage.propTypes = {
+  currentDate: PropTypes.string,
   fetchProposals: PropTypes.func,
   teachers: PropTypes.array,
   degrees: PropTypes.array,

@@ -10,12 +10,15 @@ import AttachFileIcon from "@mui/icons-material/AttachFile";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import ErrorContext from "../contexts/ErrorContext";
 import UserContext from "../contexts/UserContext";
 import ConfirmationDialog from "./ConfirmationDialog";
 import { useThemeContext } from "../theme/ThemeContextProvider";
+import API from "../utils/API";
 
 function ApplicationDetails(props) {
   const user = useContext(UserContext);
+  const { handleErrors } = useContext(ErrorContext);
   const { theme } = useThemeContext();
   const { application, evaluateApplication, applications } = props;
 
@@ -138,6 +141,24 @@ function ApplicationDetails(props) {
     }
   };
 
+  const handleDownloadFile = () => {
+    API.getApplicationFile(application.id)
+      .then((blob) => {
+        // Create a Blob URL
+        const url = URL.createObjectURL(blob);
+
+        // Create a link element and trigger a click to initiate the download
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `student_cv_${application.student_id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      })
+      .catch((err) => handleErrors(err));
+  };
+
   return (
     <>
       {user?.role === "teacher" && (
@@ -165,15 +186,17 @@ function ApplicationDetails(props) {
         <span style={{ fontWeight: "bold" }}>Email: </span>
         {application.student_id + "@studenti.polito.it"}
       </Typography>
-      <Stack direction="row" spacing={5} alignItems="center" marginY={3}>
-        <Typography variant="body1">
-          <span style={{ fontWeight: "bold" }}>View CV: </span>
-        </Typography>
-        <Button variant="outlined" startIcon={<AttachFileIcon />}>
-          Student CV
-        </Button>
-      </Stack>
-      <Typography variant="h5" gutterBottom>
+      {application.attached_file && (
+        <Stack direction="row" spacing={5} alignItems="center" marginY={3}>
+          <Typography variant="body1">
+            <span style={{ fontWeight: "bold" }}>View CV: </span>
+          </Typography>
+          <Button variant="outlined" startIcon={<AttachFileIcon />} onClick={handleDownloadFile}>
+            Student CV
+          </Button>
+        </Stack>
+      )}
+      <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
         Thesis Proposal
       </Typography>
       <Divider variant="middle" />

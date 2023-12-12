@@ -67,7 +67,7 @@ test("getTeachers - should send correct data", async () => {
 
   const result = await API.getTeachers();
 
-  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/teachers`,{
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/teachers`, {
     credentials: "include"
   });
   expect(result).toEqual(mockApiResponse);
@@ -81,7 +81,7 @@ test("getDegrees - should send correct data", async () => {
 
   const result = await API.getDegrees();
 
-  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/degrees`,{
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/degrees`, {
     credentials: "include"
   });
   expect(result).toEqual(mockApiResponse);
@@ -95,7 +95,7 @@ test("getGroups - should send correct data", async () => {
 
   const result = await API.getGroups();
 
-  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/groups`,{
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/groups`, {
     credentials: "include"
   });
   expect(result).toEqual(mockApiResponse);
@@ -107,7 +107,7 @@ test("getProposals - should return correct data", async () => {
     json: () => Promise.resolve(mockApiResponse)
   });
   const result = await API.getProposals();
-  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals`,{
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals`, {
     credentials: "include"
   });
   expect(result).toEqual(mockApiResponse);
@@ -167,7 +167,7 @@ test("getApplications - should return correct data", async () => {
     json: () => Promise.resolve(mockApiResponse)
   });
   const result = await API.getApplications();
-  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications`,{
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications`, {
     credentials: "include"
   });
   expect(result).toEqual(mockApiResponse);
@@ -201,7 +201,7 @@ test("getNotifications - should return correct data", async () => {
     json: () => Promise.resolve(mockApiResponse)
   });
   const result = await API.getNotifications();
-  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/notifications`,{
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/notifications`, {
     credentials: "include"
   });
   expect(result).toEqual(mockApiResponse);
@@ -254,6 +254,46 @@ describe("Test the deletion of a proposal", () => {
       });
     } catch (error) {
       expect(error).toEqual({ error: "error on deleting the proposal" });
+    }
+  });
+});
+
+describe("Test the virtual clock", () => {
+  it("getVirtualClock - should successfully get virtual clock", async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ date: "2023-12-31" })
+    });
+    const result = await API.getVirtualClock();
+    expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/virtualClock`);
+    expect(result).toEqual({ date: "2023-12-31" });
+  });
+
+  it("updateVirtualClock - should successfully update virtual clock", async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ message: "Update successful" })
+    });
+    const result = await API.updateVirtualClock("2023-12-31");
+    expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/virtualClock`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify("2023-12-31")
+    });
+    expect(result).toEqual({ message: "Update successful" });
+  });
+
+  it("updateVirtualClock - should handle updateVirtualClock failure", async () => {
+    try {
+      fetch.mockResolvedValueOnce({
+        ok: false,
+        json: () => Promise.resolve({ error: "error on updating the clock" })
+      });
+      await API.updateVirtualClock("2022-12-31");
+    } catch (error) {
+      expect(error).toEqual({ error: "error on updating the clock" });
     }
   });
 });

@@ -134,6 +134,44 @@ const createApplication = async (application) => {
 };
 
 /**
+ * Inserts a file to an existing application by sending a PATCH request to the server's applications endpoint.
+ * @param {Object} applicationId - The id of an existing application.
+ * @param {Object} file - An object containing the file in binary format. Can be null since it's optional.
+ */
+const attachFileToApplication = async (applicationId, file) => {
+  return getJson(
+    fetch(SERVER_URL + "/applications/" + applicationId, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/pdf"
+      },
+      credentials: "include",
+      body: file
+    })
+  );
+};
+
+/**
+ * Retrieves a file attached to an existing application.
+ * @param {Object} applicationId - The id of an existing application.
+ * @returns {Promise} A promise that resolves to the blob of the file.
+ */
+const getApplicationFile = async (applicationId) => {
+  return fetch(SERVER_URL + "/applications/" + applicationId + "/attached-file", {
+    credentials: "include"
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch file. Status: ${response.status}`);
+      }
+      return response.blob();
+    })
+    .catch((error) => {
+      console.error("Error fetching file:", error);
+    });
+};
+
+/**
  * Evaluates an application by sending a PATCH request to the server's applications endpoint with updated application state.
  * @param {Object} application - An object containing the application ID and the updated state.
  * @returns {Promise} A promise that resolves to the parsed JSON content of the updated application response.
@@ -185,9 +223,28 @@ const updateProposal = async (proposal) => {
 };
 
 /**
+ * Archive a proposal by sending a PATCH request to the server's proposals endpoint with only fields to change.
+ * @param {Object} proposalId - The id of the proposal to be archived.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the archived proposal response.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
+const archiveProposal = async (proposalId) => {
+  return getJson(
+    fetch(SERVER_URL + "/proposals/" + proposalId, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify({ archived: true })
+    })
+  );
+};
+
+/**
  * Deletes a proposal with the specified ID from the server.
  * @param {number} proposal_id - The ID of the proposal to be deleted.
- * @returns {Promise} - A promise that resolves with the result of the deletion.
+ * @returns {Promise} A promise that resolves with the result of the deletion.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
 const deleteProposal = async (proposal_id) => {
@@ -225,9 +282,39 @@ const getUserInfo = async () => {
   );
 };
 
+/**
+ * Retrieve the virtual clock.
+ * @returns {Promise} A promise that resolves with the actual date.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
+const getVirtualClock = async () => {
+  return getJson(fetch(SERVER_URL + "/virtualClock", { credentials: "include" }));
+};
+
+/**
+ * Update the virtual clock on the server given the actual date as input.
+ * @param {string} date - The new actual date.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the updated virtual clock response.
+ * @throws {Error} If there is an issue with the HTTP request or parsing the server response.
+ */
+const updateVirtualClock = async (date) => {
+  return getJson(
+    fetch(SERVER_URL + "/virtualClock", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(date),
+      credentials: "include"
+    })
+  );
+};
+
 const API = {
+  attachFileToApplication,
   createProposal,
   createApplication,
+  getApplicationFile,
   getDegrees,
   getGroups,
   getTeachers,
@@ -235,9 +322,12 @@ const API = {
   getApplications,
   getNotifications,
   getUserInfo,
+  getVirtualClock,
+  updateVirtualClock,
   evaluateApplication,
   updateProposal,
-  deleteProposal,
+  archiveProposal,
+  deleteProposal
   getRequests,
 };
 

@@ -16,7 +16,7 @@ import API from "../utils/API";
 
 function CreateProposalPage(props) {
   const navigate = useNavigate();
-  const { fetchProposals, proposals, teachers, degrees, setAlert } = props;
+  const { currentDate, fetchProposals, proposals, teachers, degrees, setAlert } = props;
   const { handleErrors } = useContext(ErrorContext);
 
   const [anchorEl, setAnchorEl] = useState();
@@ -113,6 +113,7 @@ function CreateProposalPage(props) {
             proposals={proposals}
             createProposal={createProposal}
             setAlert={setAlert}
+            currentDate={currentDate}
           />
         </Box>
       </Paper>
@@ -122,6 +123,7 @@ function CreateProposalPage(props) {
 }
 
 CreateProposalPage.propTypes = {
+  currentDate: PropTypes.string,
   fetchProposals: PropTypes.func,
   proposals: PropTypes.array,
   teachers: PropTypes.array,
