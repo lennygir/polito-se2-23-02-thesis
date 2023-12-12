@@ -121,6 +121,49 @@ describe("Story 12: Archive Proposals", () => {
       supervisor: email,
     };
   });
+  it("If I reject an application its proposal should not become archived", async () => {
+    logIn("marco.torchiano@teacher.it");
+    // insert proposal as marco.torchiano
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body)
+    ).body;
+
+    logIn("s309618@studenti.polito.it");
+
+    // apply for the proposal
+    const insertedApplication = (
+      await request(app)
+        .post("/api/applications")
+        .set("Content-Type", "application/json")
+        .send({
+          proposal: inserted_proposal_id,
+        })
+    ).body;
+
+    logIn("marco.torchiano@teacher.it");
+
+    const applications = (await request(app).get("/api/applications")).body;
+    const applicationToBeRejected = applications.find(
+      (application) => application.id === insertedApplication.application_id,
+    );
+
+    // reject the application
+    await request(app)
+      .patch(`/api/applications/${applicationToBeRejected.id}`)
+      .set("Content-Type", "application/json")
+      .send({
+        state: "rejected",
+      });
+
+    // the proposal should not be archived
+    const proposals = (await request(app).get("/api/proposals")).body;
+    expect(
+      proposals.find((proposal) => proposal.id === inserted_proposal_id),
+    ).toHaveProperty("archived", false);
+  });
   it("A proposal manually archived should not be modifiable", async () => {
     logIn("marco.torchiano@teacher.it");
     // insert proposal as marco.torchiano
