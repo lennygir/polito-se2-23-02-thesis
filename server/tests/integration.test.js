@@ -588,15 +588,14 @@ it("prova", async () => {
     groups: proposal.groups.join(", "),
     keywords: proposal.keywords.join(", "),
     expiration_date: dayjs(proposal.expiration_date).format("YYYY-MM-DD"),
+    manually_archived: 0,
+    deleted: 0,
   };
   delete expected_proposal.types;
   let returned_proposal = db
     .prepare("select * from main.PROPOSALS where id = ?")
     .get(proposal_id);
-  expect(returned_proposal).toEqual({
-    ...expected_proposal,
-    manually_archived: 0,
-  });
+  expect(returned_proposal).toEqual(expected_proposal);
 });
 
 it("CRUD on proposal", async () => {
