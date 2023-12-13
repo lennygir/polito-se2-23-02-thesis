@@ -26,7 +26,7 @@ function ButtonDatePicker(props) {
   return (
     <DatePicker
       slots={{ field: ButtonField, ...props.slots }}
-      slotProps={{ field: { setOpen } }}
+      slotProps={{ field: { setOpen }, desktopPaper: { sx: { borderRadius: 4 } } }}
       {...props}
       open={open}
       onClose={() => setOpen(false)}
