@@ -62,7 +62,7 @@ function ProposalFilters(props) {
                 value={filterValues.type}
                 onChange={(event, value) => handleMenuInputChange("type", value)}
                 filterSelectedOptions
-                PaperComponent={<CustomPaper />}
+                PaperComponent={CustomPaper}
                 renderInput={(params) => <TextField {...params} label="Types" placeholder="Types" />}
                 renderOption={(props, option) => (
                   <li {...props} style={{ borderRadius: 8 }}>
@@ -78,7 +78,7 @@ function ProposalFilters(props) {
                 options={groups.map((group) => group.cod_group)}
                 value={filterValues.groups}
                 onChange={(event, value) => handleMenuInputChange("groups", value)}
-                PaperComponent={<CustomPaper />}
+                PaperComponent={CustomPaper}
                 renderInput={(params) => <TextField {...params} label="Groups" placeholder="Groups" />}
                 renderOption={(props, option) => (
                   <li {...props} style={{ borderRadius: 8 }}>

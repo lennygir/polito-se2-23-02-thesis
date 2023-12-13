@@ -329,7 +329,7 @@ function ProposalForm(props) {
             value={formData.coSupervisors}
             onChange={(event, value) => handleFormInputChange("coSupervisors", value)}
             filterSelectedOptions
-            PaperComponent={<CustomPaper />}
+            PaperComponent={CustomPaper}
             ChipProps={ChipProps}
             renderInput={(params) => (
               <TextField {...params} label="Co-supervisors" placeholder="Email" margin="normal" />
@@ -387,7 +387,7 @@ function ProposalForm(props) {
             value={formData.type}
             onChange={(event, value) => handleFormInputChange("type", value)}
             filterSelectedOptions
-            PaperComponent={<CustomPaper />}
+            PaperComponent={CustomPaper}
             ChipProps={ChipProps}
             renderInput={(params) => (
               <TextField
@@ -417,7 +417,7 @@ function ProposalForm(props) {
             value={formData.groups}
             onChange={(event, value) => handleFormInputChange("groups", value)}
             filterSelectedOptions
-            PaperComponent={<CustomPaper />}
+            PaperComponent={CustomPaper}
             ChipProps={ChipProps}
             renderInput={(params) => (
               <TextField
@@ -452,7 +452,7 @@ function ProposalForm(props) {
             options={LEVELS}
             value={formData.level}
             onChange={(event, value) => handleFormInputChange("level", value)}
-            PaperComponent={<CustomPaper />}
+            PaperComponent={CustomPaper}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -480,7 +480,7 @@ function ProposalForm(props) {
             options={getCdsOptions().map((degree) => `${degree.cod_degree} ${degree.title_degree}`)}
             value={formData.cds}
             onChange={(event, value) => handleFormInputChange("cds", value)}
-            PaperComponent={<CustomPaper />}
+            PaperComponent={CustomPaper}
             renderInput={(params) => (
               <TextField
                 {...params}

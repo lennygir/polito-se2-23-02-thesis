@@ -58,7 +58,7 @@ function BaseForm(props) {
             options={teachers.map((teacher) => teacher.email)}
             value={formData.supervisor}
             onChange={(event, value) => handleFormInputChange("supervisor", value)}
-            PaperComponent={<CustomPaper />}
+            PaperComponent={CustomPaper}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -86,7 +86,7 @@ function BaseForm(props) {
             value={formData.coSupervisors}
             onChange={(event, value) => handleFormInputChange("coSupervisors", value)}
             filterSelectedOptions
-            PaperComponent={<CustomPaper />}
+            PaperComponent={CustomPaper}
             ChipProps={ChipProps}
             renderInput={(params) => (
               <TextField {...params} label="Co-supervisors" placeholder="Email" margin="normal" />
