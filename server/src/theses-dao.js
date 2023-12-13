@@ -394,13 +394,14 @@ exports.getNotifications = (user_id) => {
 };
 
 exports.deleteProposal = (proposal_id) => {
-  db.prepare("update PROPOSALS set deleted = ?  where id = ?").run(1, proposal_id);
+  db.prepare("update PROPOSALS set deleted = ? where id = ?").run(1, proposal_id);
 };
 
 exports.updateArchivedStateProposal = (new_archived_state, proposal_id) => {
-  db.prepare("update PROPOSALS set manually_archived = ? where id = ?").run(
+  db.prepare("update PROPOSALS set manually_archived = ? where id = ? and deleted != ?").run(
     new_archived_state,
-    proposal_id
+    proposal_id,
+    1
   );
 };
 
@@ -431,7 +432,7 @@ exports.updateProposal = (
 ) => {
   return db
     .prepare(
-      "UPDATE PROPOSALS SET title = ?, supervisor = ?, co_supervisors = ?, keywords = ?, type = ?, groups = ?, description = ?, required_knowledge = ?, notes = ?, expiration_date = ?, level = ?, cds = ? WHERE id = ?"
+      "UPDATE PROPOSALS SET title = ?, supervisor = ?, co_supervisors = ?, keywords = ?, type = ?, groups = ?, description = ?, required_knowledge = ?, notes = ?, expiration_date = ?, level = ?, cds = ? WHERE id = ? AND deleted != 1"
     )
     .run(
       title,

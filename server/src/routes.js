@@ -701,7 +701,9 @@ router.delete(
         });
       }
       cancelPendingApplications(req.params.id);
+      console.log("ciao");
       deleteProposal(req.params.id);
+      console.log("ciao");
       return res
         .status(200)
         .send({ message: "Proposal deleted successfully." });
