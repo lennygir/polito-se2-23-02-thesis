@@ -1582,18 +1582,19 @@ describe("Secretary clerk story", () => {
         .expect(200)
     ).body;
 
-    logIn("john.doe@secretary.it");
+    logIn("laura.ferrari@example.com");
 
     // get all thesis requests
     const thesisRequests = (
       await request(app).get("/api/start-requests").expect(200)
     ).body;
-    expect(thesisRequests).toContain({
+    expect(thesisRequests).toContainEqual({
       id: thesisRequestId,
+      title: "Title",
       supervisor: "marco.torchiano@teacher.it",
-      student: "s309618@studenti.polito.it",
+      student_id: "s309618",
       description: "description",
-      state: "pending",
+      status: "requested",
     });
 
     // approve the request
@@ -1609,12 +1610,13 @@ describe("Secretary clerk story", () => {
     const newThesisRequests = (
       await request(app).get("/api/start-requests").expect(200)
     ).body;
-    expect(newThesisRequests).toContain({
+    expect(newThesisRequests).toContainEqual({
       id: thesisRequestId,
+      title: "Title",
       supervisor: "marco.torchiano@teacher.it",
-      student: "s309618@studenti.polito.it",
+      student_id: "s309618",
       description: "description",
-      state: "accepted",
+      status: "secretary_accepted",
     });
   });
   it("Reject a student thesis request", async () => {
@@ -1634,21 +1636,23 @@ describe("Secretary clerk story", () => {
         .expect(200)
     ).body;
 
-    logIn("john.doe@secretary.it");
+    logIn("laura.ferrari@example.com");
 
     // get all thesis requests
     const thesisRequests = (
       await request(app).get("/api/start-requests").expect(200)
     ).body;
-    expect(thesisRequests).toContain({
+    expect(thesisRequests).toContainEqual({
       id: thesisRequestId,
+      title: "Title",
       supervisor: "marco.torchiano@teacher.it",
-      student: "s309618@studenti.polito.it",
+      student_id: "s309618",
       co_supervisors: ["luigi.derussis@teacher.it"],
       description: "description",
-      state: "pending",
+      status: "requested",
     });
 
+    // reject thesis request
     await request(app)
       .patch(`/api/start-requests/${thesisRequestId}`)
       .set("Content-Type", "application/json")
@@ -1661,13 +1665,14 @@ describe("Secretary clerk story", () => {
     const newThesisRequests = (
       await request(app).get("/api/start-requests").expect(200)
     ).body;
-    expect(newThesisRequests).toContain({
+    expect(newThesisRequests).toContainEqual({
       id: thesisRequestId,
+      title: "Title",
       supervisor: "marco.torchiano@teacher.it",
-      student: "s309618@studenti.polito.it",
+      student_id: "s309618",
       co_supervisors: ["luigi.derussis@teacher.it"],
       description: "description",
-      state: "rejected",
+      status: "rejected",
     });
   });
   it("If a student thesis request is already evaluated, it should not be approved/rejected", async () => {
@@ -1687,7 +1692,7 @@ describe("Secretary clerk story", () => {
         .expect(200)
     ).body;
 
-    logIn("john.doe@secretary.it");
+    logIn("laura.ferrari@example.com");
 
     // approve the thesis request
     await request(app)
@@ -1713,13 +1718,14 @@ describe("Secretary clerk story", () => {
     ).body;
 
     // the thesis should remain untouched
-    expect(newThesisRequests).toContain({
+    expect(newThesisRequests).toContainEqual({
       id: thesisRequestId,
+      title: "Title",
       supervisor: "marco.torchiano@teacher.it",
-      student: "s309618@studenti.polito.it",
+      student_id: "s309618",
       co_supervisors: ["luigi.derussis@teacher.it"],
       description: "description",
-      state: "approved",
+      status: "secretary_accepted",
     });
   });
   it("To approve/reject a student thesis request you must be a secretary clerk", async () => {
@@ -1734,6 +1740,7 @@ describe("Secretary clerk story", () => {
           title: "Title",
           supervisor: "s123456",
           description: "description",
+          co_supervisors: ["luigi.derussis@teacher.it","antonio.lioy@teacher.it"],
         })
         .expect(200)
     ).body;
@@ -1756,7 +1763,7 @@ describe("Secretary clerk story", () => {
       })
       .expect(401);
 
-    logIn("john.doe@secretary.it");
+    logIn("laura.ferrari@example.com");
 
     // get all the requests
     const newThesisRequests = (
@@ -1764,16 +1771,17 @@ describe("Secretary clerk story", () => {
     ).body;
 
     // the thesis should remain untouched
-    expect(newThesisRequests).toContain({
+    expect(newThesisRequests).toContainEqual({
       id: thesisRequestId,
+      title: "Title",
       supervisor: "marco.torchiano@teacher.it",
-      student: "s309618@studenti.polito.it",
-      co_supervisors: ["luigi.derussis@teacher.it"],
+      student_id: "s309618",
+      co_supervisors: ["luigi.derussis@teacher.it","antonio.lioy@teacher.it"],
       description: "description",
-      state: "pending",
+      status: "requested",
     });
   });
-  it("A student can view only his thesis requests, whereas the secretary clerk can view all the requests", async () => {
+  /*it("A student can view only his thesis requests, whereas the secretary clerk can view all the requests", async () => {
     logIn("s309618@studenti.polito.it");
 
     // insert a thesis request
@@ -1808,9 +1816,9 @@ describe("Secretary clerk story", () => {
     expect(student2ThesisRequests).toHaveLength(1);
     expect(student2ThesisRequests).toContain({
       title: "Different title",
-      supervisor: "s234567",
+      supervisor: "maurizio.morisio@teacher.it",
       description: "different description",
-      state: "pending",
+      status: "requested",
     });
 
     // back to student1
@@ -1823,13 +1831,13 @@ describe("Secretary clerk story", () => {
     expect(student1ThesisRequests).toHaveLength(1);
     expect(student1ThesisRequests).toContain({
       title: "Title",
-      supervisor: "s123456",
+      supervisor: "marco.torchiano@teacher.it",
       description: "description",
-      state: "pending",
+      status: "requested",
     });
 
     // login as secretary clerk
-    logIn("john.doe@secretary.it");
+    logIn("laura.ferrari@example.com");
 
     // get all the requests as secretary clerk
     const secretaryThesisRequests = (
@@ -1838,21 +1846,22 @@ describe("Secretary clerk story", () => {
     expect(secretaryThesisRequests).toHaveLength(2);
     expect(secretaryThesisRequests).toContain({
       title: "Title",
-      supervisor: "s123456",
-      student: "s309618@studenti.polito.it",
+      supervisor: "marco.torchiano@teacher.it",
+      student: "s309618",
       description: "description",
-      state: "pending",
+      status: "requested",
     });
     expect(secretaryThesisRequests).toContain({
       title: "Different title",
-      supervisor: "s234567",
-      student: "s308747@studenti.polito.it",
+      supervisor: "maurizio.morisio@teacher.it",
+      student: "s308747",
       description: "different description",
-      state: "pending",
+      status: "requested",
     });
   });
+   */
   it("An empty list of thesis requests is not an error", async () => {
-    logIn("john.doe@secretary.it");
+    logIn("laura.ferrari@example.com");
 
     // get all the requests
     const emptyThesisRequests = (

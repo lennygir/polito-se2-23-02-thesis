@@ -95,6 +95,22 @@ exports.getNotRejectedStartRequest = (userId) => {
     .all(userId);
 };
 
+exports.updateStatusStartRequest = (new_status, request_id) => {
+  return db
+    .prepare(
+      "update START_REQUESTS set status = ? where id = ?"
+    )
+    .run(new_status, request_id);
+};
+
+exports.getStatusStartRequest = (id) => {
+  return db
+    .prepare(
+      "SELECT status FROM START_REQUESTS WHERE id = ?"
+    )
+    .get(id);
+};
+
 exports.getApplicationById = (id) => {
   return db.prepare("select * from APPLICATIONS where id = ?").get(id);
 };
@@ -121,6 +137,10 @@ exports.getCds = (cds) => {
 
 exports.getTeacherByEmail = (email) => {
   return db.prepare("select * from TEACHER where email = ?").get(email);
+};
+
+exports.getTeacherEmailById = (id) => {
+  return db.prepare("select email from TEACHER where id = ?").get(id);
 };
 
 exports.getTeachers = () => {
@@ -449,4 +469,8 @@ exports.updateProposal = (
       cds,
       proposal_id
     );
+};
+
+exports.getRequestForClerk = () => {
+  return db.prepare("select * from START_REQUESTS").all();
 };

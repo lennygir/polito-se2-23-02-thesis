@@ -11,10 +11,15 @@ exports.getUser = (email) => {
   const teacher = db
     .prepare("select * from main.TEACHER where email = ?")
     .get(email);
+  const secretary_clerk = db
+    .prepare("select * from main.SECRETARY_CLERK where email = ?")
+    .get(email);
   if (student) {
     student.role = "student";
   } else if (teacher) {
     teacher.role = "teacher";
+  } else if (secretary_clerk) {
+    secretary_clerk.role = "secretary_clerk";
   }
-  return student || teacher;
+  return student || teacher  || secretary_clerk;
 };

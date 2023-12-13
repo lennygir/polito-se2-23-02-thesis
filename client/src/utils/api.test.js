@@ -265,7 +265,7 @@ describe("Test the virtual clock", () => {
       json: () => Promise.resolve({ date: "2023-12-31" })
     });
     const result = await API.getVirtualClock();
-    expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/virtualClock`);
+    expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/virtualClock`, { credentials: "include" });
     expect(result).toEqual({ date: "2023-12-31" });
   });
 
@@ -280,7 +280,8 @@ describe("Test the virtual clock", () => {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify("2023-12-31")
+      body: JSON.stringify("2023-12-31"),
+      credentials: "include"
     });
     expect(result).toEqual({ message: "Update successful" });
   });
@@ -297,3 +298,126 @@ describe("Test the virtual clock", () => {
     }
   });
 });
+
+test("getRequests - should return correct data", async () => {
+  fetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve(mockApiResponse)
+  });
+  const result = await API.getRequests();
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/start-requests`,{
+    credentials: "include"
+  });
+  expect(result).toEqual(mockApiResponse);
+});
+
+test("evaluateApplication - should return correct update message", async () => {
+  fetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve({ message: "correct evaluation" })
+  });
+  const request = {
+    id: 4,
+    approved: true,
+  };
+  const result = await API.evaluateRequest(request);
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/start-requests/${request.id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ approved: request.state }),
+    credentials: "include"
+  });
+
+  expect(result).toEqual({ message: "correct evaluation" });
+});
+
+describe("Test the archivial of a proposal", () => {
+  it("archiveProposal - should archive a proposal successfully and return a message", async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ message: "Proposal archived successfully" })
+    });
+    const proposalId = 12345;
+    const result = await API.archiveProposal(proposalId);
+    expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/${proposalId}`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ archived: true }),
+    });
+    expect(result).toEqual({ message: "Proposal archived successfully" });
+  });
+
+  it("archiveProposal - should handle failed archivial and throw an error", async () => {
+    try {
+      fetch.mockResolvedValueOnce({
+        ok: false,
+        json: () => Promise.resolve({ error: "error on archiving the proposal" })
+      });
+      const proposalId = 67890;
+      await API.archiveProposal(proposalId);
+      expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/${proposalId}`, {
+        method: "PATCH",
+        credentials: "include",
+        body: JSON.stringify({ approved: true }),
+        headers: {
+          "Content-Type": "application/json"
+        },
+      });
+    } catch (error) {
+      expect(error).toEqual({ error: "error on archiving the proposal" });
+    }
+  });
+});
+
+describe("Test the send of a request", () => {
+  test("sendRequest- should send a correct request to the server", async () => {
+    const expectedResponse = { message: "success" };
+    fetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(expectedResponse)
+    });
+    const request = {
+      name: "fake request"
+    };
+    const result = await API.sendRequest(request);
+    expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/start-requests`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(request),
+      credentials: "include"
+    });
+    expect(result).toEqual({ message: "success" });
+  });
+
+  test("sendRequest - should manage correctly errors", async () => {
+    try {
+      fetch.mockResolvedValue({
+        ok: false,
+        json: () => Promise.resolve({ error: "error on sending the request" })
+      });
+      const request = {
+        name: "fake request",
+        error: "error"
+      };
+      await API.sendRequest(request);
+      expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/start-requests`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(request),
+        credentials: "include"
+      });
+    } catch (error) {
+      expect(error).toEqual({ error: "error on sending the request" });
+    }
+  });
+});
+

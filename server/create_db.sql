@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS DEGREE;
 DROP TABLE IF EXISTS TEACHER;
 DROP TABLE IF EXISTS GROUPS;
 DROP TABLE IF EXISTS DEPARTMENTS;
+DROP TABLE IF EXISTS SECRETARY_CLERK;
 
 CREATE TABLE IF NOT EXISTS DEGREE ( 
   cod_degree TEXT PRIMARY KEY,
@@ -62,6 +63,13 @@ CREATE TABLE IF NOT EXISTS TEACHER (
   cod_department TEXT, 
   FOREIGN KEY (cod_group) REFERENCES GROUPS (cod_group),
   FOREIGN KEY (cod_department) REFERENCES DEPARTMENTS (cod_department)
+);
+
+CREATE TABLE IF NOT EXISTS SECRETARY_CLERK (
+  id TEXT PRIMARY KEY,
+  surname TEXT,
+  name TEXT,
+  email TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS PROPOSALS (
@@ -283,6 +291,12 @@ VALUES  ('s123456', 'Torchiano', 'Marco', 'marco.torchiano@teacher.it', 'SOFTENG
         ('s104858', 'Savoldi', 'Laura', 'laura.savoldi@teacher.it', 'MAHTEP', 'DENERG'),
         ('s909920', 'Lerede', 'Daniele', 'daniele.lerede@teacher.it', 'MAHTEP', 'DENERG'),
         ('s328382', 'Millo', 'Federico', 'federico.millo@teacher.it', 'E3', 'DENERG');
+
+INSERT INTO SECRETARY_CLERK (id, surname, name, email)
+VALUES  ('d123456', 'Ferrari', 'Laura', 'laura.ferrari@example.com'),
+        ('d234567', 'Russo', 'Fabio', 'fabio.russo@example.com'),
+        ('d345678', 'Romano', 'Alessia', 'alessia.romano@example.com'),
+        ('d456789', 'Gallo', 'Marco', 'marco.gallo@example.com');
 
 -- careers of Carlos, Luca, Lorenzo
 INSERT INTO CAREER (id, cod_course, title_course, cfu, grade, date)
