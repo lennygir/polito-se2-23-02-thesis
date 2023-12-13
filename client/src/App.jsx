@@ -4,22 +4,23 @@ import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-route
 import { ThemeProvider } from "@mui/material";
 import { useThemeContext } from "./theme/ThemeContextProvider";
 import CssBaseline from "@mui/material/CssBaseline";
+import API from "./utils/API";
+import AppAlert from "./components/AppAlert";
+import ErrorContext from "./contexts/ErrorContext";
+import UserContext from "./contexts/UserContext";
 import RootPage from "./routes/RootPage";
 import ProposalsPage from "./routes/ProposalsPage";
 import CreateProposalPage from "./routes/CreateProposalPage";
-import RequestPage from "./routes/RequestPage";
+import CreateRequestPage from "./routes/CreateRequestPage";
 import ApplicationsPage from "./routes/ApplicationsPage";
 import NotificationsPage from "./routes/NotificationsPage";
 import SettingsPage from "./routes/SettingsPage";
 import ErrorPage from "./routes/ErrorPage";
-import ErrorContext from "./contexts/ErrorContext";
-import UserContext from "./contexts/UserContext";
 import LoginPage from "./routes/LoginPage";
 import ViewProposalPage from "./routes/ViewProposalPage";
 import ViewApplicationPage from "./routes/ViewApplicationPage";
-import API from "./utils/API";
 import EditProposalPage from "./routes/EditProposalPage";
-import AppAlert from "./components/AppAlert";
+import RequestsPage from "./routes/RequestsPage";
 
 function App() {
   const { theme } = useThemeContext();
@@ -77,8 +78,10 @@ function Main() {
   const fetchDynamicData = async () => {
     try {
       await fetchCurrentDate();
-      await fetchProposals();
-      await fetchApplications();
+      if (user.role !== "secretary_clerk") {
+        await fetchProposals();
+        await fetchApplications();
+      }
       await fetchNotifications();
     } catch (err) {
       return handleErrors(err);
@@ -113,16 +116,10 @@ function Main() {
   useEffect(() => {
     const fetchStaticData = async () => {
       try {
-        const [teachers, groups, degrees, clock] = await Promise.all([
-          API.getTeachers(),
-          API.getGroups(),
-          API.getDegrees(),
-          API.getVirtualClock()
-        ]);
+        const [teachers, groups, degrees] = await Promise.all([API.getTeachers(), API.getGroups(), API.getDegrees()]);
         setTeachers(teachers);
         setGroups(groups);
         setDegrees(degrees);
-        setCurrentDate(clock);
       } catch (err) {
         return handleErrors(err);
       }
@@ -133,7 +130,11 @@ function Main() {
       .then((user) => {
         setUser(user);
         setDirty(true);
-        navigate("/proposals");
+        if (user.role !== "secretary_clerk") {
+          navigate("/proposals");
+        } else {
+          navigate("/requests");
+        }
         setAlert({
           message: "Welcome, " + user.name + "!",
           severity: "success"
@@ -173,12 +174,13 @@ function Main() {
           <Route path="/" element={user ? <RootPage loading={loading} setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} fetchProposals={fetchProposals} fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} /> : <LoginPage />}>
             <Route path="proposals" element={user ? <ProposalsPage setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} proposals={proposals} applications={applications} teachers={teachers} groups={groups} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
             <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} setAlert={setAlert} getTeacherById={getTeacherById} getDegreeById={getDegreeById} applications={applications} /> : <Navigate replace to="/" />} />
-            <Route path="add-request" element={user ? <RequestPage teachers={teachers} setAlert={setAlert} /> : <Navigate replace to="/" />} />
-            <Route path="add-proposal" element={user ? <CreateProposalPage currentDate={currentDate} fetchProposals={fetchProposals} proposals={proposals} teachers={teachers} degrees={degrees} setAlert={setAlert} /> : <Navigate replace to="/" />} />
+            <Route path="add-request" element={user ? <CreateRequestPage teachers={teachers} setAlert={setAlert} /> : <Navigate replace to="/" />} />
             <Route path="edit-proposal/:proposalId" element={user ? <EditProposalPage currentDate={currentDate} fetchProposals={fetchProposals} teachers={teachers} degrees={degrees} setAlert={setAlert} /> : <Navigate replace to="/" />} />
             <Route path="applications" element={user ? <ApplicationsPage applications={applications} /> : <Navigate replace to="/" /> } />
             <Route path="applications/:applicationId" element={user ? <ViewApplicationPage fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
             <Route path="notifications" element={user ? <NotificationsPage notifications={notifications} fetchNotifications={fetchNotifications} /> : <Navigate replace to="/" />} />
+            <Route path="requests" element={user ? <RequestsPage /> : <Navigate replace to="/" /> } />
+            <Route path="add-proposal" element={user ? <CreateProposalPage currentDate={currentDate} fetchProposals={fetchProposals} proposals={proposals} teachers={teachers} degrees={degrees} setAlert={setAlert} /> : <Navigate replace to="/" />} />
             <Route path="settings" element={user ? <SettingsPage /> : <Navigate replace to="/" />} />
           </Route>
           <Route path="*" element={<ErrorPage />} />

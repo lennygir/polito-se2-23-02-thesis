@@ -8,7 +8,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import RequestForm from "../components/RequestForm";
 
-function RequestPage(props) {
+function CreateRequestPage(props) {
   const { teachers, setAlert } = props;
   const createRequest = (request) => {
     console.log(request);
@@ -50,9 +50,9 @@ function RequestPage(props) {
   );
 }
 
-RequestPage.propTypes = {
+CreateRequestPage.propTypes = {
   teachers: PropTypes.array,
   setAlert: PropTypes.func
 };
 
-export default RequestPage;
+export default CreateRequestPage;

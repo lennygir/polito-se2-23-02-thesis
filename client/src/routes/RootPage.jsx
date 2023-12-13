@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Outlet } from "react-router-dom";
 import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
@@ -6,6 +6,7 @@ import Container from "@mui/material/Container";
 import LoadingPage from "./LoadingPage";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
+import UserContext from "../contexts/UserContext";
 
 const drawerWidth = 240;
 const logoHeight = 80;
@@ -13,8 +14,9 @@ const navbarHeight = 75;
 
 function RootPage(props) {
   const { loading, setAlert, setDirty, currentDate, fetchProposals, fetchApplications, fetchNotifications } = props;
+  const user = useContext(UserContext);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [selectedTab, setSelectedTab] = useState("proposals");
+  const [selectedTab, setSelectedTab] = useState(user?.role === "secretary_clerk" ? "requests" : "proposals");
 
   const closeDrawer = () => {
     setMobileOpen(false);

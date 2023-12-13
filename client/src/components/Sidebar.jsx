@@ -1,3 +1,5 @@
+import { useContext } from "react";
+import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import BookRoundedIcon from "@mui/icons-material/BookRounded";
 import Box from "@mui/material/Box";
@@ -12,7 +14,7 @@ import ListItemText from "@mui/material/ListItemText";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import logo from "../assets/images/logo.png";
-import { Link } from "react-router-dom";
+import UserContext from "../contexts/UserContext";
 import { useThemeContext } from "../theme/ThemeContextProvider";
 import { LogoutButton } from "./Auth";
 
@@ -37,6 +39,15 @@ const sidebarMainTabs = [
   }
 ];
 
+const sidebarSecretaryTabs = [
+  {
+    id: "requests",
+    label: "Requests",
+    icon: <SchoolRoundedIcon color="primary" />,
+    path: "/requests"
+  }
+];
+
 const settingsTab = {
   id: "settings",
   label: "Settings",
@@ -48,6 +59,8 @@ function Sidebar(props) {
   const { mode } = useThemeContext();
   const { selectedTab, logoHeight, drawerWidth, mobileOpen, closeDrawer, handleDrawerToggle, handleTabSelection } =
     props;
+  const user = useContext(UserContext);
+  const tabs = user?.role === "secretary_clerk" ? sidebarSecretaryTabs : sidebarMainTabs;
 
   const drawer = (
     <Box
@@ -69,7 +82,7 @@ function Sidebar(props) {
       </Box>
       <Divider />
       <List>
-        {sidebarMainTabs.map((tab) => (
+        {tabs.map((tab) => (
           <ListItem key={tab.id} disablePadding>
             <ListItemButton
               component={Link}
