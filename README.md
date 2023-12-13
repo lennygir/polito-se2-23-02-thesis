@@ -66,6 +66,7 @@ Once the docker container is running you can access the application using [local
 - Route `/proposals`: students see the list of proposals for their cds, teachers see the list of their proposals
 - Route `/proposals/:proposalId`: students see the details of a proposal and can apply to it, teachers can only see the proposal details
 - Route `/add-proposal`: teachers can create a new proposal
+- Route `/edit-proposal/proposalId`: teachers can edit an existing proposal
 - Route `/applications`: students see the list of their applications, teachers see the list of applications to their proposals
 - Route `/applications/:applicationId`: students see the check the details of an applications, teachers can also accept or reject an application
 - Route `/notifications`: students and teachers see the list of notifications related to the proposals/applications
