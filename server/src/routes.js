@@ -60,7 +60,7 @@ router.get(
   }),
   (_req, res) => {
     return res.redirect("http://localhost:5173");
-  }
+  },
 );
 
 /** Endpoint called by Auth0 using Passport */
@@ -72,7 +72,7 @@ router.post(
   }),
   (_req, res) => {
     return res.redirect("http://localhost:5173");
-  }
+  },
 );
 
 /** Check for user authentication
@@ -176,13 +176,13 @@ router.post(
         notes,
         dayjs(expiration_date).format("YYYY-MM-DD"),
         level,
-        cds
+        cds,
       );
       return res.status(200).json(teacher);
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }
-  }
+  },
 );
 
 // endpoint to add a new start request
@@ -200,13 +200,11 @@ router.post(
       return res.status(400).send({ message: "Invalid start request content" });
     }
     try {
-      
       const newStartRequest = req.body;
       const supervisor = getTeacher(newStartRequest.supervisor);
-      if (supervisor == undefined){
+      if (supervisor == undefined) {
         return res.status(400).json({
-          message:
-            "The supervisor doesn't exist",
+          message: "The supervisor doesn't exist",
         });
       }
       const { email } = req.user;
@@ -227,7 +225,7 @@ router.post(
       if (newStartRequest.co_supervisors) {
         newStartRequest.co_supervisors =
           newStartRequest.co_supervisors.join(", ");
-      } 
+      }
       newStartRequest.approvalDate = null;
       newStartRequest.studentId = user.id;
       const startRequest = insertStartRequest(newStartRequest);
@@ -235,7 +233,7 @@ router.post(
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }
-  }
+  },
 );
 
 router.patch(
@@ -245,40 +243,46 @@ router.patch(
   (req, res) => {
     const result = validationResult(req);
     if (!result.isEmpty()) {
-      return res.status(400).json({ message: "Invalid application content" });
+      return res.status(400).json({ message: "Invalid request content" });
     }
     try {
       const { email } = req.user;
       const user = getUser(email);
-      if (!user || user.role === "student") {
-        return res
-          .status(401)
-          .json({ message: "Only a teacher or a secretary can approve a thesis request" });
+      if (
+        !user ||
+        (user.role !== "secretary_clerk" && user.role !== "teacher")
+      ) {
+        return res.status(401).json({
+          message: "Only a teacher or a secretary can approve a thesis request",
+        });
       }
 
       const approved = req.body.approved;
       const req_id = req.params.thesisRequestId;
       let new_status;
-      let old_status = getStatusStartRequest(req_id)
-      if(user.role === "secretary_clerk"){
-        
-        
-        if(old_status.status === 'rejected' || old_status.status === 'secretary_accepted'){
-          return res.status(401).json({ message: "The request has been already approved / rejected" });
+      const old_status = getStatusStartRequest(req_id);
+      if (user.role === "secretary_clerk") {
+        if (
+          old_status.status === "rejected" ||
+          old_status.status === "secretary_accepted"
+        ) {
+          return res.status(401).json({
+            message: "The request has been already approved / rejected",
+          });
         }
-        if(approved == true){
-          new_status = 'secretary_accepted';
-        }else{
-          new_status = 'rejected';
+        if (approved === true) {
+          new_status = "secretary_accepted";
+        } else {
+          new_status = "rejected";
         }
-        updateStatusStartRequest(new_status, req_id)
+        updateStatusStartRequest(new_status, req_id);
       }
-      
-      return res.status(200).json({ message: "Request updated succefuly" });;
+
+      return res.status(200).json({ message: "Request updated successfully" });
     } catch (e) {
-      return res.tatus(500).json({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error" });
     }
-  }
+  },
 );
 // endpoint to get all teachers {id, surname, name, email}
 router.get("/api/teachers", isLoggedIn, (req, res) => {
@@ -338,7 +342,7 @@ router.get(
         proposals = getProposalsByDegree(user.cod_degree).filter(
           (proposal) =>
             dayjs(date).isBefore(dayjs(proposal.expiration_date)) ||
-            dayjs(date).isSame(dayjs(proposal.expiration_date))
+            dayjs(date).isSame(dayjs(proposal.expiration_date)),
         );
       } else if (user.role === "teacher") {
         proposals = getProposalsBySupervisor(user.id);
@@ -350,7 +354,7 @@ router.get(
           proposal.archived = true;
         } else
           proposal.archived = !!dayjs(proposal.expiration_date).isBefore(
-            dayjs(date)
+            dayjs(date),
           );
         delete proposal.manually_archived;
         return proposal;
@@ -364,7 +368,7 @@ router.get(
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  }
+  },
 );
 
 router.post(
@@ -417,7 +421,7 @@ router.post(
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
     }
-  }
+  },
 );
 
 router.get("/api/applications", isLoggedIn, (req, res) => {
@@ -477,7 +481,7 @@ router.get(
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  }
+  },
 );
 
 async function setStateToApplication(req, res, state) {
@@ -541,7 +545,7 @@ router.patch(
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  }
+  },
 );
 
 router.get(
@@ -559,7 +563,7 @@ router.get(
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  }
+  },
 );
 
 router.get("/api/notifications", isLoggedIn, (req, res) => {
@@ -610,7 +614,7 @@ router.patch(
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  }
+  },
 );
 
 router.put(
@@ -714,13 +718,13 @@ router.put(
         notes,
         dayjs(expiration_date).format("YYYY-MM-DD"),
         level,
-        cds
+        cds,
       );
       return res.status(200).send({ message: "Proposal updated successfully" });
     } catch (e) {
       return res.status(500).send({ message: "Internal server error" });
     }
-  }
+  },
 );
 
 router.delete(
@@ -764,10 +768,8 @@ router.delete(
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  }
+  },
 );
-
-
 
 router.get("/api/virtualClock", isLoggedIn, async (req, res) => {
   try {
@@ -791,7 +793,7 @@ router.patch(
       const clock = getDelta();
       const newDelta = dayjs(req.body.date).diff(
         dayjs().format("YYYY-MM-DD"),
-        "day"
+        "day",
       );
       if (newDelta < clock.delta) {
         return res.status(400).send({ message: "Cannot go back in the past" });
@@ -801,52 +803,43 @@ router.patch(
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-  }
+  },
 );
 
-router.get(
-  "/api/start-requests",
-  isLoggedIn,
-  async (req, res) => {
-    try {
-      const { email } = req.user;
-      const user = getUser(email);
-      if (!user) {
-        return res.status(500).json({ message: "Internal server error" });
-      }
-      let requests;
-      if (user.role === "secretary_clerk") {
-        requests = getRequestForClerk().map( ( request ) =>
-          {
-            delete request.approval_date;
-            return request;
-          }
-        );
-      } else if (user.role === "teacher") {
-        // requests = getRequestForTeacher();
-      } else if (user.role === "student") {
-
+router.get("/api/start-requests", isLoggedIn, async (req, res) => {
+  try {
+    const { email } = req.user;
+    const user = getUser(email);
+    if (!user) {
+      return res.status(500).json({ message: "Internal server error" });
+    }
+    let requests;
+    if (user.role === "secretary_clerk") {
+      requests = getRequestForClerk().map((request) => {
+        delete request.approval_date;
+        return request;
+      });
+    } else if (user.role === "teacher") {
+      // requests = getRequestForTeacher();
+    } else if (user.role === "student") {
+    } else {
+      return res.status(500).json({ message: "Internal server error" });
+    }
+    requests.map((request) => {
+      const supervisor = getTeacher(request.supervisor);
+      request.supervisor = supervisor.email;
+      if (!request.co_supervisors) {
+        delete request.co_supervisors;
       } else {
-        return res.status(500).json({ message: "Internal server error" });
+        request.co_supervisors = request.co_supervisors.split(", ");
       }
-      requests.map( ( request ) =>
-          {
-            const supervisor = getTeacher(request.supervisor);
-            request.supervisor = supervisor.email;
-            if (!request.co_supervisors){
-              delete request.co_supervisors;
-            } else {
-              request.co_supervisors = request.co_supervisors.split(", ");
-            }
-            return request;
-          }
-        )
-      return res.status(200).send(requests);
-      } catch (err) {
-        return res.status(500).json({ message: "Internal Server Error" });
-      }
-    },
-);
+      return request;
+    });
+    return res.status(200).send(requests);
+  } catch (err) {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 
 // ==================================================
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS
