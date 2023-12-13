@@ -74,13 +74,37 @@ Once the docker container is running you can access the application using [local
 
 ## API Server
 
-- POST `/api/proposals`
-
+- POST `/api/sessions`
   - request body content example
-
+  ```
+  {
+    "email": "s309618@studenti.polito.it",
+    "password": "s309618"
+  }
+  ```
+- POST `/api/proposals`
+  - Description
+    - This endpoint allows the creation of a new proposal. It validates the input fields and ensures their     correctness before inserting the proposal into the database.
+  - Request Body 
+    - Expects a JSON object containing the following fields:
+     - title: String
+     - supervisor: Alphanumeric string with a length of 7 characters
+     - co_supervisors: Array of email addresses
+     - groups: Array of strings
+     - keywords: Array of strings
+     - types: Array of strings
+     - description: String
+     - required_knowledge: String
+     - notes: String (Optional, can be "null")
+     - expiration_date: Date in ISO 8601 format (e.g., "YYYY-MM-DD")
+     - level: String of length 3, either "MSC" or "BSC"
+     - cds: String
+    
+  - request body content example
   ```
   {
     "title": "Proposta di tesi fighissima",
+    "supervisor": "s345678",
     "co_supervisors": [
       "s122349@gmail.com",
       "s298399@outlook.com"
@@ -104,135 +128,214 @@ Once the docker container is running you can access the application using [local
     "level": "MSC",
     "cds": "LM-32 (DM270)"
   }
-
   ```
-
-- GET `/api/proposals`
-  - return the list of proposals related to a teacher id or cds
-  - return 200 for correct behavior
-  - return 404 for no proposal related to that teacher or cds
-  - return 400 for invalid teacher id or cds
-  - return 500 for internal server error
-  - example of return value
-
-  ```
-   [
-      {
-        id: 11,
-        title: 'Incrementare la sicurezza di una smart home tramite smart home gateway e MUD',
-        supervisor: 's456789',
-        co_supervisors: 's328382',
-        keywords: 'CYBERSECURITY, INTERNET OF THINGS, MUD, SECURITY, SMART HOME',
-        type: 'EXPERIMENTAL',
-        groups: 'ELITE',
-        description: 'Recentemente, la Internet Engineering Task Force (IETF) ha proposto un nuovo standard (RFC 8520) relativo alla sicurezza IoT chiamato Manufacturer Usage Description (MUD). Questo standard sfrutta un approccio a white-list. Ogni produttore di un dispositivo IoT (il manufacturer) deve fornire un MUD file in cui vengono specificati gli endpoint con cui il dispositivo può comunicare (in trasmissione o in ricezione), tutti gli altri domini vengono invece bloccati. In questo modo vengono tutelati i dispositivi IoT da connessioni indesiderate e si riduce l eventualità che essi possano prendere parte ad attacchi DDoS (Distributed Denial of Service). Per gestire le smart home, vengono spesso impiegati degli smart home gateways (anche chiamati hub). Questi ultimi coordinano e comunicano con tutti i dispositivi connessi alla rete locale e sono spesso estendibili tramite plug-in. Perciò, questi hub possono essere un ottimo punto in cui inserire lo standard MUD (soprattutto se i dispositivi integrati non supportano MUD nativamente). Questo lavoro di tesi va ad integrarsi nelle attività di ricerca recentemente condotte dal gruppo su questa tecnologia e consisterà nel migliorare ed ottimizzare la generazione di un MUD file a livello di gateway. Nella soluzione da noi proposta, ogni sviluppatore di plug-in è chiamato a specificare gli endpoint che il suo plug-in necessita raggiungere (a prescindere se il plug-in integri un dispositivo o solamente una nuova funzionalità software). Specificando le comunicazioni desiderate, lo sviluppatore aumenta la sicurezza del suo plug-in e dell intero gateway in cui esso è installato. La piattaforma che verrà inizialmente presa in considerazione per lo sviluppo è Home Assistant. In particolare, i problemi che dovranno essere affrontati sono la sovrapposizione delle regole MUD specificate da ogni sviluppatore, la validità di tali regole e l affidabilità delle regole fornite dagli sviluppatori di plug-in.',
-        required_knowledge: '- Linguaggio di programmazione della piattaforma: Python; - Programmazione orientata agli oggetti; - Information System Security, nello specifico: - Concetti di crittografia asimmetrica, Public Key Infrastructure (PKI) e algoritmi di hash;',
-        notes: null,
-        expiration_date: '2023-12-14',
-        level: 'MSC',
-        cds: 'LM-32 (DM270)'
-      }
-    ]
-  ```
+  - Response
+    - 200 OK: Returns JSON object representing the inserted proposal.
+    ```
+    {
+      "proposal_id": 12345,
+      "title": "Proposal Title",
+      "supervisor": "Supervisor ID",
+      "co_supervisors": "Co-Supervisors",
+      "groups": "Groups",
+      "keywords": "Keywords",
+      "types": "Types",
+      "description": "Proposal Description",
+      "required_knowledge": "Required Knowledge",
+      "notes": "Optional Notes",
+      "expiration_date": "2023-11-29",
+      "level": "BSC",
+      "cds": "CDS Value"
+    }
+    ```
+  - Error Handling
+    - 400 Bad Request:
+      - Invalid proposal content (if validation fails for any fields)
+      - Invalid groups (if groups provided are not valid)
+    - 500 Internal Server Error: If there's an internal server error.
 
 - GET `/api/teachers`
+  - Description
+    - This endpoint fetches the list of teachers stored in the database and returns the information in JSON format.
+  - Request Body
+    - none
+  - Response:
+    - 200 OK: Returns an array of JSON objects representing teachers.
+    ```
+    [
+      {
+        id :"s123456",
+        surname: "Torchiano",
+        name: "Marco",
+        email: "marco.torchiano@polito.it"
+      },
+      {
+        id: "s234567",
+        surname: "Morisio",
+        name: "Maurizio",
+        email: "maurizio.morisio@polito.it"
+      }
+    ]
+    ```
+  - Errors Handling
+    - 404 Not Found: If there are no teachers available in the database.
+    - 500 Internal Server Error: If there's an internal server error while processing the request.
+  
+- GET `/api/groups`
+  - Description
+    - This endpoint fetches the list of groups stored in the database and returns the information in JSON format.
+  - Request Body
+    - none
+  - Response
+    - 200 OK: Returns an array of JSON objects representing groups.
+      ```
+      [
+        {
+          "cod_group": NETGROUP,
+          
+        },
+        {
+          "cod_group": GRAINS,
+        },
+        ...
+      ]
 
-  - no body request
-  - return the list of all teachers
-  - return 200 for correct behavior
-  - return 404 for empty teachers table
-  - return 500 for internal server error
-  - example of return value
-
-  ```
-  [
-    {
-      id :"s123456",
-      surname: "Torchiano",
-      name: "Marco",
-      email: "marco.torchiano@polito.it"
-    },
-    {
-      id: "s234567",
-      surname: "Morisio",
-      name: "Maurizio",
-      email: "maurizio.morisio@polito.it"
-    }
-  ]
-  ```
-
-  - GET `/api/groups`
-  - no body request
-  - return the list of all groups
-  - return 200 for correct behavior
-  - return 404 for empty groups table
-  - return 500 for internal server error
-  - example of return value
-
-  ```
-  [
-    {
-      cod_group: "SOFTENG"
-    },
-    {
-      cod_group: "ELITE"
-    }
-  ]
-  ```
+      ```
+  - Error Handling
+    - 404 Not Found: If there are no groups available in the database.
+    - 500 Internal Server Error: If there's an internal server error while processing the request.
 
 - GET `/api/degrees`
-  - no body request
-  - return the list of all degrees
-  - return 200 for correct behavior
-  - return 404 for empty degree table
-  - return 500 for internal server error
-  - example of return value
+  - Description:
+    - This endpoint retrieves the list of degrees stored in the database and returns the information in JSON format.
+  - Request Body
+    - none
+  - Response
+    - 200 OK: Returns an array of JSON objects representing groups
+    ```
+    [
+      {
+        cod_degree :"LM-32 (DM270)",
+        title_degree: "Computer Engineering"
+      },
+      {
+        cod_degree: "LM-23 (DM270)",
+        title_degree: "Civil Engineering"
+      }
+    ]
+    ```
+  - Error Handling
+    - 404 Not Found: If there are no degrees available in the database.
+    - 500 Internal Server Error: If there's an internal server error while processing the request.
+- GET `/api/proposals?L-4-A` or `/api/supervisor?s123456`
+  - Description
+    - This endpoint retrieves proposals from the database based on provided criteria. It can filter proposals by degree (cds), supervisor, or return all proposals if no specific criteria are provided.
+  - Query Parameters (at least one)
+    - cds: String (Optional)
+    - supervisor: Alphanumeric string with a length of 7 characters (Optional)
+  - Request Validation
+    - cds: Must be a string.
+    - supervisor: Must be an alphanumeric string with a length of 7 characters.
+  - Response
+    - 200 OK: Returns an array of JSON objects representing proposals based on the provided criteria.
   ```
   [
     {
-      cod_degree :"LM-32 (DM270)",
-      title_degree: "Computer Engineering"
+      "id": 1,
+      "title": "Gamification di attività di modellazione UML",
+      "supervisor": "s123456",
+      "co_supervisors": "s345678",
+      "keywords": "GAMIFICATION, SOFTWARE ENGINEERING, SOFTWARE QUALITY, UML",
+      "type": "RESEARCH",
+      "groups": "SOFTENG",
+        "description": "Description Text ... ",
+      "notes": null,
+      "expiration_date": "2023-12-18",
+      "level": "MSC",
+      "cds": "LM-32 (DM270)"
     },
     {
-      cod_degree: "LM-23 (DM270)",
-      title_degree: "Civil Engineering"
+      "id": 2,
+      "title": "Analisi empirica dei difetti in R Markdown",
+      "supervisor": "s123456",
+      "co_supervisors": "s122349, s298399",
+      "keywords": "MARKDOWN, DEVELOP",
+      "type": "RESEARCH",
+      "groups": "SOFTENG",
+      "description": "Description Text 2 ...",
+      "required_knowledge": "Linguaggio R, Ambiente R Studio",
+      "notes": null,
+      "expiration_date": "2023-12-28",
+      "level": "MSC",
+      "cds": "LM-32 (DM270)"
     }
   ]
   ```
+  - Error Handling
+    - 404 Not Found: If no proposals match the provided criteria.
+    - 500 Internal Server Error: If there's an internal server error while processing the request.
+
+
 - PATCH `/api/applications/:id`
-  - accept or reject a specific application. If the application is accepted, all the pending applications for that proposal are set as 'cancelled'
+  - Description
+    - accept or reject a specific application. If the application is accepted, all the pending applications for that proposal are set as 'cancelled'
+  - URL Parameters
+    - id: Integer (Required) - Represents the ID of the application to modify.
+  - Request Body
+    - expects a JSON object containing the following field:
+      - state: String - Represents the desired state of the application. Must be either "accepted" or "rejected".
+  - Request Validation
+    - state: Must be a string and must be either "accepted" or "rejected".
+    - id: Must be an integer greater than or equal to 1.
   - request body content example
-  ```
-  {
-    "state": "pending"
-  }
-  ```
+  - Response
+    - 200 OK: Returns a JSON object confirming the updated state of the application.
+  - Error Handling
+    - 400 Bad Request: If the request contains invalid application content or if the application is already accepted or rejected.
+    - 404 Not Found: If the specified application ID does not exist.
+    - 500 Internal Server Error: If there's an internal server error while processing the request.
 - POST `/api/applications`
-  - notes
+  - Description
+    - This endpoint enables a student to apply for a proposal by creating a new application in the database.
+  - Notes
     - the initial state is always `pending`
     - will not work if the student already applied for a proposal
-  - request body content example
+  - Request Body
+    - Expects a JSON object containing the following fields:
+      - student: String - Represents the student ID applying for the proposal. Must be a string with a length of 7 characters.
+      - proposal: Integer - Represents the proposal ID for which the student is applying. Must be a positive integer greater than 0.
+  - Request Validation
+    - student: Must be a string with a length of 7 characters.
+    - proposal: Must be a positive integer greater than 0.
+   - Response
+    - 200 OK: Returns a JSON object confirming the updated state of the application.
+      - request body content example
   ```
-  {
-    "proposal": 8
-  }
-  ```
-  - response body content example
-  ```
-  {
-    "proposal_id": 8,
-    "student_id": "s309618",
-    "state": "pending"
-  }
-  ```
+    {
+      "student": "s309618",
+      "proposal": 8
+    }
+    or
+    {
+      "proposal_id": 8,
+      "student_id": "s309618",
+      "state": "pending"
+    }
+    ```
+    - Error Handling
+      - 400 Bad Request: If the request contains invalid application content, if the student has already applied to a proposal, if the proposal is already accepted for another student, or if the student has already applied and the application was rejected.
+    - 500 Internal Server Error: If there's an internal server error while processing the request.
 - GET `/api/applications`
-  - return the list of proposals related to a teacher id or student
-  - return 200 for correct behavior
-  - return 404 for no proposal related to that teacher or student
-  - return 400 for invalid teacher id or cds
-  - return 500 for internal server error
-  - example of return value
-
+  - Description
+    - This endpoint retrieves applications based on provided criteria. It can filter applications by teacher, student, or return all applications if no specific criteria are provided.
+  - Query Parameters (at least one)
+    - teacher: Alphanumeric string with a length of 7 characters (Optional)
+    - student: Alphanumeric string with a length of 7 characters (Optional)
+  - Request Validation
+    - teacher: Must be an alphanumeric string with a length of 7 characters. (Optional)
+    - student: Must be an alphanumeric string with a length of 7 characters. (Optional)
+  - Response
+    - 200 OK: Returns an array of JSON objects representing applications based on the provided criteria.
   ```
     [
       {
@@ -259,57 +362,10 @@ Once the docker container is running you can access the application using [local
       }
     ]
   ```
-
-  - GET `/api/notifications`
-    - return the list of notifications related to a student
-    - return 200 for correct behavior
-    - return 404 for no notifications related to that student
-    - return 400 for invalid student id
-    - return 500 for internal server error
-    - example of return value
-
-  ```
-    [
-      {
-        object: 'New decision on your thesis application',
-        content: 'Dear Tortore Luca,' || char(10) || 'your application for the thesis Gamification di attività di modellazione UML has been rejected.' || char(10) || 'Best regards,' || char(10) || 'the Thesis Managment system'
-        student_id: 's319823',
-      }
-    ]
-  ```
-- PATCH `/api/proposal/:id`
-  - Request Body: Accepts JSON containing fields to update for a proposal, each field is optional.
-    ```
-      {
-        "title": "Updated Title",
-        "co_supervisors": ["Co-Supervisor 1", "Co-Supervisor 2"],
-        "groups": ["Group A", "Group B"],
-        "keywords": ["Keyword 1", "Keyword 2"],
-        "types": ["Type 1", "Type 2"],
-        "description": "Updated Description",
-        "required_knowledge": "Updated Required Knowledge",
-        "notes": "Updated Notes",
-        "expiration_date": "Updated Expiration Date",
-        "level": "Updated Level",
-        "cds": "Updated CDS"
-      }
-
-    ```
-  - update the proposal with the new field, only do the update if there aren't application with   state = 'accepted'
-  - 200 OK: Proposal updated successfully.
-  - 400 Bad Request: If the proposal is already accepted for another student.
-  - return 500 for internal server error
-  
-- DELETE `/api/proposals`
-  - Parameters:
-    - id: Integer value representing the proposal ID to be deleted.
-  - if there are application with state = 'pending' sets them as 'canceled'.
-  - if there are application with state = 'accepted', doesn't delete.
-  - 200 OK: Proposal deleted successfully.
-  - 400 Bad Request: If the provided proposal content is invalid or if the proposal is already accepted for another student.
-  - 404 Not Found: If the specified proposal ID is not found.
-  - 500 Internal Server Error: If there's an internal server error.
-  
+  - Error Handling
+    - 400 Bad Request: If the request contains invalid application content.
+    - 404 Not Found: If no applications match the provided criteria.
+    - 500 Internal Server Error: If there's an internal server error while processing the request.
 ## Users Credentials
 
 - TEACHER ACCOUNT: email: marco.torchiano@teacher.it, password: s123456
