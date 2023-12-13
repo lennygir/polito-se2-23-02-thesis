@@ -100,7 +100,7 @@ Once the docker container is running you can access the application using [local
      - level: String of length 3, either "MSC" or "BSC"
      - cds: String
     
-  - request body content example
+  - Request body content example
   ```
   {
     "title": "Proposta di tesi fighissima",
@@ -153,6 +153,42 @@ Once the docker container is running you can access the application using [local
       - Invalid proposal content (if validation fails for any fields)
       - Invalid groups (if groups provided are not valid)
     - 500 Internal Server Error: If there's an internal server error.
+
+- POST `/api/start-requests`
+    - Description
+      - This endpoint create a new Start Request (theses request) in the db. It validates the input fields and ensures their     correctness before inserting the proposal into the database.
+    - Request Body
+      - title: String
+      - co_supervisors: Array of email addresses (Optional)
+      - description: String
+      - supervisor: String  (id of supervisor)
+    - Request body content example
+      ```
+      {
+        "title": "Start Request Title",
+        "co_supervisors": ["email1@example.com", "email2@example.com"],
+        "description": "Start request description",
+        "supervisor": "s123456"
+      }
+      ```
+    - Response
+      - 200 OK: Returns a JSON object representing the inserted start request.
+      ```
+      {
+        "start_request_id": 12345,
+        "title": "Start Request Title",
+        "co_supervisors": "email1@example.com, email2@example.com",
+        "description": "Start request description",
+        "supervisor": "Supervisor ID",
+        "approvalDate": null,
+        "studentId": "Student ID"
+      }
+      ```
+    - Error Handling
+      - 400 Bad Request: Invalid start request content
+      - 401 Unauthorized: Authentication failure (user not authenticated as student)
+      - 409 Conflict: If the user already has a pending or accepted start request.
+      - 500 Internal Server Error: For internal server errors.
 
 - GET `/api/teachers`
   - Description
@@ -366,6 +402,55 @@ Once the docker container is running you can access the application using [local
     - 400 Bad Request: If the request contains invalid application content.
     - 404 Not Found: If no applications match the provided criteria.
     - 500 Internal Server Error: If there's an internal server error while processing the request.
+
+- GET `/api/applications/:id/attached-file`
+    - Description
+      - Retrieves the attached file (CV) associated with a specific application.
+    - Parameters
+      - id: Integer (Minimum value: 1) - Application ID
+  
+    - Response
+      - 200 OK: Returns the attached file
+    - Error Handling
+      - 400 Bad Request: Invalid application content (invalid ID)
+      - 404 Not Found: Application not found
+      - 401 Unauthorized: Authentication failure (user not logged in)
+      - 500 Internal Server Error: For internal server errors.
+
+- GET `/api/students/:studentId/exams`
+    - Description
+      - Retrieves exams associated with a specific student
+    - Parameters
+      - studentId: Alphanumeric string (Length: 7) - Student ID
+    
+    - Response
+      - 200 OK: Returns a JSON array containing exams associated with the student
+      ```
+      [
+        {
+          "id": s308747,
+          "cod_course": "01SQMOV",
+          "title_course": "Web Applications I",
+          "cfu": "8",
+          "grade": "30",
+          "date": "2023-01-23"
+        },
+        {
+          "id": s308747,
+          "cod_course": "01SQMOs",
+          "title_course": "Web Applications II",
+          "cfu": "6",
+          "grade": "26",
+          "date": "2023-01-26"
+        },
+        ...
+      ]
+      ```
+    - Error Handling
+      - 400 Bad Request: Invalid proposal content (invalid student ID)
+      - 401 Unauthorized: Authentication failure (user not logged in)
+      - 500 Internal Server Error: For internal server errors.
+
 ## Users Credentials
 
 - TEACHER ACCOUNT: email: marco.torchiano@teacher.it, password: s123456
