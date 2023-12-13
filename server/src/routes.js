@@ -40,6 +40,7 @@ const {
   updateArchivedStateProposal,
   getNotRejectedStartRequest,
   getRequestForClerk,
+  getTeacher,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 
@@ -199,8 +200,15 @@ router.post(
       return res.status(400).send({ message: "Invalid start request content" });
     }
     try {
-      const newStartRequest = req.body;
       
+      const newStartRequest = req.body;
+      const supervisor = getTeacher(newStartRequest.supervisor);
+      if (supervisor == undefined){
+        return res.status(400).json({
+          message:
+            "The supervisor doesn't exist",
+        });
+      }
       const { email } = req.user;
       const user = getUser(email);
       if (!user || user.role !== "student") {
@@ -219,7 +227,7 @@ router.post(
       if (newStartRequest.co_supervisors) {
         newStartRequest.co_supervisors =
           newStartRequest.co_supervisors.join(", ");
-      }
+      } 
       newStartRequest.approvalDate = null;
       newStartRequest.studentId = user.id;
       const startRequest = insertStartRequest(newStartRequest);
@@ -808,7 +816,12 @@ router.get(
       }
       let requests;
       if (user.role === "secretary_clerk") {
-        requests = getRequestForClerk();
+        requests = getRequestForClerk().map( ( request ) =>
+          {
+            delete request.approval_date;
+            return request;
+          }
+        );
       } else if (user.role === "teacher") {
         // requests = getRequestForTeacher();
       } else if (user.role === "student") {
@@ -816,7 +829,19 @@ router.get(
       } else {
         return res.status(500).json({ message: "Internal server error" });
       }
-      return res.status(200).json(requests);
+      requests.map( ( request ) =>
+          {
+            const supervisor = getTeacher(request.supervisor);
+            request.supervisor = supervisor.email;
+            if (!request.co_supervisors){
+              delete request.co_supervisors;
+            } else {
+              request.co_supervisors = request.co_supervisors.split(", ");
+            }
+            return request;
+          }
+        )
+      return res.status(200).send(requests);
       } catch (err) {
         return res.status(500).json({ message: "Internal Server Error" });
       }

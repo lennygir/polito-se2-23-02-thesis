@@ -471,5 +471,5 @@ exports.updateProposal = (
 };
 
 exports.getRequestForClerk = () => {
-  return db.prepare("select * from START_REQUESTS where status = ?").all("requested");
+  return db.prepare("select * from START_REQUESTS").all();
 };

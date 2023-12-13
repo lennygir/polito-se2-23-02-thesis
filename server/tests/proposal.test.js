@@ -6,6 +6,7 @@ const { app } = require("../src/server");
 const {
   getGroups,
   getTeachers,
+  getTeacher,
   getDegrees,
   updateApplication,
   getApplicationById,
@@ -802,6 +803,7 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
+    getTeacher.mockReturnValue({email: "fake@fake.com"});
     getNotRejectedStartRequest.mockReturnValue([]);
     return request(app)
       .post(`/api/start-requests`)
@@ -824,6 +826,7 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
+    getTeacher.mockReturnValue({email: "fake@fake.com"});
     getNotRejectedStartRequest.mockReturnValue([]);
     return request(app)
       .post(`/api/start-requests`)
@@ -846,6 +849,7 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
+    getTeacher.mockReturnValue({email: "fake@fake.com"});
     getNotRejectedStartRequest.mockReturnValue([]);
     return request(app)
       .post(`/api/start-requests`)
@@ -864,6 +868,7 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
+    getTeacher.mockReturnValue({email: "fake@fake.com"});
     getNotRejectedStartRequest.mockReturnValue([
       {
         title: "fake start request",

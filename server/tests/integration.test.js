@@ -1591,11 +1591,11 @@ describe("Secretary clerk story", () => {
     const thesisRequests = (
       await request(app).get("/api/start-requests").expect(200)
     ).body;
-    expect(thesisRequests).toContain({
+    expect(thesisRequests).toContainEqual({
       id: thesisRequestId,
       title: "Title",
       supervisor: "marco.torchiano@teacher.it",
-      student: "s309618",
+      student_id: "s309618",
       description: "description",
       status: "requested",
     });
@@ -1613,11 +1613,11 @@ describe("Secretary clerk story", () => {
     const newThesisRequests = (
       await request(app).get("/api/start-requests").expect(200)
     ).body;
-    expect(newThesisRequests).toContain({
+    expect(newThesisRequests).toContainEqual({
       id: thesisRequestId,
       title: "Title",
       supervisor: "marco.torchiano@teacher.it",
-      student: "s309618",
+      student_id: "s309618",
       description: "description",
       status: "secretary_accepted",
     });
@@ -1645,11 +1645,11 @@ describe("Secretary clerk story", () => {
     const thesisRequests = (
       await request(app).get("/api/start-requests").expect(200)
     ).body;
-    expect(thesisRequests).toContain({
+    expect(thesisRequests).toContainEqual({
       id: thesisRequestId,
       title: "Title",
       supervisor: "marco.torchiano@teacher.it",
-      student: "s309618",
+      student_id: "s309618",
       co_supervisors: ["luigi.derussis@teacher.it"],
       description: "description",
       status: "requested",
@@ -1668,11 +1668,11 @@ describe("Secretary clerk story", () => {
     const newThesisRequests = (
       await request(app).get("/api/start-requests").expect(200)
     ).body;
-    expect(newThesisRequests).toContain({
+    expect(newThesisRequests).toContainEqual({
       id: thesisRequestId,
       title: "Title",
       supervisor: "marco.torchiano@teacher.it",
-      student: "s309618",
+      student_id: "s309618",
       co_supervisors: ["luigi.derussis@teacher.it"],
       description: "description",
       status: "rejected",
@@ -1721,11 +1721,11 @@ describe("Secretary clerk story", () => {
     ).body;
 
     // the thesis should remain untouched
-    expect(newThesisRequests).toContain({
+    expect(newThesisRequests).toContainEqual({
       id: thesisRequestId,
       title: "Title",
       supervisor: "marco.torchiano@teacher.it",
-      student: "s309618",
+      student_id: "s309618",
       co_supervisors: ["luigi.derussis@teacher.it"],
       description: "description",
       status: "secretary_accepted",
@@ -1743,6 +1743,7 @@ describe("Secretary clerk story", () => {
           title: "Title",
           supervisor: "s123456",
           description: "description",
+          co_supervisors: ["luigi.derussis@teacher.it","antonio.lioy@teacher.it"],
         })
         .expect(200)
     ).body;
@@ -1773,12 +1774,12 @@ describe("Secretary clerk story", () => {
     ).body;
 
     // the thesis should remain untouched
-    expect(newThesisRequests).toContain({
+    expect(newThesisRequests).toContainEqual({
       id: thesisRequestId,
       title: "Title",
       supervisor: "marco.torchiano@teacher.it",
-      student: "s309618",
-      co_supervisors: ["luigi.derussis@teacher.it"],
+      student_id: "s309618",
+      co_supervisors: ["luigi.derussis@teacher.it","antonio.lioy@teacher.it"],
       description: "description",
       status: "requested",
     });
