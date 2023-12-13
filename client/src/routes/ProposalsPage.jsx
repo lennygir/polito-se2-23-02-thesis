@@ -6,6 +6,7 @@ import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
 import Chip from "@mui/material/Chip";
 import Fab from "@mui/material/Fab";
 import Hidden from "@mui/material/Hidden";
@@ -117,38 +118,67 @@ function ProposalsPage(props) {
         <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
           Theses Proposals
         </Typography>
+        <Hidden smDown>
+          <Button component={Link} to="/add-request" variant="contained" sx={{ mr: 4 }} startIcon={<AddIcon />}>
+            New Request
+          </Button>
+        </Hidden>
       </Stack>
       <Toolbar
         sx={{
           display: "flex",
           justifyContent: "space-between",
           height: 96,
-          marginTop: { md: -3, xs: 0 },
-          marginX: { md: 3, xs: -2 }
+          marginTop: { md: -2, xs: 0 },
+          marginX: { md: 1, xs: -2 }
         }}
       >
-        <OutlinedInput
-          sx={{ borderRadius: 4, width: { md: "400px", xs: "200px" } }}
-          placeholder="Search proposal..."
-          onChange={(e) => handleSearchInputChange(e.target.value)}
-          value={searchInput}
-          startAdornment={
-            <InputAdornment position="start">
-              <SearchIcon sx={{ color: "text.disabled", width: 20, height: 20 }} />
-            </InputAdornment>
-          }
-        />
-        <ProposalFilters
-          groups={groups}
-          isDrawerOpen={isDrawerOpen}
-          toggleDrawer={toggleDrawer}
-          filterValues={filterValues}
-          handleMenuInputChange={handleMenuInputChange}
-          resetMenuFilters={resetMenuFilters}
-        />
+        <Card
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            padding: 2,
+            paddingRight: 3,
+            borderRadius: 4
+          }}
+        >
+          <OutlinedInput
+            sx={{ borderRadius: 4, width: { md: "400px", xs: "200px" } }}
+            placeholder="Search proposal..."
+            onChange={(e) => handleSearchInputChange(e.target.value)}
+            value={searchInput}
+            startAdornment={
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: "text.disabled", width: 20, height: 20 }} />
+              </InputAdornment>
+            }
+          />
+          <ProposalFilters
+            groups={groups}
+            isDrawerOpen={isDrawerOpen}
+            toggleDrawer={toggleDrawer}
+            filterValues={filterValues}
+            handleMenuInputChange={handleMenuInputChange}
+            resetMenuFilters={resetMenuFilters}
+          />
+        </Card>
       </Toolbar>
       <ProposalTable data={filteredStudentProposals} getTeacherById={getTeacherById} applications={applications} />
       <Box height={5} marginTop={3} />
+      <Hidden smUp>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="flex-end"
+          sx={{ position: "fixed", bottom: 24, right: 24 }}
+        >
+          <Fab component={Link} to="/add-request" aria-label="Add" color="primary">
+            <AddIcon />
+          </Fab>
+        </Stack>
+      </Hidden>
     </>
   );
 

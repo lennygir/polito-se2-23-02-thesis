@@ -7,13 +7,13 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import FormControl from "@mui/material/FormControl";
 import FormHelperText from "@mui/material/FormHelperText";
-import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import UserContext from "../contexts/UserContext";
 import { DatePicker } from "@mui/x-date-pickers";
 import { LEVELS, TYPES } from "../utils/constants";
+import CustomPaper from "./CustomPaper";
 
 function ProposalForm(props) {
   const user = useContext(UserContext);
@@ -169,19 +169,19 @@ function ProposalForm(props) {
     if (validator.isEmpty(formData.title)) {
       errors.title = "Please provide a title";
     }
-    if (!validator.isDate(formData.expirationDate)) {
+    if (!formData.expirationDate || !validator.isDate(formData.expirationDate)) {
       errors.expirationDate = "Please provide an expiration date";
     }
-    if (formData.type.length === 0) {
+    if (!formData.type || formData.type.length === 0) {
       errors.type = "Please provide at least one type";
     }
-    if (formData.groups.length === 0) {
+    if (!formData.type || formData.groups.length === 0) {
       errors.groups = "Please provide at least one group";
     }
-    if (validator.isEmpty(formData.level)) {
+    if (!formData.level || validator.isEmpty(formData.level)) {
       errors.level = "Please provide a level";
     }
-    if (validator.isEmpty(formData.cds)) {
+    if (!formData.cds || validator.isEmpty(formData.cds)) {
       errors.cds = "Please provide a cds programme";
     }
     if (validator.isEmpty(formData.description)) {
@@ -245,10 +245,6 @@ function ProposalForm(props) {
     }
   };
 
-  const CustomPaper = (props) => {
-    return <Paper elevation={8} sx={{ borderRadius: 3, paddingX: 1 }} {...props} />;
-  };
-
   const ChipProps = { sx: { height: 26 } };
 
   return (
@@ -292,9 +288,10 @@ function ProposalForm(props) {
             textField: {
               color: "primary",
               margin: "normal",
-              helperText: formErrors.expirationDate,
+              helperText: formErrors.expirationDate !== "" ? formErrors.expirationDate : "",
               error: !!formErrors.expirationDate
-            }
+            },
+            desktopPaper: { sx: { borderRadius: 4 } }
           }}
           value={formData.expirationDate ? dayjs(formData.expirationDate) : null}
           onChange={(newDate) => handleFormInputChange("expirationDate", dayjs(newDate).format("YYYY-MM-DD"))}
@@ -464,6 +461,7 @@ function ProposalForm(props) {
                 placeholder="Level"
                 margin="normal"
                 error={!!formErrors.level}
+                helperText={formErrors.level !== "" ? formErrors.level : ""}
               />
             )}
             renderOption={(props, option) => (

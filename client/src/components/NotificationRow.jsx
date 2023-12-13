@@ -7,13 +7,11 @@ function NotificationRow(props) {
   const { notification } = props;
 
   return (
-    <>
-      <TableRow key={notification.id}>
-        <TableCell>{notification.object}</TableCell>
-        <TableCell>{notification.content}</TableCell>
-        <TableCell>{dayjs(notification.date).format("DD/MM/YYYY")}</TableCell>
-      </TableRow>
-    </>
+    <TableRow key={notification.id}>
+      <TableCell>{notification.object}</TableCell>
+      <TableCell>{notification.content}</TableCell>
+      <TableCell>{dayjs(notification.date).format("DD/MM/YYYY")}</TableCell>
+    </TableRow>
   );
 }
 

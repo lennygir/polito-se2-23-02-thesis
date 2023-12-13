@@ -43,9 +43,9 @@ function ProposalRow(props) {
   useEffect(() => {
     let message = "";
     if (action === "archive") {
-      message = "You are about to archive this proposal which can be later restored. Do you want to continue?";
+      message = "You are about to archive this proposal. This action is irreversible, do you want to continue?";
     } else if (action === "delete") {
-      message = "You are about to delete this proposal and this action is irreversible. Do you want to continue?";
+      message = "You are about to delete this proposal. This action is irreversible, do you want to continue?";
     }
     setDialogMessage(message);
   }, [action]);
