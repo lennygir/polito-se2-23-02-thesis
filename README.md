@@ -75,7 +75,7 @@ Once the docker container is running you can access the application using [local
 
 ## Client Components
 
-- ### ApplicationRow
+### ApplicationRow
 
 This component is responsible for rendering a single row within a the application table, displaying application-related data based on the user's role.
 
@@ -89,7 +89,7 @@ On the other hand, if the user is a student, the displayed data are the name and
 Export:
 -   Exports the `ApplicationRow` component as the default export, enabling its usage in other parts of the application to render individual rows within a table, presenting application-related information based on the user's role.
 
-- ### ApplicationTable
+### ApplicationTable
 
 This component renders a table based on the provided data (`applications`) and the user's role fetched from the `UserContext`.
 
@@ -102,7 +102,7 @@ On the contrary, if the user's role is student, the rendered table headers will 
 Export:
 -   Exports the `ApplicationTable` component as the default export, enabling its usage in other parts of the application to render a table based on the user's role and provided data (`applications`).
 
-- ### ApplicationDetails
+### ApplicationDetails
 
 This component is responsible for rendering details of a specific application, presenting student information, thesis proposal details, and handling actions such as accepting or rejecting an application (if the user's role is teacher).
 
