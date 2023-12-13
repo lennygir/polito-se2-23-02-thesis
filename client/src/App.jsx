@@ -7,6 +7,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import RootPage from "./routes/RootPage";
 import ProposalsPage from "./routes/ProposalsPage";
 import CreateProposalPage from "./routes/CreateProposalPage";
+import RequestPage from "./routes/RequestPage";
 import ApplicationsPage from "./routes/ApplicationsPage";
 import NotificationsPage from "./routes/NotificationsPage";
 import SettingsPage from "./routes/SettingsPage";
@@ -166,12 +167,13 @@ function Main() {
 
   return (
     <UserContext.Provider value={user}>
-      <ErrorContext.Provider value={{ handleErrors }}>
+      <ErrorContext.Provider value={handleErrors}>
         <Routes>
           {/* prettier-ignore */}
           <Route path="/" element={user ? <RootPage loading={loading} setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} fetchProposals={fetchProposals} fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} /> : <LoginPage />}>
             <Route path="proposals" element={user ? <ProposalsPage setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} proposals={proposals} applications={applications} teachers={teachers} groups={groups} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
             <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} setAlert={setAlert} getTeacherById={getTeacherById} getDegreeById={getDegreeById} applications={applications} /> : <Navigate replace to="/" />} />
+            <Route path="add-request" element={user ? <RequestPage teachers={teachers} setAlert={setAlert} /> : <Navigate replace to="/" />} />
             <Route path="add-proposal" element={user ? <CreateProposalPage currentDate={currentDate} fetchProposals={fetchProposals} proposals={proposals} teachers={teachers} degrees={degrees} setAlert={setAlert} /> : <Navigate replace to="/" />} />
             <Route path="edit-proposal/:proposalId" element={user ? <EditProposalPage currentDate={currentDate} fetchProposals={fetchProposals} teachers={teachers} degrees={degrees} setAlert={setAlert} /> : <Navigate replace to="/" />} />
             <Route path="applications" element={user ? <ApplicationsPage applications={applications} /> : <Navigate replace to="/" /> } />

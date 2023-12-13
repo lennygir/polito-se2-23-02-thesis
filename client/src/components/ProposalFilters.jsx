@@ -14,6 +14,7 @@ import Typography from "@mui/material/Typography";
 import CloseIcon from "@mui/icons-material/Close";
 import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import CustomPaper from "./CustomPaper";
 import { DatePicker } from "@mui/x-date-pickers";
 import { TYPES } from "../utils/constants";
 
@@ -22,9 +23,11 @@ function ProposalFilters(props) {
 
   return (
     <>
-      <Button variant="contained" onClick={toggleDrawer} endIcon={<FilterListIcon />}>
-        Filters&nbsp;
-      </Button>
+      <Tooltip title="Filters">
+        <IconButton onClick={toggleDrawer}>
+          <FilterListIcon />
+        </IconButton>
+      </Tooltip>
       <Drawer
         anchor="right"
         PaperProps={{ sx: { width: "300px", padding: "20px" } }}
@@ -59,7 +62,13 @@ function ProposalFilters(props) {
                 value={filterValues.type}
                 onChange={(event, value) => handleMenuInputChange("type", value)}
                 filterSelectedOptions
+                PaperComponent={CustomPaper}
                 renderInput={(params) => <TextField {...params} label="Types" placeholder="Types" />}
+                renderOption={(props, option) => (
+                  <li {...props} style={{ borderRadius: 8 }}>
+                    {option}
+                  </li>
+                )}
               />
             </FormControl>
             <FormControl fullWidth sx={{ my: 2, mb: 3 }}>
@@ -69,7 +78,13 @@ function ProposalFilters(props) {
                 options={groups.map((group) => group.cod_group)}
                 value={filterValues.groups}
                 onChange={(event, value) => handleMenuInputChange("groups", value)}
+                PaperComponent={CustomPaper}
                 renderInput={(params) => <TextField {...params} label="Groups" placeholder="Groups" />}
+                renderOption={(props, option) => (
+                  <li {...props} style={{ borderRadius: 8 }}>
+                    {option}
+                  </li>
+                )}
               />
             </FormControl>
             <Divider variant="middle" />
@@ -85,7 +100,8 @@ function ProposalFilters(props) {
                     textField: {
                       variant: "outlined",
                       size: "small"
-                    }
+                    },
+                    desktopPaper: { sx: { borderRadius: 4 } }
                   }}
                 />
                 <Divider>to</Divider>
@@ -98,7 +114,8 @@ function ProposalFilters(props) {
                     textField: {
                       variant: "outlined",
                       size: "small"
-                    }
+                    },
+                    desktopPaper: { sx: { borderRadius: 4 } }
                   }}
                 />
               </Stack>

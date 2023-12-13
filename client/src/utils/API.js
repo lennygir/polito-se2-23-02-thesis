@@ -311,6 +311,21 @@ const updateVirtualClock = async (date) => {
 };
 
 /**
+ * Get the career of a student.
+ * @param {string} studentId - The id of the student.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the career of a student.
+ * @throws {Error} If there is an issue with the HTTP request or parsing the server response.
+ */
+const getCareerOfStudent = async (studentId) => {
+  return getJson(
+    fetch(SERVER_URL + "/students/" + studentId + "/exams", {
+      method: "GET",
+      credentials: "include"
+    })
+  );
+};
+
+/**
  * Evaluates a request by sending a PATCH request to the server's thesis requests endpoint with a boolean (true for acceptance, false for rejection).
  * @param {Object} request - An object containing the request ID and a boolean.
  * @returns {Promise} A promise that resolves to the parsed JSON content of the correct evaluation message.
@@ -366,9 +381,10 @@ const API = {
   updateProposal,
   archiveProposal,
   deleteProposal,
+  getCareerOfStudent,
   getRequests,
   sendRequest,
-  evaluateRequest,
+  evaluateRequest
 };
 
 export default API;
