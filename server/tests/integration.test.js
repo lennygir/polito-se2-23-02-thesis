@@ -1863,6 +1863,9 @@ describe("Secretary clerk story", () => {
 });
 
 describe("Delete proposals", () => {
+  beforeEach(() => {
+    db.prepare("delete from PROPOSALS").run();
+  });
   it("You should not be able to archive a proposal deleted", async () => {
     logIn("marco.torchiano@teacher.it");
 
@@ -1884,6 +1887,32 @@ describe("Delete proposals", () => {
       .set("Content-Type", "application/json")
       .send({
         archived: true,
+      })
+      .expect(404);
+  });
+  it("You should not be able to apply for a proposal deleted", async () => {
+    logIn("marco.torchiano@teacher.it");
+
+    // insert a proposal
+    const id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+        .expect(200)
+    ).body;
+
+    // delete the proposal
+    await request(app).delete(`/api/proposals/${id}`).expect(200);
+
+    logIn("s309618@studenti.polito.it");
+
+    // apply for the proposal
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send({
+        proposal: id,
       })
       .expect(404);
   });
