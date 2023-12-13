@@ -11,9 +11,9 @@ function StudentCareerRow(props) {
       <TableRow>
         <TableCell>{course.cod_course}</TableCell>
         <TableCell>{course.title_course}</TableCell>
-        <TableCell>{course.grade}</TableCell>
-        <TableCell>{course.cfu}</TableCell>
-        <TableCell>{dayjs(course.date).format("DD/MM/YYYY")}</TableCell>
+        <TableCell align="center">{course.grade}</TableCell>
+        <TableCell align="center">{course.cfu}</TableCell>
+        <TableCell align="center">{dayjs(course.date).format("DD MMM YYYY")}</TableCell>
       </TableRow>
     </>
   );
