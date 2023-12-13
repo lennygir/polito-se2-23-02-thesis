@@ -297,6 +297,21 @@ const updateVirtualClock = async (date) => {
   );
 };
 
+/**
+ * Get the career of a student.
+ * @param {string} studentId - The id of the student.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the career of a student.
+ * @throws {Error} If there is an issue with the HTTP request or parsing the server response.
+ */
+const getCareerOfStudent = async (studentId) => {
+  return getJson(
+    fetch(SERVER_URL + "/students/" + studentId + "/exams", {
+      method: "GET",
+      credentials: "include"
+    })
+  );
+};
+
 const API = {
   attachFileToApplication,
   createProposal,
@@ -314,7 +329,8 @@ const API = {
   evaluateApplication,
   updateProposal,
   archiveProposal,
-  deleteProposal
+  deleteProposal,
+  getCareerOfStudent
 };
 
 export default API;
