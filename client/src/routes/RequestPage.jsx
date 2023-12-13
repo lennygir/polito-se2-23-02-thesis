@@ -12,10 +12,10 @@ function RequestPage(props) {
   const { teachers, setAlert } = props;
   const createRequest = (request) => {
     console.log(request);
-    // setAlert({
-    //   message: "Request submitted successfully, and you should wait for approval",
-    //   severity: "success"
-    // });
+    setAlert({
+      message: "Request submitted successfully, and you should wait for approval",
+      severity: "success"
+    });
   };
 
   return (

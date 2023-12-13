@@ -7,7 +7,6 @@ import Divider from "@mui/material/Divider";
 import Drawer from "@mui/material/Drawer";
 import FormControl from "@mui/material/FormControl";
 import IconButton from "@mui/material/IconButton";
-import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
@@ -15,15 +14,12 @@ import Typography from "@mui/material/Typography";
 import CloseIcon from "@mui/icons-material/Close";
 import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import CustomPaper from "./CustomPaper";
 import { DatePicker } from "@mui/x-date-pickers";
 import { TYPES } from "../utils/constants";
 
 function ProposalFilters(props) {
   const { groups, isDrawerOpen, toggleDrawer, filterValues, handleMenuInputChange, resetMenuFilters } = props;
-
-  const CustomPaper = (props) => {
-    return <Paper elevation={16} sx={{ borderRadius: 3, paddingX: 1 }} {...props} />;
-  };
 
   return (
     <>
@@ -66,7 +62,7 @@ function ProposalFilters(props) {
                 value={filterValues.type}
                 onChange={(event, value) => handleMenuInputChange("type", value)}
                 filterSelectedOptions
-                PaperComponent={CustomPaper}
+                PaperComponent={<CustomPaper />}
                 renderInput={(params) => <TextField {...params} label="Types" placeholder="Types" />}
                 renderOption={(props, option) => (
                   <li {...props} style={{ borderRadius: 8 }}>
@@ -82,7 +78,7 @@ function ProposalFilters(props) {
                 options={groups.map((group) => group.cod_group)}
                 value={filterValues.groups}
                 onChange={(event, value) => handleMenuInputChange("groups", value)}
-                PaperComponent={CustomPaper}
+                PaperComponent={<CustomPaper />}
                 renderInput={(params) => <TextField {...params} label="Groups" placeholder="Groups" />}
                 renderOption={(props, option) => (
                   <li {...props} style={{ borderRadius: 8 }}>

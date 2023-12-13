@@ -7,13 +7,13 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import FormControl from "@mui/material/FormControl";
 import FormHelperText from "@mui/material/FormHelperText";
-import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import UserContext from "../contexts/UserContext";
 import { DatePicker } from "@mui/x-date-pickers";
 import { LEVELS, TYPES } from "../utils/constants";
+import CustomPaper from "./CustomPaper";
 
 function ProposalForm(props) {
   const user = useContext(UserContext);
@@ -245,10 +245,6 @@ function ProposalForm(props) {
     }
   };
 
-  const CustomPaper = (props) => {
-    return <Paper elevation={8} sx={{ borderRadius: 3, paddingX: 1 }} {...props} />;
-  };
-
   const ChipProps = { sx: { height: 26 } };
 
   return (
@@ -333,7 +329,7 @@ function ProposalForm(props) {
             value={formData.coSupervisors}
             onChange={(event, value) => handleFormInputChange("coSupervisors", value)}
             filterSelectedOptions
-            PaperComponent={CustomPaper}
+            PaperComponent={<CustomPaper />}
             ChipProps={ChipProps}
             renderInput={(params) => (
               <TextField {...params} label="Co-supervisors" placeholder="Email" margin="normal" />
@@ -391,7 +387,7 @@ function ProposalForm(props) {
             value={formData.type}
             onChange={(event, value) => handleFormInputChange("type", value)}
             filterSelectedOptions
-            PaperComponent={CustomPaper}
+            PaperComponent={<CustomPaper />}
             ChipProps={ChipProps}
             renderInput={(params) => (
               <TextField
@@ -421,7 +417,7 @@ function ProposalForm(props) {
             value={formData.groups}
             onChange={(event, value) => handleFormInputChange("groups", value)}
             filterSelectedOptions
-            PaperComponent={CustomPaper}
+            PaperComponent={<CustomPaper />}
             ChipProps={ChipProps}
             renderInput={(params) => (
               <TextField
@@ -456,7 +452,7 @@ function ProposalForm(props) {
             options={LEVELS}
             value={formData.level}
             onChange={(event, value) => handleFormInputChange("level", value)}
-            PaperComponent={CustomPaper}
+            PaperComponent={<CustomPaper />}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -484,7 +480,7 @@ function ProposalForm(props) {
             options={getCdsOptions().map((degree) => `${degree.cod_degree} ${degree.title_degree}`)}
             value={formData.cds}
             onChange={(event, value) => handleFormInputChange("cds", value)}
-            PaperComponent={CustomPaper}
+            PaperComponent={<CustomPaper />}
             renderInput={(params) => (
               <TextField
                 {...params}

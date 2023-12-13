@@ -167,7 +167,7 @@ function Main() {
 
   return (
     <UserContext.Provider value={user}>
-      <ErrorContext.Provider value={{ handleErrors }}>
+      <ErrorContext.Provider value={handleErrors}>
         <Routes>
           {/* prettier-ignore */}
           <Route path="/" element={user ? <RootPage loading={loading} setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} fetchProposals={fetchProposals} fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} /> : <LoginPage />}>

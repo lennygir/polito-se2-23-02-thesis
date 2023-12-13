@@ -6,6 +6,7 @@ import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
 import Chip from "@mui/material/Chip";
 import Fab from "@mui/material/Fab";
 import Hidden from "@mui/material/Hidden";
@@ -20,7 +21,6 @@ import ErrorContext from "../contexts/ErrorContext";
 import UserContext from "../contexts/UserContext";
 import { TEACHER_PROPOSALS_FILTERS, TEACHER_HEADERS_ACTIVE, TEACHER_HEADERS_EXPIRED } from "../utils/constants";
 import API from "../utils/API";
-import { Card, Paper } from "@mui/material";
 
 function ProposalsPage(props) {
   const { setAlert, setDirty, currentDate, proposals, applications, teachers, groups, getTeacherById } = props;
@@ -156,7 +156,7 @@ function ProposalsPage(props) {
             }
           />
           <ProposalFilters
-            groups={props.groups}
+            groups={groups}
             isDrawerOpen={isDrawerOpen}
             toggleDrawer={toggleDrawer}
             filterValues={filterValues}
