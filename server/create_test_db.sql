@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS PROPOSALS (
   level TEXT,
   cds TEXT,
   manually_archived INTEGER DEFAULT 0, -- 0 false, 1 true
+  deleted INTEGER DEFAULT 0, -- 0 not deleted, 1 deleted
   FOREIGN KEY (supervisor) REFERENCES TEACHER (id),
   FOREIGN KEY (cds) REFERENCES DEGREE (cod_degree)
 );

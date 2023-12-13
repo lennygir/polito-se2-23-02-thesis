@@ -223,11 +223,11 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
   // Send email to a student
   const applicationJoined = db
     .prepare(
-      "SELECT S.id, P.title, S.email, S.surname, S.name \
-    FROM APPLICATIONS A \
-    JOIN PROPOSALS P ON P.id = A.proposal_id \
-    JOIN STUDENT S ON S.id = A.student_id \
-    WHERE A.id = ?"
+      `SELECT S.id, P.title, S.email, S.surname, S.name 
+    FROM APPLICATIONS A 
+    JOIN PROPOSALS P ON P.id = A.proposal_id 
+    JOIN STUDENT S ON S.id = A.student_id 
+    WHERE A.id = ?`
     )
     .get(applicationId);
   const mailBody = applicationDecisionTemplate({
@@ -260,10 +260,10 @@ exports.notifyNewApplication = async (proposalId) => {
   // Send email to the supervisor
   const proposalJoined = db
     .prepare(
-      "SELECT P.title, T.id, T.email, T.surname, T.name \
-      FROM PROPOSALS P \
-      JOIN TEACHER T ON T.id = P.supervisor \
-      WHERE P.id = ?"
+      `SELECT P.title, T.id, T.email, T.surname, T.name 
+      FROM PROPOSALS P 
+      JOIN TEACHER T ON T.id = P.supervisor 
+      WHERE P.id = ?`
     )
     .get(proposalId);
   const mailBody = newApplicationTemplate({
@@ -394,7 +394,7 @@ exports.getNotifications = (user_id) => {
 };
 
 exports.deleteProposal = (proposal_id) => {
-  db.prepare("DELETE FROM PROPOSALS WHERE id = ?").run(proposal_id);
+  db.prepare("update PROPOSALS set deleted = ?  where id = ?").run(1, proposal_id);
 };
 
 exports.updateArchivedStateProposal = (new_archived_state, proposal_id) => {
