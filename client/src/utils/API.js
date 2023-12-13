@@ -310,6 +310,44 @@ const updateVirtualClock = async (date) => {
   );
 };
 
+/**
+ * Evaluates a request by sending a PATCH request to the server's thesis requests endpoint with a boolean (true for acceptance, false for rejection).
+ * @param {Object} request - An object containing the request ID and a boolean.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the correct evaluation message.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
+const evaluateRequest = async (request) => {
+  return getJson(
+    fetch(SERVER_URL + "/start-requests/" + request.id, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify({ approved: request.decision })
+    })
+  );
+};
+
+/**
+ * Send a request by sending a POST request to the server's thesis requests endpoint.
+ * @param {Object} request - An object containing the request details.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the sent request response.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
+const sendRequest = async (request) => {
+  return getJson(
+    fetch(SERVER_URL + "/start-requests", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify(request)
+    })
+  );
+};
+
 const API = {
   attachFileToApplication,
   createProposal,
@@ -329,6 +367,8 @@ const API = {
   archiveProposal,
   deleteProposal,
   getRequests,
+  sendRequest,
+  evaluateRequest,
 };
 
 export default API;
