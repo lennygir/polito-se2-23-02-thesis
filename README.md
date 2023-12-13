@@ -75,6 +75,30 @@ Once the docker container is running you can access the application using [local
 
 ## Client Components
 
+### ProposalRow
+This component renders a single row in a table displaying information about a proposal. 
+It encapsulates the rendering logic for a single proposal row in a table, providing options for different actions like editing, archiving, and deleting proposals based on user roles and proposal state.
+
+### ProposalTable
+This component is responsible for rendering a table displaying proposals. It accepts various props to manage data rendering and actions related to proposals.
+This functional React component takes in several props that include headers, proposal data, functions to delete or archive a proposal, functions to fetch teacher details, filters, application data, and the current date.
+It dynamically populates the table headers based on the user's role and the provided headers, and it renders each proposal using the `ProposalRow` component while passing necessary data and functions as props.
+
+### ProposalFilters
+
+This component is responsible for rendering a set of filters within a Material-UI `Drawer`. It provides options to filter proposal data based on various criteria.
+The  drawer content consists of filter fields like types, groups, and date range.
+
+Noteworthy Features:
+-   **Autocomplete**: Users can search and select multiple options for types and groups.
+-   **DatePicker**: Utilizes the `DatePicker` component to choose date ranges.
+-   **Clear Filters Button**: Enables users to reset all filter selections with a single click.
+
+### ProposalForm
+
+It is used for creating or editing proposals. This component is designed to handle the creation and editing of proposals. It includes various input fields, validations, and logic to manage the proposal creation/update process. It also provides clear validation messages and prevents invalid submissions.
+
+
 ### ApplicationRow
 
 This component is responsible for rendering a single row within a the application table, displaying application-related data based on the user's role.
