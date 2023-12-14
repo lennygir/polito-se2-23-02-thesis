@@ -28,15 +28,25 @@ sections:
 
 ### Detailed statistics
 
-| Story | # Tasks | Points | Hours est. | Hours actual |
+| Story | # Tasks | Points | Hours Est. | Hours Actual |
 | ----- | ------- | ------ | ---------- | ------------ |
-| _#0_  |         | -      |            |              |
-| n     |         |        |            |              |
+| #0    | 20      | -      | 47h        | 52h 52m      |
+| #12   | 3       | 3      | 7h         | 11h          |
+| #13   | 5       | 5      | 10h 30m    | 11h 25m      |
+| #14   | 2       | 3      | 2h         | 2h 5m        |
+| #26   | 2       | 5      | 7h         | 10h 25m      |
+| #15   | 2       | 2      | 3h         | 4h 30m       |
+| #27   | 7       | 5      | 10h 30m    | 7h 45m       |
+| #16   | 1       | 2      | 1h 30m     | 55m          |
 
 > place technical tasks corresponding to story `#0` and leave out story points (not applicable in this case)
 
-- Hours per task (average, standard deviation)
-- Total task estimation error ratio: sum of total hours estimation / sum of total hours spent -1
+- Hours per task average, standard deviation (estimate and actual):
+
+  - Hours estimate per task average: 1.9, standard deviation: 1.24
+  - Hours actual per task average: 2.17, standard deviation: 2.04
+
+- Total task estimation error ratio: sum of total hours estimation / sum of total hours spent - 1: -0.12
 
 ## QUALITY MEASURES
 
