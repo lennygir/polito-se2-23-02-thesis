@@ -357,6 +357,7 @@ router.get(
             dayjs(date),
           );
         delete proposal.manually_archived;
+        delete proposal.deleted;
         return proposal;
       });
       if (req.query.archived !== undefined) {
@@ -392,6 +393,9 @@ router.post(
       const db_proposal = getProposal(proposal);
       if (db_proposal === undefined) {
         return res.status(400).json({ message: "Invalid application content" });
+      }
+      if (db_proposal.deleted === 1){
+        return res.status(404).json("Proposal not found");
       }
       if (getPendingOrAcceptedApplicationsOfStudent(user.id).length !== 0) {
         return res.status(400).json({
@@ -601,18 +605,21 @@ router.patch(
       const { id } = req.params;
       const proposal = getProposal(id);
       if (proposal === undefined) {
-        return res.status(404).json({ message: "Proposal not found" });
+        return res.status(404).send("Proposal not found");
       }
       if (proposal.supervisor !== user.id) {
         return res.status(401).json({
           message: "Unauthorized to change other teacher's proposal",
         });
       }
+      if (proposal.deleted === 1){
+        return res.status(404).json("Proposal not found");
+      }
       updateArchivedStateProposal(1, id);
       cancelPendingApplications(id);
       return res.status(200).json({ ...proposal, archived: true });
     } catch (e) {
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(500).send({ message: "Internal Server Error" });
     }
   },
 );
@@ -671,6 +678,9 @@ router.put(
         return res.status(404).json({
           message: `Proposal ${proposal_id} not found`,
         });
+      }
+      if (proposal.deleted === 1){
+        return res.status(404).json("Proposal not found");
       }
       if (proposal.manually_archived === 1) {
         return res

@@ -587,26 +587,21 @@ it("prova", async () => {
     co_supervisors: proposal.co_supervisors.join(", "),
     groups: proposal.groups.join(", "),
     keywords: proposal.keywords.join(", "),
+    manually_archived: 0,
+    deleted: 0,
     expiration_date: dayjs(proposal.expiration_date).format("YYYY-MM-DD"),
   };
   delete expected_proposal.types;
-  let returned_proposal = db
+  let returnedProposal = db
     .prepare("select * from main.PROPOSALS where id = ?")
     .get(proposal_id);
-  expect(returned_proposal).toEqual({
-    ...expected_proposal,
-    manually_archived: 0,
-  });
+  expect(returnedProposal).toEqual(expected_proposal);
 });
 
 it("CRUD on proposal", async () => {
-  const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
+  logIn("marco.torchiano@teacher.it");
+
+  // insert proposal
   const proposalId = (
     await request(app)
       .post("/api/proposals")
@@ -614,6 +609,8 @@ it("CRUD on proposal", async () => {
       .send(proposal)
       .expect(200)
   ).body;
+
+  // get all the proposals
   const proposals = (await request(app).get("/api/proposals").expect(200)).body;
   let expectedProposal = {
     ...proposal,
@@ -1874,90 +1871,85 @@ describe("Secretary clerk story", () => {
   });
 });
 
-/*describe("Delete proposals", () => {
-  test("Correct elimination of a proposal", () => {
-    const id = 2;
-    return request(app)
-      .delete(`/api/proposals/${id}`)
-      .expect(200);
+describe("Delete proposals", () => {
+  beforeEach(() => {
+    db.prepare("delete from PROPOSALS").run();
   });
+  it("You should not be able to archive a proposal deleted", async () => {
+    logIn("marco.torchiano@teacher.it");
 
-  test("Should retrun a 400 error if the proposal is already accepted", () => {
-    const id = 8;
-    return request(app)
-      .delete(`/api/proposals/${id}`)
-      .expect(400);
-  });
+    // insert a proposal
+    const id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+        .expect(200)
+    ).body;
 
+    // delete the proposal
+    await request(app).delete(`/api/proposals/${id}`).expect(200);
 
-  test("Get 404 error for no rows eliminated", () => {
-   const id = 10000;
-    return request(app)
-      .delete(`/api/proposals/${id}`)
+    // archive the proposal
+    await request(app)
+      .patch(`/api/proposals/${id}`)
+      .set("Content-Type", "application/json")
+      .send({
+        archived: true,
+      })
       .expect(404);
   });
+  it("You should not be able to apply for a proposal deleted", async () => {
+    logIn("marco.torchiano@teacher.it");
 
-  test("Get 404 error for incorrect data format in", () => {
-    const id = "a";
-     return request(app)
-       .delete(`/api/proposals/${id}`)
-       .expect(400);
-   });
+    // insert a proposal
+    const id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+        .expect(200)
+    ).body;
 
-});*/
+    // delete the proposal
+    await request(app).delete(`/api/proposals/${id}`).expect(200);
 
-/*describe("Update proposals", () => {
-  test("Correct update of a proposal", async () => {
-    const proposalId = 1; // Replace with the proposal ID you want to update
-    const updatedFields = {
-      // Specify the fields and their updated values
-      title: "Updated Title",
-      supervisor: "s940590",
-      // Add other fields to update
-    };
+    logIn("s309618@studenti.polito.it");
 
-    // Send the PATCH request to update the proposal
-    const response = await request(app)
-      .patch(`/api/proposals/${proposalId}`)
-      .send(updatedFields);
-
-    // Check if the response status is successful (e.g., 200 OK)
-    expect(response.status).toBe(200);
+    // apply for the proposal
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send({
+        proposal: id,
+      })
+      .expect(404);
   });
+  it("You should not be able to update a proposal deleted", async () => {
+    logIn("marco.torchiano@teacher.it");
 
-  test("Should return 400 if the proposal is already accepted", async () => {
-    const proposalId = 8; // Replace with the proposal ID you want to update
-    const updatedFields = {
-      // Specify the fields and their updated values
-      title: "Updated Title",
-      supervisor: "s940590",
-      // Add other fields to update
-    };
+    // insert a proposal
+    const id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+        .expect(200)
+    ).body;
 
-    // Send the PATCH request to update the proposal
-    const response = await request(app)
-      .patch(`/api/proposals/${proposalId}`)
-      .send(updatedFields);
+    // delete the proposal
+    await request(app).delete(`/api/proposals/${id}`).expect(200);
 
-    // Check if the response status is successful (e.g., 200 OK)
-    expect(response.status).toBe(400);
+    // update the proposal
+    const updateMessage = (
+      await request(app)
+        .put(`/api/proposals/${id}`)
+        .send({
+          ...proposal,
+          title: "Updated title",
+        })
+        .expect(404)
+    ).body;
+    expect(updateMessage).toBe("Proposal not found");
   });
-
-  test("Should return 500 for an incorrect server behaviour", async () => {
-    const proposalId = 1; // Replace with the proposal ID you want to update
-    const updatedFields = {
-      // Specify the fields and their updated values
-      title: "Updated4 Title",
-      supervisor: "s9405902309090",
-      // Add other fields to update
-    };
-
-    // Send the PATCH request to update the proposal
-    const response = await request(app)
-      .patch(`/api/proposals/${proposalId}`)
-      .send(updatedFields);
-
-    // Check if the response status is successful (e.g., 200 OK)
-    expect(response.status).toBe(500);
-  });
-});*/
+});
