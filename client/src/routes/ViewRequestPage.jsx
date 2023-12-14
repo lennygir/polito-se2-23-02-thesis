@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -7,33 +7,31 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ProposalForm from "../components/ProposalForm";
+import RequestDetails from "../components/RequestDetails";
 import ErrorContext from "../contexts/ErrorContext";
 import API from "../utils/API";
 
-function EditProposalPage(props) {
-  const { currentDate, fetchProposals, teachers, degrees, setAlert } = props;
-  const handleErrors = useContext(ErrorContext);
-  const navigate = useNavigate();
+function ViewRequestPage(props) {
   const location = useLocation();
+  const { fetchRequests, setAlert, requests } = props;
+  const handleErrors = useContext(ErrorContext);
 
-  const proposal = location.state?.proposal;
+  const request = location.state?.request;
 
-  const editProposal = (proposal) => {
-    API.updateProposal(proposal)
+  const evaluateRequest = (request) => {
+    API.evaluateRequest(request)
       .then(() => {
         setAlert({
-          message: "Proposal updated successfully",
+          message: "Request evaluated successfully",
           severity: "success"
         });
-        fetchProposals();
-        navigate("/proposals");
+        fetchRequests();
       })
       .catch((err) => handleErrors(err));
   };
 
   return (
-    <div id="edit-proposal-page">
+    <div id="view-request-page">
       <Stack
         paddingTop={4}
         sx={{ pt: { md: 4, xs: 0 } }}
@@ -43,7 +41,7 @@ function EditProposalPage(props) {
       >
         <Button
           component={Link}
-          to="/proposals"
+          to="/requests"
           variant="outlined"
           startIcon={<ArrowBackIcon />}
           sx={{ ml: { md: 4, xs: 0 } }}
@@ -52,18 +50,11 @@ function EditProposalPage(props) {
         </Button>
       </Stack>
       <Typography variant="h4" sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}>
-        Edit Proposal
+        Request Details
       </Typography>
       <Paper elevation={1} sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
-          <ProposalForm
-            mode="update"
-            teachersList={teachers}
-            degrees={degrees}
-            proposal={proposal}
-            editProposal={editProposal}
-            currentDate={currentDate}
-          />
+          <RequestDetails request={request} evaluateRequest={evaluateRequest} requests={requests} />
         </Box>
       </Paper>
       <Box height={3} />
@@ -71,12 +62,10 @@ function EditProposalPage(props) {
   );
 }
 
-EditProposalPage.propTypes = {
-  currentDate: PropTypes.string,
-  fetchProposals: PropTypes.func,
-  teachers: PropTypes.array,
-  degrees: PropTypes.array,
-  setAlert: PropTypes.func
+ViewRequestPage.propTypes = {
+  fetchRequests: PropTypes.func,
+  setAlert: PropTypes.func,
+  requests: PropTypes.array
 };
 
-export default EditProposalPage;
+export default ViewRequestPage;

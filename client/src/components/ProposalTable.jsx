@@ -19,7 +19,7 @@ function ProposalTable(props) {
     props;
 
   return (
-    <Paper sx={{ mt: { md: 3, xs: 1 }, mx: { md: 4, xs: 0 }, overflow: "hidden", borderRadius: 4 }}>
+    <Paper sx={{ mt: { xs: 1 }, mx: { md: 4, xs: 0 }, overflow: "hidden", borderRadius: 4 }}>
       <TableContainer sx={{ maxHeight: "60vh" }}>
         <Table stickyHeader>
           <TableHead>

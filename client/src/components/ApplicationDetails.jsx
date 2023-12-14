@@ -19,7 +19,7 @@ import StudentCareerTable from "./StudentCareerTable";
 
 function ApplicationDetails(props) {
   const user = useContext(UserContext);
-  const { handleErrors } = useContext(ErrorContext);
+  const handleErrors = useContext(ErrorContext);
   const { theme } = useThemeContext();
   const { application, evaluateApplication, applications } = props;
 
@@ -48,7 +48,7 @@ function ApplicationDetails(props) {
     API.getCareerOfStudent(studentId).then((career) => {
       setStudentCareer(career);
     });
-  }
+  };
 
   const handleOpenDialog = () => {
     setOpenDialog(true);

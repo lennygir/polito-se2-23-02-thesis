@@ -17,7 +17,7 @@ import API from "../utils/API";
 function CreateProposalPage(props) {
   const navigate = useNavigate();
   const { currentDate, fetchProposals, proposals, teachers, degrees, setAlert } = props;
-  const { handleErrors } = useContext(ErrorContext);
+  const handleErrors = useContext(ErrorContext);
 
   const [anchorEl, setAnchorEl] = useState();
   const openCopyMenu = Boolean(anchorEl);

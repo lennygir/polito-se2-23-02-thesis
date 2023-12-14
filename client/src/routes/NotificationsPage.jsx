@@ -11,7 +11,7 @@ function NotificationsPage(props) {
   const { notifications, fetchNotifications } = props;
 
   return (
-    <>
+    <div id="notifications-page">
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
           Notifications
@@ -24,7 +24,7 @@ function NotificationsPage(props) {
       </Stack>
       <NotificationTable data={notifications} />
       <Box height={5} marginTop={3} />
-    </>
+    </div>
   );
 }
 

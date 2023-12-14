@@ -15,7 +15,7 @@ function ViewProposalPage(props) {
   const navigate = useNavigate();
   const location = useLocation();
   const { setDirty, setAlert, getTeacherById, getDegreeById, applications } = props;
-  const { handleErrors } = useContext(ErrorContext);
+  const handleErrors = useContext(ErrorContext);
 
   const proposal = location.state?.proposal;
 
