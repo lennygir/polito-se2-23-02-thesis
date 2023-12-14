@@ -13,7 +13,16 @@ const logoHeight = 80;
 const navbarHeight = 75;
 
 function RootPage(props) {
-  const { loading, setAlert, setDirty, currentDate, fetchProposals, fetchApplications, fetchNotifications } = props;
+  const {
+    loading,
+    setAlert,
+    setDirty,
+    currentDate,
+    fetchProposals,
+    fetchApplications,
+    fetchNotifications,
+    fetchRequests
+  } = props;
   const user = useContext(UserContext);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState(user?.role === "secretary_clerk" ? "requests" : "proposals");
@@ -34,6 +43,8 @@ function RootPage(props) {
       fetchApplications();
     } else if (tabId === "notifications") {
       fetchNotifications();
+    } else if (tabId === "requests") {
+      fetchRequests();
     }
   };
 
@@ -83,7 +94,8 @@ RootPage.propTypes = {
   currentDate: PropTypes.string,
   fetchProposals: PropTypes.func,
   fetchApplications: PropTypes.func,
-  fetchNotifications: PropTypes.func
+  fetchNotifications: PropTypes.func,
+  fetchRequests: PropTypes.func
 };
 
 export default RootPage;

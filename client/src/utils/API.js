@@ -135,7 +135,7 @@ const createApplication = async (application) => {
 
 /**
  * Inserts a file to an existing application by sending a PATCH request to the server's applications endpoint.
- * @param {Object} applicationId - The id of an existing application.
+ * @param {number} applicationId - The id of an existing application.
  * @param {Object} file - An object containing the file in binary format. Can be null since it's optional.
  */
 const attachFileToApplication = async (applicationId, file) => {
@@ -153,7 +153,7 @@ const attachFileToApplication = async (applicationId, file) => {
 
 /**
  * Retrieves a file attached to an existing application.
- * @param {Object} applicationId - The id of an existing application.
+ * @param {number} applicationId - The id of an existing application.
  * @returns {Promise} A promise that resolves to the blob of the file.
  */
 const getApplicationFile = async (applicationId) => {
@@ -224,7 +224,7 @@ const updateProposal = async (proposal) => {
 
 /**
  * Archive a proposal by sending a PATCH request to the server's proposals endpoint with only fields to change.
- * @param {Object} proposalId - The id of the proposal to be archived.
+ * @param {number} proposalId - The id of the proposal to be archived.
  * @returns {Promise} A promise that resolves to the parsed JSON content of the archived proposal response.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
@@ -243,13 +243,13 @@ const archiveProposal = async (proposalId) => {
 
 /**
  * Deletes a proposal with the specified ID from the server.
- * @param {number} proposal_id - The ID of the proposal to be deleted.
+ * @param {number} proposalId - The ID of the proposal to be deleted.
  * @returns {Promise} A promise that resolves with the result of the deletion.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
-const deleteProposal = async (proposal_id) => {
+const deleteProposal = async (proposalId) => {
   return getJson(
-    fetch(SERVER_URL + "/proposals/" + proposal_id, {
+    fetch(SERVER_URL + "/proposals/" + proposalId, {
       method: "DELETE",
       credentials: "include"
     })
@@ -350,7 +350,7 @@ const evaluateRequest = async (request) => {
  * @returns {Promise} A promise that resolves to the parsed JSON content of the sent request response.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
-const sendRequest = async (request) => {
+const createRequest = async (request) => {
   return getJson(
     fetch(SERVER_URL + "/start-requests", {
       method: "POST",
@@ -367,6 +367,7 @@ const API = {
   attachFileToApplication,
   createProposal,
   createApplication,
+  createRequest,
   getApplicationFile,
   getDegrees,
   getGroups,
@@ -383,7 +384,6 @@ const API = {
   deleteProposal,
   getCareerOfStudent,
   getRequests,
-  sendRequest,
   evaluateRequest
 };
 

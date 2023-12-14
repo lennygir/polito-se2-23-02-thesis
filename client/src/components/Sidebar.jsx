@@ -13,6 +13,7 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+import ApprovalIcon from "@mui/icons-material/Approval";
 import logo from "../assets/images/logo.png";
 import UserContext from "../contexts/UserContext";
 import { useThemeContext } from "../theme/ThemeContextProvider";
@@ -43,7 +44,7 @@ const sidebarSecretaryTabs = [
   {
     id: "requests",
     label: "Requests",
-    icon: <SchoolRoundedIcon color="primary" />,
+    icon: <ApprovalIcon color="primary" />,
     path: "/requests"
   }
 ];

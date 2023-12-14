@@ -12,6 +12,7 @@ import Fab from "@mui/material/Fab";
 import Hidden from "@mui/material/Hidden";
 import InputAdornment from "@mui/material/InputAdornment";
 import OutlinedInput from "@mui/material/OutlinedInput";
+import ScheduleSendIcon from "@mui/icons-material/ScheduleSend";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
@@ -23,9 +24,10 @@ import { TEACHER_PROPOSALS_FILTERS, TEACHER_HEADERS_ACTIVE, TEACHER_HEADERS_EXPI
 import API from "../utils/API";
 
 function ProposalsPage(props) {
-  const { setAlert, setDirty, currentDate, proposals, applications, teachers, groups, getTeacherById } = props;
+  const { requestSent, setAlert, setDirty, currentDate, proposals, applications, teachers, groups, getTeacherById } =
+    props;
   const user = useContext(UserContext);
-  const { handleErrors } = useContext(ErrorContext);
+  const handleErrors = useContext(ErrorContext);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [filterValues, setFilterValues] = useState({
@@ -119,8 +121,15 @@ function ProposalsPage(props) {
           Theses Proposals
         </Typography>
         <Hidden smDown>
-          <Button component={Link} to="/add-request" variant="contained" sx={{ mr: 4 }} startIcon={<AddIcon />}>
-            New Request
+          <Button
+            component={Link}
+            to="/add-request"
+            variant="contained"
+            sx={{ mr: 4 }}
+            startIcon={requestSent ? <ScheduleSendIcon /> : <AddIcon />}
+            disabled={requestSent}
+          >
+            {requestSent ? "Request sent" : "New Request"}
           </Button>
         </Hidden>
       </Stack>
@@ -277,6 +286,7 @@ function ProposalsPage(props) {
 }
 
 ProposalsPage.propTypes = {
+  requestSent: PropTypes.bool,
   setAlert: PropTypes.func,
   setDirty: PropTypes.func,
   currentDate: PropTypes.string,
