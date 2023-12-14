@@ -40,6 +40,8 @@ const {
   getNotRejectedStartRequest,
   getRequestForClerk,
   getTeacher,
+  getAcceptedApplicationsOfStudent,
+  getPendingApplicationsOfStudent,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 
@@ -395,7 +397,26 @@ router.post(
       if (db_proposal === undefined) {
         return res.status(400).json({ message: "Invalid application content" });
       }
-      if (getPendingOrAcceptedApplicationsOfStudent(user.id).length !== 0) {
+      if (getAcceptedApplicationsOfStudent(user.id).length !== 0) {
+        return res.status(400).json({
+          message: `The student ${user.id} has an accepted proposal`,
+        });
+      }
+      let pendingApplicationsOfStudent = getPendingApplicationsOfStudent(
+        user.id,
+      );
+      if (
+        pendingApplicationsOfStudent.find((application) => {
+          const expirationDateOfProposal = dayjs(
+            getProposal(application.proposal_id).expiration_date,
+          );
+          const currentDate = getDate();
+          return (
+            expirationDateOfProposal.isSame(currentDate) ||
+            expirationDateOfProposal.isAfter(currentDate)
+          );
+        })
+      ) {
         return res.status(400).json({
           message: `The student ${user.id} has already applied to a proposal`,
         });
