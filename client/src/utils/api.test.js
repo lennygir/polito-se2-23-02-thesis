@@ -305,7 +305,7 @@ test("getRequests - should return correct data", async () => {
     json: () => Promise.resolve(mockApiResponse)
   });
   const result = await API.getRequests();
-  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/start-requests`,{
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/start-requests`, {
     credentials: "include"
   });
   expect(result).toEqual(mockApiResponse);
@@ -318,7 +318,7 @@ test("evaluateApplication - should return correct update message", async () => {
   });
   const request = {
     id: 4,
-    approved: true,
+    approved: true
   };
   const result = await API.evaluateRequest(request);
   expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/start-requests/${request.id}`, {
@@ -347,7 +347,7 @@ describe("Test the archivial of a proposal", () => {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ archived: true }),
+      body: JSON.stringify({ archived: true })
     });
     expect(result).toEqual({ message: "Proposal archived successfully" });
   });
@@ -366,7 +366,7 @@ describe("Test the archivial of a proposal", () => {
         body: JSON.stringify({ approved: true }),
         headers: {
           "Content-Type": "application/json"
-        },
+        }
       });
     } catch (error) {
       expect(error).toEqual({ error: "error on archiving the proposal" });
@@ -384,7 +384,7 @@ describe("Test the send of a request", () => {
     const request = {
       name: "fake request"
     };
-    const result = await API.sendRequest(request);
+    const result = await API.createRequest(request);
     expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/start-requests`, {
       method: "POST",
       headers: {
@@ -406,7 +406,7 @@ describe("Test the send of a request", () => {
         name: "fake request",
         error: "error"
       };
-      await API.sendRequest(request);
+      await API.createRequest(request);
       expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/start-requests`, {
         method: "POST",
         headers: {
@@ -420,4 +420,3 @@ describe("Test the send of a request", () => {
     }
   });
 });
-
