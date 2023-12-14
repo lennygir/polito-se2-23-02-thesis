@@ -63,14 +63,18 @@ sections:
 ## ASSESSMENT
 
 - What caused your errors in estimation (if any)?
+- there was some inconsistencies in db and backend, this causes some problems
 
 - What lessons did you learn (both positive and negative) in this sprint?
 
 - Which improvement goals set in the previous retrospective were you able to achieve?
+- we have tried to do a test-driven programming, despite some issue, we maneged to did our work 
 - Which ones you were not able to achieve? Why?
 
 - Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
+-  i suggest to improve the test-driven approach wth better communication between front-end and back-end
 
 > Propose one or two
 
 - One thing you are proud of as a Team!!
+-  We were able to complete a lot of story points
