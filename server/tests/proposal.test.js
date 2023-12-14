@@ -26,6 +26,8 @@ const {
   getExamsOfStudent,
   getNotRejectedStartRequest,
   getRequestForClerk,
+  getPendingApplicationsOfStudent,
+  getAcceptedApplicationsOfStudent,
 } = require("../src/theses-dao");
 
 const dayjs = require("dayjs");
@@ -148,19 +150,26 @@ describe("Application Insertion Tests", () => {
       });
   });
   test("There is already a pending or accepted application for the student", () => {
-    getProposal.mockReturnValue({
+    getProposal.mockReturnValueOnce({
       proposal: "something",
     });
     getStudent.mockReturnValue({
       student: "something",
     });
-    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([
+    getAcceptedApplicationsOfStudent.mockReturnValue([]);
+    getPendingApplicationsOfStudent.mockReturnValue([
       {
         student_id: "s309618",
         proposal_id: "4",
         state: "pending",
       },
     ]);
+    getProposal.mockReturnValueOnce({
+      expiration_date: "2025-05-05",
+    });
+    getDelta.mockReturnValue({
+      delta: 0,
+    });
     return request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
@@ -173,13 +182,14 @@ describe("Application Insertion Tests", () => {
       });
   });
   test("The proposal of the application is accepted for another student", () => {
-    getProposal.mockReturnValue({
+    getProposal.mockReturnValueOnce({
       proposal: "something",
     });
     getStudent.mockReturnValue({
       student: "something",
     });
-    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([]);
+    getAcceptedApplicationsOfStudent.mockReturnValue([]);
+    getPendingApplicationsOfStudent.mockReturnValue([]);
     findAcceptedProposal.mockReturnValue({
       proposal: "proposal",
     });
@@ -195,13 +205,14 @@ describe("Application Insertion Tests", () => {
       });
   });
   test("There same application was already rejected for the student", () => {
-    getProposal.mockReturnValue({
+    getProposal.mockReturnValueOnce({
       proposal: "something",
     });
     getStudent.mockReturnValue({
       student: "something",
     });
-    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([]);
+    getAcceptedApplicationsOfStudent.mockReturnValue([]);
+    getPendingApplicationsOfStudent.mockReturnValue([]);
     findAcceptedProposal.mockReturnValue(undefined);
     findRejectedApplication.mockReturnValue({
       student: "s309618",
@@ -225,11 +236,12 @@ describe("Application Insertion Tests", () => {
       proposal: "something",
       expiration_date: dayjs().add(1, "day"),
     });
-    getDelta.mockReturnValue(0);
+    getDelta.mockReturnValue({ delta: 0 });
     getStudent.mockReturnValue({
       student: "something",
     });
-    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([]);
+    getAcceptedApplicationsOfStudent.mockReturnValue([]);
+    getPendingApplicationsOfStudent.mockReturnValue([]);
     findAcceptedProposal.mockReturnValue(undefined);
     findRejectedApplication.mockReturnValue(undefined);
     return request(app)
@@ -450,7 +462,7 @@ describe("Applications retrieval tests", () => {
       .set("Content-Type", "application/json")
       .expect(200);
     expect(getApplicationsOfTeacher).toBeCalledWith(
-      "s123456" //"marco.torchiano@teacher.it",
+      "s123456", //"marco.torchiano@teacher.it",
     );
   });
 });
@@ -770,7 +782,7 @@ describe("PATCH /api/virtualClock", () => {
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty(
       "message",
-      "Date successfully changed"
+      "Date successfully changed",
     );
   });
 
@@ -790,7 +802,7 @@ describe("PATCH /api/virtualClock", () => {
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty(
       "message",
-      "Cannot go back in the past"
+      "Cannot go back in the past",
     );
   });
 });
@@ -803,7 +815,7 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
-    getTeacher.mockReturnValue({email: "fake@fake.com"});
+    getTeacher.mockReturnValue({ email: "fake@fake.com" });
     getNotRejectedStartRequest.mockReturnValue([]);
     return request(app)
       .post(`/api/start-requests`)
@@ -826,7 +838,7 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
-    getTeacher.mockReturnValue({email: "fake@fake.com"});
+    getTeacher.mockReturnValue({ email: "fake@fake.com" });
     getNotRejectedStartRequest.mockReturnValue([]);
     return request(app)
       .post(`/api/start-requests`)
@@ -849,7 +861,7 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
-    getTeacher.mockReturnValue({email: "fake@fake.com"});
+    getTeacher.mockReturnValue({ email: "fake@fake.com" });
     getNotRejectedStartRequest.mockReturnValue([]);
     return request(app)
       .post(`/api/start-requests`)
@@ -868,7 +880,7 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
-    getTeacher.mockReturnValue({email: "fake@fake.com"});
+    getTeacher.mockReturnValue({ email: "fake@fake.com" });
     getNotRejectedStartRequest.mockReturnValue([
       {
         title: "fake start request",
