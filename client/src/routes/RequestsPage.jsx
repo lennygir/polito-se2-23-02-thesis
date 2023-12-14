@@ -3,7 +3,7 @@ import { Box, Stack, Typography } from "@mui/material";
 import RequestTable from "../components/RequestTable";
 
 function RequestsPage(props) {
-  const { requests } = props;
+  const { requests, teachers } = props;
   return (
     <div id="requests-page">
       <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -11,14 +11,15 @@ function RequestsPage(props) {
           Thesis Requests
         </Typography>
       </Stack>
-      <RequestTable requests={requests} />
+      <RequestTable requests={requests} teachers={teachers} />
       <Box height={5} marginTop={3} />
     </div>
   );
 }
 
 RequestsPage.propTypes = {
-  requests: PropTypes.array
+  requests: PropTypes.array,
+  teachers: PropTypes.array
 };
 
 export default RequestsPage;

@@ -8,7 +8,7 @@ import Tooltip from "@mui/material/Tooltip";
 import FileOpenIcon from "@mui/icons-material/FileOpen";
 
 function RequestRow(props) {
-  const { request } = props;
+  const { request, teachers } = props;
 
   const renderStatus = () => {
     switch (request.status) {
@@ -25,13 +25,18 @@ function RequestRow(props) {
     }
   };
 
+  const renderSupervisor = () => {
+    const supervisor = teachers.find((teacher) => teacher.email === request.supervisor);
+    return `${supervisor.name.charAt(0)}. ${supervisor.surname}`;
+  };
+
   return (
     <TableRow>
       <TableCell>{request.student_id}</TableCell>
-      <TableCell>{request.supervisor}</TableCell>
+      <TableCell>{renderSupervisor()}</TableCell>
       <TableCell
         sx={{
-          maxWidth: "500px",
+          maxWidth: "420px",
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis"
@@ -52,7 +57,8 @@ function RequestRow(props) {
 }
 
 RequestRow.propTypes = {
-  request: PropTypes.object
+  request: PropTypes.object,
+  teachers: PropTypes.array
 };
 
 export default RequestRow;

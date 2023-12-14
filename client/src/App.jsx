@@ -190,7 +190,7 @@ function Main() {
             <Route path="applications" element={user ? <ApplicationsPage applications={applications} /> : <Navigate replace to="/" /> } />
             <Route path="applications/:applicationId" element={user ? <ViewApplicationPage fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
             <Route path="notifications" element={user ? <NotificationsPage notifications={notifications} fetchNotifications={fetchNotifications} /> : <Navigate replace to="/" />} />
-            <Route path="requests" element={user ? <RequestsPage requests={requests} /> : <Navigate replace to="/" /> } />
+            <Route path="requests" element={user ? <RequestsPage requests={requests} teachers={teachers} /> : <Navigate replace to="/" /> } />
             <Route path="requests/:requestId" element={user ? <ViewRequestPage fetchRequests={fetchRequests} setAlert={setAlert} requests={requests} /> : <Navigate replace to="/" /> } />
             <Route path="add-proposal" element={user ? <CreateProposalPage currentDate={currentDate} fetchProposals={fetchProposals} proposals={proposals} teachers={teachers} degrees={degrees} setAlert={setAlert} /> : <Navigate replace to="/" />} />
             <Route path="settings" element={user ? <SettingsPage /> : <Navigate replace to="/" />} />
