@@ -195,13 +195,11 @@ function ProposalsPage(props) {
     if (selectedTeacherFilter === "active") {
       return !proposal.archived;
     }
-    if (selectedTeacherFilter === "archive") {
-      return proposal.archived;
-    }
     if(selectedTeacherFilter === "archive") {
       // Check if search bar is empty or proposal matches search input
       const supervisor = props.teachers.find(t => t.id === proposal.supervisor);
-      return searchInput === "" || 
+      return proposal.archived && (
+        searchInput === "" || 
         proposal.title.toLowerCase().includes(searchInput.toLowerCase()) ||
         supervisor?.email?.toLowerCase().includes(searchInput.toLowerCase()) ||
         proposal.co_supervisors?.toLowerCase().includes(searchInput.toLowerCase()) ||
@@ -213,7 +211,8 @@ function ProposalsPage(props) {
         proposal.notes?.toLowerCase().includes(searchInput.toLowerCase()) ||
         proposal.expiration_date?.toLowerCase().includes(searchInput.toLowerCase()) ||
         proposal.level?.toLowerCase().includes(searchInput.toLowerCase()) ||
-        proposal.cds?.toLowerCase().includes(searchInput.toLowerCase());
+        proposal.cds?.toLowerCase().includes(searchInput.toLowerCase())
+      );
     }
     return true;
   });
