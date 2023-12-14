@@ -13,9 +13,9 @@ sections:
 
 ### Macro statistics
 
-- Number of stories committed vs done
-- Total points committed vs done
-- Nr of hours planned vs spent (as a team)
+- Number of stories committed vs done: 7/7
+- Total points committed vs done: 25/25
+- Nr of hours planned vs spent (as a team): 101/104
 
 **Remember** a story is done ONLY if it fits the Definition of Done:
 
@@ -41,24 +41,54 @@ sections:
 ## QUALITY MEASURES
 
 - Unit Testing:
-  - Total hours estimated
-  - Total hours spent
-  - Nr of automated unit test cases
-  - Coverage (if available)
+
+  - Total hours estimated: not estimated separately (as it is part of the DoD)
+  - Total hours spent: 13h 15m
+  - Nr of automated unit test cases: 23 FE + 103 BE -> 126 passing
+  - Coverage:
+
+    Frontend :
+
+    | File         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                |
+    | ------------ | ------- | -------- | ------- | ------- | -------------------------------- |
+    | All files    | 83.09   | 50       | 67.74   | 83.09   |
+    | API.js       | 78.94   | 50       | 67.74   | 78.94   | 20,26-29,142,160-170,278,320,354 |
+    | constants.js | 100     | 100      | 100     | 100     |
+
+    Backend :
+    | File | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s  
+    | --------------------------|---------|----------|---------|---------|------------------------------------------------------------------
+    All files | 86.02 | 76.26 | 73.95 | 85.89 |  
+    src | 85.71 | 76.26 | 72.22 | 85.63 |  
+    db.js | 100 | 100 | 100 | 100 |  
+    passport.js | 60 | 0 | 0 | 60 | 9,13,26-36  
+    protect-routes.js | 40 | 0 | 0 | 40 | 4-7  
+    routes.js | 85.75 | 76.75 | 84.21 | 85.63 | ...0,724,730,734,753,765,771,777,782,797,832,842,850-854,868,876
+    server.js | 100 | 100 | 100 | 100 |  
+    smtp.js | 100 | 100 | 100 | 100 |  
+    theses-dao.js | 86.23 | 100 | 67.39 | 86.23 | 26,76,113,129,137,141,149,153,158,170,176,180,184,384,407  
+    user-dao.js | 100 | 100 | 100 | 100 |  
+    src/mail | 100 | 100 | 100 | 100 |  
+    application-decision.js | 100 | 100 | 100 | 100 |  
+    new-application.js | 100 | 100 | 100 | 100 |
+
 - E2E testing:
-  - Total hours estimated
-  - Total hours spent
-- Code review
-  - Total hours estimated
-  - Total hours spent
+  - Total hours estimated: 8h
+  - Total hours spent: 5h 30m
+- Code review:
+  - Total hours estimated: 8h
+  - Total hours spent: 8h 5m
 - Technical Debt management:
-  - Total hours estimated
-  - Total hours spent
-  - Hours estimated for remediation by SonarQube
-  - Hours estimated for remediation by SonarQube only for the selected and planned issues
-  - Hours spent on remediation
-  - debt ratio (as reported by SonarQube under "Measures-Maintainability")
-  - rating for each quality characteristic reported in SonarQube under "Measures" (namely reliability, security, maintainability )
+  - Total hours estimated: 5h
+  - Total hours spent: 4h 15m
+  - Hours estimated for remediation by SonarQube: 28h 48m
+  - Hours estimated for remediation by SonarQube only for the selected and planned issues: 26h
+  - Hours spent on remediation: 4h 15m
+  - Debt ratio (as reported by SonarQube under "Measures-Maintainability"): 0%
+  - Rating for each quality characteristic reported in SonarQube under "Measures" (namely reliability, security, maintainability):
+    - Reliability: A
+    - Security: A
+    - Maintainability: A
 
 ## ASSESSMENT
 
@@ -68,13 +98,14 @@ sections:
 - What lessons did you learn (both positive and negative) in this sprint?
 
 - Which improvement goals set in the previous retrospective were you able to achieve?
-- we have tried to do a test-driven programming, despite some issue, we maneged to did our work 
+- we have tried to do a test-driven programming, despite some issue, we maneged to did our work
+
 - Which ones you were not able to achieve? Why?
 
 - Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
--  i suggest to improve the test-driven approach wth better communication between front-end and back-end
+- i suggest to improve the test-driven approach wth better communication between front-end and back-end
 
 > Propose one or two
 
 - One thing you are proud of as a Team!!
--  We were able to complete a lot of story points
+- We were able to complete a lot of story points
