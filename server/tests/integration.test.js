@@ -114,7 +114,7 @@ describe("Story 12: Archive Proposals", () => {
       notes: null,
       expiration_date: future_date,
       level: "MSC",
-      cds: "L-8-F",
+      cds: "LM-32-D",
     };
     inserted_proposal = {
       ...proposal_body,
@@ -475,6 +475,36 @@ describe("Story 12: Archive Proposals", () => {
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toHaveProperty("archived", true);
+  });
+  it("A student should be able to see only active proposals", async () => {
+    //proposal_body.cds = "LM-32-D";
+
+    // marco.torchiano inserts a proposal
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body)
+    ).body;
+
+    // marco torchiano archives it
+    const archived_proposal = (
+      await request(app)
+        .patch(`/api/proposals/${inserted_proposal_id}`)
+        .set("Content-Type", "application/json")
+        .send({
+          archived: true,
+        })
+        .expect(200)
+    ).body;
+
+    logIn("s309618@studenti.polito.it");
+
+    const proposals = (await request(app).get("/api/proposals").expect(200))
+      .body;
+    expect(
+      proposals.find((proposal) => proposal.id === archived_proposal.id),
+    ).toBeUndefined();
   });
 });
 
@@ -1743,7 +1773,10 @@ describe("Secretary clerk story", () => {
           title: "Title",
           supervisor: "s123456",
           description: "description",
-          co_supervisors: ["luigi.derussis@teacher.it","antonio.lioy@teacher.it"],
+          co_supervisors: [
+            "luigi.derussis@teacher.it",
+            "antonio.lioy@teacher.it",
+          ],
         })
         .expect(200)
     ).body;
@@ -1779,7 +1812,7 @@ describe("Secretary clerk story", () => {
       title: "Title",
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",
-      co_supervisors: ["luigi.derussis@teacher.it","antonio.lioy@teacher.it"],
+      co_supervisors: ["luigi.derussis@teacher.it", "antonio.lioy@teacher.it"],
       description: "description",
       status: "requested",
     });

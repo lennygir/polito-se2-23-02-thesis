@@ -364,6 +364,9 @@ router.get(
           return proposal.archived === req.query.archived;
         });
       }
+      if (user.role === "student") {
+        proposals = proposals.filter((proposal) => !proposal.archived);
+      }
       return res.status(200).json(proposals);
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
