@@ -1076,6 +1076,83 @@ describe("Proposal expiration tests (no virtual clock)", () => {
     db.prepare("update VIRTUAL_CLOCK set delta = ? where id = ?").run(0, 1);
   });
 
+  it("Pending application for a proposal that expires", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+
+    // set expiration date to the future
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
+
+    // insert proposal
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+
+    // login as a student
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+
+    // insert application for the previously inserted proposal
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send({
+        proposal: inserted_proposal_id,
+      });
+
+    // the proposal of the application expires
+    const pastDate = dayjs().subtract(2, "day").format("YYYY-MM-DD");
+    db.prepare(
+      "update main.PROPOSALS set expiration_date = ? where id = ?",
+    ).run(pastDate, inserted_proposal_id);
+
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "luigi.derussis@teacher.it",
+      };
+      next();
+    });
+
+    // set expiration date to the future
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
+    proposal.groups = ["ELITE"];
+
+    // insert proposal
+    const notExpiredProposalId = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+
+    // login as a student
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+
+    // insert application for the previously inserted proposal
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send({
+        proposal: notExpiredProposalId,
+      })
+      .expect(200); // should not give an error
+  });
   it("a pending application for a proposal that expires should be set cancelled", async () => {
     isLoggedIn.mockImplementation((req, res, next) => {
       req.user = {
