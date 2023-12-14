@@ -25,7 +25,6 @@ const {
   updateProposal,
   getApplicationById,
   getTeacherByEmail,
-  getTeacherEmailById,
   cancelPendingApplications,
   getPendingOrAcceptedApplicationsOfStudent,
   findAcceptedProposal,
@@ -450,6 +449,11 @@ router.get("/api/applications", isLoggedIn, (req, res) => {
         application.state === "pending"
       ) {
         application.state = "canceled";
+      }
+      if (application.attached_file) {
+        application.attached_file = true;
+      } else {
+        application.attached_file = false;
       }
       return application;
     });
