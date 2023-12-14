@@ -1,7 +1,5 @@
 # RETROSPECTIVE 3 (Team #2)
 
-=====================================
-
 The retrospective should include _at least_ the following
 sections:
 
@@ -24,8 +22,6 @@ sections:
 - Code present on VCS
 - End-to-End tests performed
 
-> Please refine your DoD
-
 ### Detailed statistics
 
 | Story | # Tasks | Points | Hours Est. | Hours Actual |
@@ -38,8 +34,6 @@ sections:
 | #15   | 2       | 2      | 3h         | 4h 30m       |
 | #27   | 7       | 5      | 10h 30m    | 7h 45m       |
 | #16   | 1       | 2      | 1h 30m     | 55m          |
-
-> place technical tasks corresponding to story `#0` and leave out story points (not applicable in this case)
 
 - Hours per task average, standard deviation (estimate and actual):
 
@@ -57,30 +51,31 @@ sections:
   - Nr of automated unit test cases: 23 FE + 103 BE -> 126 passing
   - Coverage:
 
-    Frontend :
+    - Frontend :
 
-    | File         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                |
-    | ------------ | ------- | -------- | ------- | ------- | -------------------------------- |
-    | All files    | 83.09   | 50       | 67.74   | 83.09   |
-    | API.js       | 78.94   | 50       | 67.74   | 78.94   | 20,26-29,142,160-170,278,320,354 |
-    | constants.js | 100     | 100      | 100     | 100     |
+      | File         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                |
+      | ------------ | ------- | -------- | ------- | ------- | -------------------------------- |
+      | All files    | 83.09   | 50       | 67.74   | 83.09   |
+      | API.js       | 78.94   | 50       | 67.74   | 78.94   | 20,26-29,142,160-170,278,320,354 |
+      | constants.js | 100     | 100      | 100     | 100     |
 
-    Backend :
-    | File | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s  
-    | --------------------------|---------|----------|---------|---------|------------------------------------------------------------------
-    All files | 86.02 | 76.26 | 73.95 | 85.89 |  
-    src | 85.71 | 76.26 | 72.22 | 85.63 |  
-    db.js | 100 | 100 | 100 | 100 |  
-    passport.js | 60 | 0 | 0 | 60 | 9,13,26-36  
-    protect-routes.js | 40 | 0 | 0 | 40 | 4-7  
-    routes.js | 85.75 | 76.75 | 84.21 | 85.63 | ...0,724,730,734,753,765,771,777,782,797,832,842,850-854,868,876
-    server.js | 100 | 100 | 100 | 100 |  
-    smtp.js | 100 | 100 | 100 | 100 |  
-    theses-dao.js | 86.23 | 100 | 67.39 | 86.23 | 26,76,113,129,137,141,149,153,158,170,176,180,184,384,407  
-    user-dao.js | 100 | 100 | 100 | 100 |  
-    src/mail | 100 | 100 | 100 | 100 |  
-    application-decision.js | 100 | 100 | 100 | 100 |  
-    new-application.js | 100 | 100 | 100 | 100 |
+    - Backend :
+
+      | File                    | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                |
+      | ----------------------- | ------- | -------- | ------- | ------- | ---------------------------------------------------------------- |
+      | All files               | 86.02   | 76.26    | 73.95   | 85.89   |
+      | src                     | 85.71   | 76.26    | 72.22   | 85.63   |
+      | db.js                   | 100     | 100      | 100     | 100     |
+      | passport.js             | 60      | 0        | 0       | 60      | 9,13,26-36                                                       |
+      | protect-routes.js       | 40      | 0        | 0       | 40      | 4-7                                                              |
+      | routes.js               | 85.75   | 76.75    | 84.21   | 85.63   | ...0,724,730,734,753,765,771,777,782,797,832,842,850-854,868,876 |
+      | server.js               | 100     | 100      | 100     | 100     |
+      | smtp.js                 | 100     | 100      | 100     | 100     |
+      | theses-dao.js           | 86.23   | 100      | 67.39   | 86.23   | 26,76,113,129,137,141,149,153,158,170,176,180,184,384,407        |
+      | user-dao.js             | 100     | 100      | 100     | 100     |
+      | src/mail                | 100     | 100      | 100     | 100     |
+      | application-decision.js | 100     | 100      | 100     | 100     |
+      | new-application.js      | 100     | 100      | 100     | 100     |
 
 - E2E testing:
   - Total hours estimated: 8h
@@ -103,19 +98,35 @@ sections:
 ## ASSESSMENT
 
 - What caused your errors in estimation (if any)?
-- there was some inconsistencies in db and backend, this causes some problems
+
+  There were some inconsistencies in the database and in the backend especially with namings which caused some problems. Implementing the endpoints took more than expected and showed new bugs since we tried a new approach of writing tests before the actual implementation.
 
 - What lessons did you learn (both positive and negative) in this sprint?
 
+  We learned that the test-driven development approach improved the quality of our code. It allowed us to discover new issues in advance rather than discovering them after having written a lot of code.
+
+  We learned that this approach also has a downside: it's difficult to predict all the edge-cases in advance. This requires additional time to think about the tests.
+
 - Which improvement goals set in the previous retrospective were you able to achieve?
-- we have tried to do a test-driven programming, despite some issue, we maneged to did our work
+
+  We managed to minimize technical debt.
+
+  We managed to successfully use integration black box testing before writing the actual endpoints in the backend.
 
 - Which ones you were not able to achieve? Why?
 
-- Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
-- i suggest to improve the test-driven approach wth better communication between front-end and back-end
+  We weren't able to respect the internal deadline given by ourselves, because we had tasks that depended on other people's tasks causing stalls for some people to start working on new features.
 
-> Propose one or two
+- Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
+
+  - Perform more scrum meetings during the sprint (> 2)
+
+  - Add CI for sonarcloud
+
+  - Improve documentation
+
+  - Improve the test-driven approach with better communication between front-end and back-end teams
 
 - One thing you are proud of as a Team!!
-- We were able to complete a lot of story points
+
+  We were able to complete all the stories committed and score a new team record for most story points DONE.
