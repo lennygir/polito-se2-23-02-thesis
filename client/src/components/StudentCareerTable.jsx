@@ -22,7 +22,7 @@ function StudentCareerTable(props) {
               <TableCell
                 key={headCell}
                 variant="head"
-                align={headCell === "Grade" || headCell === "CFU" || headCell === "Date" ? "center" : ""}
+                align={headCell === "Grade" || headCell === "CFU" || headCell === "Date" ? "center" : "inherit"}
               >
                 <Typography fontWeight={700}>{headCell}</Typography>
               </TableCell>
