@@ -30,7 +30,7 @@ function CreateRequestPage(props) {
   };
 
   return (
-    <div id="create-proposal-page">
+    <div id="create-request-page">
       <Stack
         paddingTop={4}
         sx={{ pt: { md: 4, xs: 0 } }}
