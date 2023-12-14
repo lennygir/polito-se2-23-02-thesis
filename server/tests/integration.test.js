@@ -5,6 +5,7 @@ const dayjs = require("dayjs");
 const { db } = require("../src/db");
 const isLoggedIn = require("../src/protect-routes");
 const PDFDocument = require("pdfkit");
+const fs = require("fs");
 
 function createPDF() {
   return new Promise((resolve, reject) => {
@@ -25,8 +26,33 @@ function createPDF() {
     });
 
     // Add content to the PDF (e.g., text, images)
-    doc.text("Hello, this is an in-memory PDF!");
+    for (let i = 0; i < 100; i++) {
+      doc.text("Hello, this is an in-memory PDF!");
+    }
     doc.end();
+  });
+}
+
+function writePDF(path, data) {
+  return new Promise((resolve, reject) => {
+    fs.writeFile(path, data, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+function readPDF(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
   });
 }
 
@@ -517,6 +543,84 @@ describe("Story 13: student CV", () => {
     db.prepare("delete from main.PROPOSALS").run();
     db.prepare("delete from main.APPLICATIONS").run();
   });
+  //it("Try to upload a pdf from the path", async () => {
+  //  // login as professor
+  //  isLoggedIn.mockImplementation((req, res, next) => {
+  //    req.user = {
+  //      email: "marco.torchiano@teacher.it",
+  //    };
+  //    next();
+  //  });
+  //  // insert proposal
+  //  const proposal_body = {
+  //    title: "New proposal",
+  //    co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
+  //    groups: ["SOFTENG"],
+  //    keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
+  //    types: ["EXPERIMENTAL", "RESEARCH"],
+  //    description: "This proposal is used to test the archiving functionality",
+  //    required_knowledge: "You have to know how to archive the thesis",
+  //    notes: null,
+  //    expiration_date: dayjs().format("YYYY-MM-DD"),
+  //    level: "MSC",
+  //    cds: "L-8-F",
+  //  };
+  //  const proposalId = (
+  //    await request(app)
+  //      .post("/api/proposals")
+  //      .set("Content-Type", "application/json")
+  //      .send(proposal_body)
+  //      .expect(200)
+  //  ).body;
+  //  // login as a student
+  //  isLoggedIn.mockImplementation((req, res, next) => {
+  //    req.user = {
+  //      email: "s309618@studenti.polito.it",
+  //    };
+  //    next();
+  //  });
+  //  // insert application for proposal
+  //  await request(app)
+  //    .post("/api/applications")
+  //    .set("Content-Type", "application/json")
+  //    .send({
+  //      proposal: proposalId,
+  //    })
+  //    .expect(200);
+
+  //  // get application id
+  //  const applications = (
+  //    await request(app).get("/api/applications").expect(200)
+  //  ).body;
+
+  //  // insert pdf for application
+  //  const pdf = await readPDF(
+  //    "/home/lorber13/Scaricati/A4-mid-to-hi-fidelity-1.pdf",
+  //  );
+  //  const response = await request(app)
+  //    .patch(`/api/applications/${applications[0].id}`)
+  //    .set("Content-Type", "application/pdf")
+  //    .send(pdf)
+  //    .expect(200);
+  //  expect(response.body).toEqual({ message: "File uploaded correctly" });
+
+  //  // log in as professor
+  //  isLoggedIn.mockImplementation((req, res, next) => {
+  //    req.user = {
+  //      email: "marco.torchiano@teacher.it",
+  //    };
+  //    next();
+  //  });
+
+  //  // retrieve pdf file
+  //  const expectedPdf = (
+  //    await request(app)
+  //      .get(`/api/applications/${applications[0].id}/attached-file`)
+  //      .expect(200)
+  //  ).body;
+  //  await writePDF("/home/lorber13/Scaricati/test.pdf", expectedPdf);
+  //  expect(expectedPdf).toEqual(pdf);
+  //});
   it("Try to upload a pdf", async () => {
     // login as professor
     isLoggedIn.mockImplementation((req, res, next) => {
