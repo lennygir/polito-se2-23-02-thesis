@@ -195,23 +195,24 @@ function ProposalsPage(props) {
     if (selectedTeacherFilter === "active") {
       return !proposal.archived;
     }
-    if(selectedTeacherFilter === "archive") {
+    if (selectedTeacherFilter === "archive") {
       // Check if search bar is empty or proposal matches search input
-      const supervisor = props.teachers.find(t => t.id === proposal.supervisor);
-      return proposal.archived && (
-        searchInput === "" || 
-        proposal.title.toLowerCase().includes(searchInput.toLowerCase()) ||
-        supervisor?.email?.toLowerCase().includes(searchInput.toLowerCase()) ||
-        proposal.co_supervisors?.toLowerCase().includes(searchInput.toLowerCase()) ||
-        proposal.keywords?.toLowerCase().includes(searchInput.toLowerCase()) ||
-        proposal.type?.toLowerCase().includes(searchInput.toLowerCase()) ||
-        proposal.groups?.toLowerCase().includes(searchInput.toLowerCase()) ||
-        proposal.description?.toLowerCase().includes(searchInput.toLowerCase()) ||
-        proposal.required_knowledge?.toLowerCase().includes(searchInput.toLowerCase()) ||
-        proposal.notes?.toLowerCase().includes(searchInput.toLowerCase()) ||
-        proposal.expiration_date?.toLowerCase().includes(searchInput.toLowerCase()) ||
-        proposal.level?.toLowerCase().includes(searchInput.toLowerCase()) ||
-        proposal.cds?.toLowerCase().includes(searchInput.toLowerCase())
+      const supervisor = props.teachers.find((t) => t.id === proposal.supervisor);
+      return (
+        proposal.archived &&
+        (searchInput === "" ||
+          proposal.title.toLowerCase().includes(searchInput.toLowerCase()) ||
+          supervisor?.email?.toLowerCase().includes(searchInput.toLowerCase()) ||
+          proposal.co_supervisors?.toLowerCase().includes(searchInput.toLowerCase()) ||
+          proposal.keywords?.toLowerCase().includes(searchInput.toLowerCase()) ||
+          proposal.type?.toLowerCase().includes(searchInput.toLowerCase()) ||
+          proposal.groups?.toLowerCase().includes(searchInput.toLowerCase()) ||
+          proposal.description?.toLowerCase().includes(searchInput.toLowerCase()) ||
+          proposal.required_knowledge?.toLowerCase().includes(searchInput.toLowerCase()) ||
+          proposal.notes?.toLowerCase().includes(searchInput.toLowerCase()) ||
+          proposal.expiration_date?.toLowerCase().includes(searchInput.toLowerCase()) ||
+          proposal.level?.toLowerCase().includes(searchInput.toLowerCase()) ||
+          proposal.cds?.toLowerCase().includes(searchInput.toLowerCase()))
       );
     }
     return true;
@@ -253,20 +254,30 @@ function ProposalsPage(props) {
           </Button>
         </Hidden>
       </Stack>
-      <Toolbar
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "end",
-          height: 96,
-          marginTop: { md: -3, xs: 0 },
-          marginX: { md: 3, xs: -2 }
-        }}
-      >
-        <Stack>
-          { selectedTeacherFilter === "archive" &&
+      {selectedTeacherFilter === "archive" && (
+        <Toolbar
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "end",
+            height: 96,
+            marginTop: { md: -3, xs: 0 },
+            marginX: { md: 1, xs: -2 }
+          }}
+        >
+          <Card
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              width: "100%",
+              padding: 2,
+              paddingRight: 3,
+              borderRadius: 4
+            }}
+          >
             <OutlinedInput
-              sx={{ borderRadius: 4, width: { md: "400px", xs: "200px" } }}
+              sx={{ borderRadius: 4, width: "100%" }}
               placeholder="Search proposal..."
               onChange={(e) => handleSearchInputChange(e.target.value)}
               value={searchInput}
@@ -276,20 +287,20 @@ function ProposalsPage(props) {
                 </InputAdornment>
               }
             />
-          }
-        </Stack>
-        <Stack direction="row" spacing={1}>
-          {TEACHER_PROPOSALS_FILTERS.map((filter) => (
-            <Chip
-              key={filter.id}
-              label={filter.label}
-              variant={selectedTeacherFilter === filter.id ? "filled" : "outlined"}
-              onClick={() => handleTeacherFilterChange(filter.id)}
-              sx={{ height: 30 }}
-            />
-          ))}
-        </Stack>
-      </Toolbar>
+          </Card>
+        </Toolbar>
+      )}
+      <Stack direction="row" spacing={1} sx={{ marginX: { md: 5, xs: 1 }, marginTop: 2 }}>
+        {TEACHER_PROPOSALS_FILTERS.map((filter) => (
+          <Chip
+            key={filter.id}
+            label={filter.label}
+            variant={selectedTeacherFilter === filter.id ? "filled" : "outlined"}
+            onClick={() => handleTeacherFilterChange(filter.id)}
+            sx={{ height: 30 }}
+          />
+        ))}
+      </Stack>
       <ProposalTable
         headers={selectedTeacherFilter === "active" ? TEACHER_HEADERS_ACTIVE : TEACHER_HEADERS_EXPIRED}
         data={filteredTeacherProposals}
