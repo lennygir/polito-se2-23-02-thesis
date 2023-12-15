@@ -398,10 +398,9 @@ router.post(
       if (db_proposal === undefined) {
         return res.status(400).json({ message: "Invalid application content" });
       }
-       if (db_proposal.deleted === 1){
+      if (db_proposal.deleted === 1){
         return res.status(404).json("Proposal not found");
       }
-      
       if (getAcceptedApplicationsOfStudent(user.id).length !== 0) {
         return res.status(400).json({
           message: `The student ${user.id} has an accepted proposal`,
@@ -421,7 +420,11 @@ router.post(
             expirationDateOfProposal.isAfter(currentDate)
           );
         })
-      ) 
+      ) {
+        return res.status(400).json({
+          message: `The student ${user.id} has already applied to a proposal`,
+        });
+      }
       if (findAcceptedProposal(proposal)) {
         return res.status(400).json({
           message: `The proposal ${proposal} is already accepted for another student`,
