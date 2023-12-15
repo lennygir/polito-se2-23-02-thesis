@@ -60,6 +60,15 @@ function readPDF(path) {
   });
 }
 
+function logIn(email) {
+  isLoggedIn.mockImplementation((req, res, next) => {
+    req.user = {
+      email: email,
+    };
+    next();
+  });
+}
+
 jest.mock("../src/db");
 jest.mock("../src/protect-routes");
 
@@ -89,23 +98,13 @@ beforeEach(() => {
 describe("Protected routes", () => {
   it("Sets the logged in user", async () => {
     const email = "marco.torchiano@teacher.it";
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: email,
-      };
-      next();
-    });
+    logIn(email);
     const user = (await request(app).get("/api/sessions/current").expect(200))
       .body;
     expect(user.email).toBe(email);
   });
   it("Insertion of a correct proposal by a professor", async () => {
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
     await request(app)
       .post("/api/proposals")
       .set("Content-Type", "application/json")
@@ -113,15 +112,6 @@ describe("Protected routes", () => {
       .expect(200);
   });
 });
-
-function logIn(email) {
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
-}
 
 describe("Story 12: Archive Proposals", () => {
   let proposal_body;
@@ -429,12 +419,7 @@ describe("Story 12: Archive Proposals", () => {
         .send(proposal_body)
     ).body;
 
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "luigi.derussis@teacher.it",
-      };
-      next();
-    });
+    logIn("luigi.derussis@teacher.it");
 
     // luigi.derussis wants to set marco.torchiano's proposal to archived
     await request(app)
@@ -490,12 +475,7 @@ describe("Story 12: Archive Proposals", () => {
         .send(proposal_body)
     ).body;
 
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
 
     // s309618 student inserts an application for the proposal just inserted
     await request(app)
@@ -505,12 +485,7 @@ describe("Story 12: Archive Proposals", () => {
         proposal: inserted_proposal_id,
       });
 
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
 
     // marco.torchiano finds the application id
     const applications = (await request(app).get("/api/applications")).body;
@@ -656,12 +631,7 @@ describe("Story 13: student CV", () => {
   //});
   it("Try to upload a pdf", async () => {
     // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
     // insert proposal
     const proposal_body = {
       title: "New proposal",
@@ -684,12 +654,7 @@ describe("Story 13: student CV", () => {
         .expect(200)
     ).body;
     // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
     // insert application for proposal
     await request(app)
       .post("/api/applications")
@@ -714,12 +679,7 @@ describe("Story 13: student CV", () => {
     expect(response.body).toEqual({ message: "File uploaded correctly" });
 
     // log in as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
 
     // retrieve pdf file
     const expectedPdf = (
@@ -733,12 +693,7 @@ describe("Story 13: student CV", () => {
 
 it("prova", async () => {
   const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
+  logIn(email);
   const proposal_id = (
     await request(app)
       .post("/api/proposals")
@@ -768,12 +723,7 @@ it("prova", async () => {
 
 it("CRUD on proposal", async () => {
   const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
+  logIn(email);
   const proposalId = (
     await request(app)
       .post("/api/proposals")
@@ -826,12 +776,7 @@ it("CRUD on proposal", async () => {
 describe("Proposal insertion tests", () => {
   it("Insertion of a proposal with no notes", () => {
     const email = "marco.torchiano@teacher.it";
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: email,
-      };
-      next();
-    });
+    logIn(email);
     proposal.notes = null;
     return request(app)
       .post("/api/proposals")
@@ -850,12 +795,7 @@ describe("Proposal insertion tests", () => {
 
   it("Insertion with an invalid date", () => {
     const email = "marco.torchiano@teacher.it";
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: email,
-      };
-      next();
-    });
+    logIn(email);
     proposal.expiration_date = "0";
     return request(app)
       .post("/api/proposals")
@@ -868,12 +808,7 @@ describe("Proposal insertion tests", () => {
   });
   it("Insertion of a proposal with wrong level format", () => {
     const email = "marco.torchiano@teacher.it";
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: email,
-      };
-      next();
-    });
+    logIn(email);
     proposal.level = "wrong-level";
     return request(app)
       .post("/api/proposals")
@@ -886,12 +821,7 @@ describe("Proposal insertion tests", () => {
   });
   it("Insertion of a proposal with an invalid group", () => {
     const email = "marco.torchiano@teacher.it";
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: email,
-      };
-      next();
-    });
+    logIn(email);
     proposal.groups.push("WRONG GROUP");
     return request(app)
       .post("/api/proposals")
@@ -904,12 +834,7 @@ describe("Proposal insertion tests", () => {
   });
   it("Insertion of a proposal with a single keyword (no array)", () => {
     const email = "marco.torchiano@teacher.it";
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: email,
-      };
-      next();
-    });
+    logIn(email);
     proposal.keywords = "SOFTWARE ENGINEERING";
     return request(app)
       .post("/api/proposals")
@@ -923,12 +848,7 @@ describe("Proposal insertion tests", () => {
 });
 it("Return 200 correct get of all application of a selected teacher", () => {
   const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
+  logIn(email);
   const teacher = "s123456";
   return request(app)
     .get(`/api/applications?teacher=${teacher}`)
@@ -938,12 +858,7 @@ it("Return 200 correct get of all application of a selected teacher", () => {
 
 describe("Get Application From Teacher", () => {
   it("Return 200 correct get of all application of a selected student", () => {
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
     return request(app)
       .get(`/api/applications`)
       .set("Content-Type", "application/json")
@@ -954,12 +869,7 @@ describe("Get Application From Teacher", () => {
 describe("Proposal Retrieval Tests", () => {
   it("Get all the proposals from a specific teacher", () => {
     const email = "marco.torchiano@teacher.it";
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: email,
-      };
-      next();
-    });
+    logIn(email);
     return request(app)
       .get(`/api/proposals`)
       .set("Content-Type", "application/json")
@@ -979,12 +889,7 @@ describe("Proposal Retrieval Tests", () => {
 
 describe("Application Insertion Tests", () => {
   it("Insertion of an application from a wrong student", () => {
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "wrong.student@student.it",
-      };
-      next();
-    });
+    logIn("wrong.student@student.it");
     return request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
@@ -1000,24 +905,14 @@ describe("Application Insertion Tests", () => {
     db.prepare(
       "delete from main.APPLICATIONS where main.APPLICATIONS.student_id = ?",
     ).run("s309618");
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
     const proposalId = (
       await request(app)
         .post("/api/proposals")
         .set("Content-Type", "application/json")
         .send(proposal)
     ).body;
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
     application = {
       proposal: proposalId,
     };
@@ -1037,12 +932,7 @@ describe("Application Insertion Tests", () => {
     db.prepare(
       "delete from main.APPLICATIONS where main.APPLICATIONS.student_id = ?",
     ).run("s309618");
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
     const proposalId = (
       await request(app)
         .post("/api/proposals")
@@ -1055,12 +945,7 @@ describe("Application Insertion Tests", () => {
         .set("Content-Type", "application/json")
         .send(proposal)
     ).body;
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
     application = {
       proposal: proposalId,
     };
@@ -1087,12 +972,7 @@ describe("Application Insertion Tests", () => {
 
 describe("Notifications Retrieval Tests", () => {
   it("Get all the notifications from a specific student", () => {
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
     return request(app)
       .get(`/api/notifications`)
       .set("Content-Type", "application/json")
@@ -1113,12 +993,7 @@ describe("Proposal expiration tests (no virtual clock)", () => {
   });
 
   it("Pending application for a proposal that expires", async () => {
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
 
     // set expiration date to the future
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
@@ -1132,12 +1007,7 @@ describe("Proposal expiration tests (no virtual clock)", () => {
     ).body;
 
     // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
 
     // insert application for the previously inserted proposal
     await request(app)
@@ -1153,12 +1023,7 @@ describe("Proposal expiration tests (no virtual clock)", () => {
       "update main.PROPOSALS set expiration_date = ? where id = ?",
     ).run(pastDate, inserted_proposal_id);
 
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "luigi.derussis@teacher.it",
-      };
-      next();
-    });
+    logIn("luigi.derussis@teacher.it");
 
     // set expiration date to the future
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
@@ -1173,12 +1038,7 @@ describe("Proposal expiration tests (no virtual clock)", () => {
     ).body;
 
     // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
 
     // insert application for the previously inserted proposal
     await request(app)
@@ -1190,12 +1050,7 @@ describe("Proposal expiration tests (no virtual clock)", () => {
       .expect(200); // should not give an error
   });
   it("a pending application for a proposal that expires should be set cancelled", async () => {
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
 
     // set expiration date to the future
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
@@ -1209,12 +1064,7 @@ describe("Proposal expiration tests (no virtual clock)", () => {
     ).body;
 
     // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
 
     // insert application for the previously inserted proposal
     await request(app)
@@ -1242,12 +1092,7 @@ describe("Proposal expiration tests (no virtual clock)", () => {
 
   it("cannot apply to a proposal expired", async () => {
     // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
 
     // set the expiration date to tomorrow
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
@@ -1267,12 +1112,7 @@ describe("Proposal expiration tests (no virtual clock)", () => {
     ).run(pastDate, inserted_proposal_id);
 
     // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
 
     // the student should not be able to apply for this proposal since it is expired
     await request(app)
@@ -1291,12 +1131,7 @@ describe("Proposal expiration tests (no virtual clock)", () => {
 
   it("getProposals for student shouldn't return expired proposals", async () => {
     // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
 
     // set the proposal's expiration date to tomorrow and insert it
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
@@ -1314,12 +1149,7 @@ describe("Proposal expiration tests (no virtual clock)", () => {
     ).run(pastDate, inserted_proposal_id);
 
     // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
 
     // the student should not see the proposal since the proposal (for the virtual clock) is expired
     const proposals = (await request(app).get("/api/proposals").expect(200))
@@ -1330,12 +1160,7 @@ describe("Proposal expiration tests (no virtual clock)", () => {
   });
   it("If the proposal is expired it can't be deleted", async () => {
     // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
 
     // set expiration date to the future
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
@@ -1371,12 +1196,7 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
   });
 
   it("a pending application for a proposal that expires should be set canceled", async () => {
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
 
     // set virtual_clock to now
     db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
@@ -1398,12 +1218,7 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
     ).body;
 
     // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
 
     // insert application for the previously inserted proposal
     await request(app)
@@ -1436,12 +1251,7 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
 
   it("cannot apply to a proposal expired", async () => {
     // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
 
     // set the virtual clock to now
     db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
@@ -1474,12 +1284,7 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
       .expect(200);
 
     // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
 
     // the student should not be able to apply for this proposal since it is expired
     await request(app)
@@ -1498,12 +1303,7 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
 
   it("getProposals for student shouldn't return expired proposals", async () => {
     // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
 
     // set the clock to now
     db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
@@ -1534,12 +1334,7 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
       .expect(200);
 
     // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
 
     // the student should not see the proposal since the proposal (for the virtual clock) is expired
     const proposals = (await request(app).get("/api/proposals").expect(200))
@@ -1612,12 +1407,7 @@ describe("Proposal acceptance", () => {
   });
   it("If a proposal gets accepted for a student, other students' applications should become canceled", async () => {
     // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
 
     // set expiration date to tomorrow
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
@@ -1631,12 +1421,7 @@ describe("Proposal acceptance", () => {
     ).body;
 
     // login as student1
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
 
     // insert application for the previously inserted proposal
     const application = (
@@ -1650,12 +1435,7 @@ describe("Proposal acceptance", () => {
     ).body;
 
     // login as student2
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s308747@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s308747@studenti.polito.it");
 
     // insert application for the previously inserted proposal
     await request(app)
@@ -1667,12 +1447,7 @@ describe("Proposal acceptance", () => {
       .expect(200);
 
     // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
 
     // the professor accepts the proposal for the student1
     await request(app)
@@ -1683,12 +1458,7 @@ describe("Proposal acceptance", () => {
       .expect(200);
 
     // login as student1
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
 
     const applicationsStudent1 = (await request(app).get("/api/applications"))
       .body;
@@ -1696,12 +1466,7 @@ describe("Proposal acceptance", () => {
     expect(applicationsStudent1[0].state).toBe("accepted");
 
     // login as student2
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s308747@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s308747@studenti.polito.it");
 
     const applicationsStudent2 = (await request(app).get("/api/applications"))
       .body;
