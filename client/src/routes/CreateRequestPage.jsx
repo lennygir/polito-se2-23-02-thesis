@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Box from "@mui/material/Box";
@@ -7,19 +8,29 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import RequestForm from "../components/RequestForm";
+import ErrorContext from "../contexts/ErrorContext";
+import API from "../utils/API";
 
-function RequestPage(props) {
-  const { teachers, setAlert } = props;
+function CreateRequestPage(props) {
+  const { teachers, setAlert, setRequestSent } = props;
+  const handleErrors = useContext(ErrorContext);
+  const navigate = useNavigate();
+
   const createRequest = (request) => {
-    console.log(request);
-    setAlert({
-      message: "Request submitted successfully, and you should wait for approval",
-      severity: "success"
-    });
+    API.createRequest(request)
+      .then(() => {
+        setAlert({
+          message: "Request submitted successfully",
+          severity: "success"
+        });
+        setRequestSent(true);
+        navigate("/proposals");
+      })
+      .catch((err) => handleErrors(err));
   };
 
   return (
-    <div id="create-proposal-page">
+    <div id="create-request-page">
       <Stack
         paddingTop={4}
         sx={{ pt: { md: 4, xs: 0 } }}
@@ -50,9 +61,10 @@ function RequestPage(props) {
   );
 }
 
-RequestPage.propTypes = {
+CreateRequestPage.propTypes = {
   teachers: PropTypes.array,
-  setAlert: PropTypes.func
+  setAlert: PropTypes.func,
+  setRequestSent: PropTypes.func
 };
 
-export default RequestPage;
+export default CreateRequestPage;

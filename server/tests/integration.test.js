@@ -5,6 +5,7 @@ const dayjs = require("dayjs");
 const { db } = require("../src/db");
 const isLoggedIn = require("../src/protect-routes");
 const PDFDocument = require("pdfkit");
+const fs = require("fs");
 
 function createPDF() {
   return new Promise((resolve, reject) => {
@@ -25,8 +26,33 @@ function createPDF() {
     });
 
     // Add content to the PDF (e.g., text, images)
-    doc.text("Hello, this is an in-memory PDF!");
+    for (let i = 0; i < 100; i++) {
+      doc.text("Hello, this is an in-memory PDF!");
+    }
     doc.end();
+  });
+}
+
+function writePDF(path, data) {
+  return new Promise((resolve, reject) => {
+    fs.writeFile(path, data, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+function readPDF(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
   });
 }
 
@@ -114,7 +140,7 @@ describe("Story 12: Archive Proposals", () => {
       notes: null,
       expiration_date: future_date,
       level: "MSC",
-      cds: "L-8-F",
+      cds: "LM-32-D",
     };
     inserted_proposal = {
       ...proposal_body,
@@ -476,6 +502,36 @@ describe("Story 12: Archive Proposals", () => {
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toHaveProperty("archived", true);
   });
+  it("A student should be able to see only active proposals", async () => {
+    //proposal_body.cds = "LM-32-D";
+
+    // marco.torchiano inserts a proposal
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body)
+    ).body;
+
+    // marco torchiano archives it
+    const archived_proposal = (
+      await request(app)
+        .patch(`/api/proposals/${inserted_proposal_id}`)
+        .set("Content-Type", "application/json")
+        .send({
+          archived: true,
+        })
+        .expect(200)
+    ).body;
+
+    logIn("s309618@studenti.polito.it");
+
+    const proposals = (await request(app).get("/api/proposals").expect(200))
+      .body;
+    expect(
+      proposals.find((proposal) => proposal.id === archived_proposal.id),
+    ).toBeUndefined();
+  });
 });
 
 describe("Story 13: student CV", () => {
@@ -487,6 +543,84 @@ describe("Story 13: student CV", () => {
     db.prepare("delete from main.PROPOSALS").run();
     db.prepare("delete from main.APPLICATIONS").run();
   });
+  //it("Try to upload a pdf from the path", async () => {
+  //  // login as professor
+  //  isLoggedIn.mockImplementation((req, res, next) => {
+  //    req.user = {
+  //      email: "marco.torchiano@teacher.it",
+  //    };
+  //    next();
+  //  });
+  //  // insert proposal
+  //  const proposal_body = {
+  //    title: "New proposal",
+  //    co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
+  //    groups: ["SOFTENG"],
+  //    keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
+  //    types: ["EXPERIMENTAL", "RESEARCH"],
+  //    description: "This proposal is used to test the archiving functionality",
+  //    required_knowledge: "You have to know how to archive the thesis",
+  //    notes: null,
+  //    expiration_date: dayjs().format("YYYY-MM-DD"),
+  //    level: "MSC",
+  //    cds: "L-8-F",
+  //  };
+  //  const proposalId = (
+  //    await request(app)
+  //      .post("/api/proposals")
+  //      .set("Content-Type", "application/json")
+  //      .send(proposal_body)
+  //      .expect(200)
+  //  ).body;
+  //  // login as a student
+  //  isLoggedIn.mockImplementation((req, res, next) => {
+  //    req.user = {
+  //      email: "s309618@studenti.polito.it",
+  //    };
+  //    next();
+  //  });
+  //  // insert application for proposal
+  //  await request(app)
+  //    .post("/api/applications")
+  //    .set("Content-Type", "application/json")
+  //    .send({
+  //      proposal: proposalId,
+  //    })
+  //    .expect(200);
+
+  //  // get application id
+  //  const applications = (
+  //    await request(app).get("/api/applications").expect(200)
+  //  ).body;
+
+  //  // insert pdf for application
+  //  const pdf = await readPDF(
+  //    "/home/lorber13/Scaricati/A4-mid-to-hi-fidelity-1.pdf",
+  //  );
+  //  const response = await request(app)
+  //    .patch(`/api/applications/${applications[0].id}`)
+  //    .set("Content-Type", "application/pdf")
+  //    .send(pdf)
+  //    .expect(200);
+  //  expect(response.body).toEqual({ message: "File uploaded correctly" });
+
+  //  // log in as professor
+  //  isLoggedIn.mockImplementation((req, res, next) => {
+  //    req.user = {
+  //      email: "marco.torchiano@teacher.it",
+  //    };
+  //    next();
+  //  });
+
+  //  // retrieve pdf file
+  //  const expectedPdf = (
+  //    await request(app)
+  //      .get(`/api/applications/${applications[0].id}/attached-file`)
+  //      .expect(200)
+  //  ).body;
+  //  await writePDF("/home/lorber13/Scaricati/test.pdf", expectedPdf);
+  //  expect(expectedPdf).toEqual(pdf);
+  //});
   it("Try to upload a pdf", async () => {
     // login as professor
     isLoggedIn.mockImplementation((req, res, next) => {
@@ -939,6 +1073,83 @@ describe("Proposal expiration tests (no virtual clock)", () => {
     db.prepare("update VIRTUAL_CLOCK set delta = ? where id = ?").run(0, 1);
   });
 
+  it("Pending application for a proposal that expires", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "marco.torchiano@teacher.it",
+      };
+      next();
+    });
+
+    // set expiration date to the future
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
+
+    // insert proposal
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+
+    // login as a student
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+
+    // insert application for the previously inserted proposal
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send({
+        proposal: inserted_proposal_id,
+      });
+
+    // the proposal of the application expires
+    const pastDate = dayjs().subtract(2, "day").format("YYYY-MM-DD");
+    db.prepare(
+      "update main.PROPOSALS set expiration_date = ? where id = ?",
+    ).run(pastDate, inserted_proposal_id);
+
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "luigi.derussis@teacher.it",
+      };
+      next();
+    });
+
+    // set expiration date to the future
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
+    proposal.groups = ["ELITE"];
+
+    // insert proposal
+    const notExpiredProposalId = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+    ).body;
+
+    // login as a student
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "s309618@studenti.polito.it",
+      };
+      next();
+    });
+
+    // insert application for the previously inserted proposal
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send({
+        proposal: notExpiredProposalId,
+      })
+      .expect(200); // should not give an error
+  });
   it("a pending application for a proposal that expires should be set cancelled", async () => {
     isLoggedIn.mockImplementation((req, res, next) => {
       req.user = {
@@ -1740,7 +1951,10 @@ describe("Secretary clerk story", () => {
           title: "Title",
           supervisor: "s123456",
           description: "description",
-          co_supervisors: ["luigi.derussis@teacher.it","antonio.lioy@teacher.it"],
+          co_supervisors: [
+            "luigi.derussis@teacher.it",
+            "antonio.lioy@teacher.it",
+          ],
         })
         .expect(200)
     ).body;
@@ -1776,7 +1990,7 @@ describe("Secretary clerk story", () => {
       title: "Title",
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",
-      co_supervisors: ["luigi.derussis@teacher.it","antonio.lioy@teacher.it"],
+      co_supervisors: ["luigi.derussis@teacher.it", "antonio.lioy@teacher.it"],
       description: "description",
       status: "requested",
     });

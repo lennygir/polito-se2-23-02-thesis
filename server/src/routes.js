@@ -25,7 +25,6 @@ const {
   updateProposal,
   getApplicationById,
   getTeacherByEmail,
-  getTeacherEmailById,
   cancelPendingApplications,
   getPendingOrAcceptedApplicationsOfStudent,
   findAcceptedProposal,
@@ -41,6 +40,8 @@ const {
   getNotRejectedStartRequest,
   getRequestForClerk,
   getTeacher,
+  getAcceptedApplicationsOfStudent,
+  getPendingApplicationsOfStudent,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 
@@ -365,6 +366,9 @@ router.get(
           return proposal.archived === req.query.archived;
         });
       }
+      if (user.role === "student") {
+        proposals = proposals.filter((proposal) => !proposal.archived);
+      }
       return res.status(200).json(proposals);
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
@@ -394,14 +398,30 @@ router.post(
       if (db_proposal === undefined) {
         return res.status(400).json({ message: "Invalid application content" });
       }
-      if (db_proposal.deleted === 1){
+       if (db_proposal.deleted === 1){
         return res.status(404).json("Proposal not found");
       }
-      if (getPendingOrAcceptedApplicationsOfStudent(user.id).length !== 0) {
+      
+      if (getAcceptedApplicationsOfStudent(user.id).length !== 0) {
         return res.status(400).json({
-          message: `The student ${user.id} has already applied to a proposal`,
+          message: `The student ${user.id} has an accepted proposal`,
         });
       }
+      let pendingApplicationsOfStudent = getPendingApplicationsOfStudent(
+        user.id,
+      );
+      if (
+        pendingApplicationsOfStudent.find((application) => {
+          const expirationDateOfProposal = dayjs(
+            getProposal(application.proposal_id).expiration_date,
+          );
+          const currentDate = getDate();
+          return (
+            expirationDateOfProposal.isSame(currentDate) ||
+            expirationDateOfProposal.isAfter(currentDate)
+          );
+        })
+      ) 
       if (findAcceptedProposal(proposal)) {
         return res.status(400).json({
           message: `The proposal ${proposal} is already accepted for another student`,
@@ -451,6 +471,11 @@ router.get("/api/applications", isLoggedIn, (req, res) => {
         application.state === "pending"
       ) {
         application.state = "canceled";
+      }
+      if (application.attached_file) {
+        application.attached_file = true;
+      } else {
+        application.attached_file = false;
       }
       return application;
     });

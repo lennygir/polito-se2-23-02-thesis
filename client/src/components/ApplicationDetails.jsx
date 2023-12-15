@@ -19,7 +19,7 @@ import StudentCareerTable from "./StudentCareerTable";
 
 function ApplicationDetails(props) {
   const user = useContext(UserContext);
-  const { handleErrors } = useContext(ErrorContext);
+  const handleErrors = useContext(ErrorContext);
   const { theme } = useThemeContext();
   const { application, evaluateApplication, applications } = props;
 
@@ -48,7 +48,7 @@ function ApplicationDetails(props) {
     API.getCareerOfStudent(studentId).then((career) => {
       setStudentCareer(career);
     });
-  }
+  };
 
   const handleOpenDialog = () => {
     setOpenDialog(true);
@@ -198,10 +198,10 @@ function ApplicationDetails(props) {
         <span style={{ fontWeight: "bold" }}>Email: </span>
         {application.student_id + "@studenti.polito.it"}
       </Typography>
-      <Typography variant="body1" gutterBottom>
+      <Box>
         <span style={{ fontWeight: "bold" }}>Career: </span>
         <StudentCareerTable career={studentCareer} />
-      </Typography>
+      </Box>
       {application.attached_file && (
         <Stack direction="row" spacing={5} alignItems="center" marginY={3}>
           <Typography variant="body1">
