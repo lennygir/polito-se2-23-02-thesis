@@ -7,6 +7,10 @@ const isLoggedIn = require("../src/protect-routes");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 
+/**
+ * Creates a simple test PDF
+ * @returns {Promise<Buffer>}
+ */
 function createPDF() {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -146,6 +150,35 @@ describe("Story 12: Archive Proposals", () => {
       ...proposal_body,
       supervisor: email,
     };
+  });
+  it("If a proposal becomes archived, a student should not be able to apply for it", async () => {
+    logIn("marco.torchiano@teacher.it");
+    // insert proposal as marco.torchiano
+    const inserted_proposal_id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal_body)
+    ).body;
+
+    // archive the proposal
+    await request(app)
+      .patch(`/api/proposals/${inserted_proposal_id}`)
+      .set("Content-Type", "application/json")
+      .send({
+        archived: true,
+      });
+
+    logIn("s309618@studenti.polito.it");
+
+    // apply for the proposal
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send({
+        proposal: inserted_proposal_id,
+      })
+      .expect(401);
   });
   it("If I reject an application its proposal should not become archived", async () => {
     logIn("marco.torchiano@teacher.it");
@@ -780,7 +813,7 @@ it("CRUD on proposal", async () => {
   ).body;
   expect(
     updatedProposals.find((proposal) => proposal.id === proposalId),
-  ).toStrictEqual(expectedProposal);
+  ).toEqual(expectedProposal);
   await request(app).delete(`/api/proposals/${proposalId}`).expect(200);
   const deletedProposals = (
     await request(app).get("/api/proposals").expect(200)
@@ -789,101 +822,104 @@ it("CRUD on proposal", async () => {
     undefined,
   );
 });
-it("Insertion of a proposal with no notes", () => {
-  const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
-  proposal.notes = null;
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(200);
-});
-/*it("Update of a proposal", () => {
-  proposal.title='update';
-  return request(app)
-    .put("/api/proposals/32")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(200);
-});*/
 
-it("Insertion with an invalid date", () => {
-  const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
-  proposal.expiration_date = "0";
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(400)
-    .then((response) => {
-      expect(response.body.message).toBe("Invalid proposal content");
+describe("Proposal insertion tests", () => {
+  it("Insertion of a proposal with no notes", () => {
+    const email = "marco.torchiano@teacher.it";
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: email,
+      };
+      next();
     });
-});
-it("Insertion of a proposal with wrong level format", () => {
-  const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
+    proposal.notes = null;
+    return request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(200);
   });
-  proposal.level = "wrong-level";
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(400)
-    .then((response) => {
-      expect(response.body.message).toBe("Invalid proposal content");
+  /*it("Update of a proposal", () => {
+    proposal.title='update';
+    return request(app)
+      .put("/api/proposals/32")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(200);
+  });*/
+
+  it("Insertion with an invalid date", () => {
+    const email = "marco.torchiano@teacher.it";
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: email,
+      };
+      next();
     });
-});
-it("Insertion of a proposal with an invalid group", () => {
-  const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
+    proposal.expiration_date = "0";
+    return request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Invalid proposal content");
+      });
   });
-  proposal.groups.push("WRONG GROUP");
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(400)
-    .then((response) => {
-      expect(response.body.message).toBe("Invalid proposal content");
+  it("Insertion of a proposal with wrong level format", () => {
+    const email = "marco.torchiano@teacher.it";
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: email,
+      };
+      next();
     });
-});
-it("Insertion of a proposal with a single keyword (no array)", () => {
-  const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
+    proposal.level = "wrong-level";
+    return request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Invalid proposal content");
+      });
   });
-  proposal.keywords = "SOFTWARE ENGINEERING";
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(400)
-    .then((response) => {
-      expect(response.body.message).toBe("Invalid proposal content");
+  it("Insertion of a proposal with an invalid group", () => {
+    const email = "marco.torchiano@teacher.it";
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: email,
+      };
+      next();
     });
+    proposal.groups.push("WRONG GROUP");
+    return request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Invalid proposal content");
+      });
+  });
+  it("Insertion of a proposal with a single keyword (no array)", () => {
+    const email = "marco.torchiano@teacher.it";
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: email,
+      };
+      next();
+    });
+    proposal.keywords = "SOFTWARE ENGINEERING";
+    return request(app)
+      .post("/api/proposals")
+      .set("Content-Type", "application/json")
+      .send(proposal)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.message).toBe("Invalid proposal content");
+      });
+  });
 });
 it("Return 200 correct get of all application of a selected teacher", () => {
   const email = "marco.torchiano@teacher.it";
@@ -931,7 +967,7 @@ describe("Proposal Retrieval Tests", () => {
   });
 
   it("Return 404 for a non-existing teacher", () => {
-    isLoggedIn.mockImplementation((req, res, next) => {
+    isLoggedIn.mockImplementation((req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     });
     return request(app)
@@ -1245,10 +1281,10 @@ describe("Proposal expiration tests (no virtual clock)", () => {
       .send({
         proposal: inserted_proposal_id,
       })
-      .expect(400)
+      .expect(401)
       .then((response) => {
         expect(response.body).toStrictEqual({
-          message: `The proposal ${inserted_proposal_id} is expired, cannot apply`,
+          message: `The proposal ${inserted_proposal_id} is archived, cannot apply`,
         });
       });
   });
@@ -1452,10 +1488,10 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
       .send({
         proposal: inserted_proposal_id,
       })
-      .expect(400)
+      .expect(401)
       .then((response) => {
         expect(response.body).toStrictEqual({
-          message: `The proposal ${inserted_proposal_id} is expired, cannot apply`,
+          message: `The proposal ${inserted_proposal_id} is archived, cannot apply`,
         });
       });
   });
