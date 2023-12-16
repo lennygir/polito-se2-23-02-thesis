@@ -60,11 +60,11 @@ function validateProposal(res, proposal, user) {
   const { co_supervisors, groups, level } = proposal;
   for (const group of groups) {
     if (getGroup(group) === undefined) {
-      return res.status(400).send({ message: "Invalid proposal content" });
+      return res.status(400).json({ message: "Invalid proposal content" });
     }
   }
   if (level !== "MSC" && level !== "BSC") {
-    return res.status(400).send({ message: "Invalid proposal content" });
+    return res.status(400).json({ message: "Invalid proposal content" });
   }
   const legal_groups = [user.cod_group];
   for (const co_supervisor_email of co_supervisors) {
@@ -74,7 +74,7 @@ function validateProposal(res, proposal, user) {
     }
   }
   if (!groups.every((group) => legal_groups.includes(group))) {
-    return res.status(400).send({ message: "Invalid groups" });
+    return res.status(400).json({ message: "Invalid groups" });
   }
 }
 
@@ -276,7 +276,7 @@ router.patch(
   (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
-        return res.status(400).json({ message: "Invalid request content" });
+        return res.status(400).json({ message: "Invalid content" });
       }
       const user = getUser(req.user);
       if (
@@ -481,7 +481,7 @@ router.get(
   (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
-        return res.status(400).json({ message: "Invalid application content" });
+        return res.status(400).json({ message: "Invalid parameters" });
       }
       const application = getApplicationById(req.params.id);
       if (application === undefined) {
@@ -507,7 +507,7 @@ router.patch(
   async (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
-        return res.status(400).json({ message: "Invalid proposal content" });
+        return res.status(400).json({ message: "Invalid content" });
       }
       const user = getUser(req.user);
       if (user) {
@@ -547,7 +547,7 @@ router.get(
   (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
-        return res.status(400).json({ message: "Invalid proposal content" });
+        return res.status(400).json({ message: "Invalid parameters" });
       }
       return res.status(200).json(getExamsOfStudent(req.params.studentId));
     } catch (e) {
@@ -576,7 +576,7 @@ router.patch(
   (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
-        return res.status(400).json({ message: "Invalid proposal content" });
+        return res.status(400).json({ message: "Invalid content" });
       }
       const user = getUser(req.user);
       if (!user || user.role !== "teacher") {
@@ -706,7 +706,7 @@ router.delete(
   async (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
-        return res.status(400).json({ message: "Invalid proposal content" });
+        return res.status(400).json({ message: "Invalid parameters" });
       }
       const teacher = getUser(req.user);
       if (!teacher || teacher.role !== "teacher") {
