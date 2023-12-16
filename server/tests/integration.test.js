@@ -636,7 +636,7 @@ describe("Proposal expiration tests (no virtual clock)", () => {
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
     // the professor inserts a proposal
-    logIn("marco.torchiano@teacher.it");
+    logIn("maurizio.morisio@teacher.it");
     const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // the student applies for the proposal
@@ -688,9 +688,10 @@ describe("Proposal expiration tests (no virtual clock)", () => {
   it("cannot apply to a proposal expired", async () => {
     // set the expiration date to tomorrow
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
+    proposal.groups = ["ELITE"];
 
     // the professor inserts a proposal
-    logIn("marco.torchiano@teacher.it");
+    logIn("fulvio.corno@teacher.it");
     const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // the proposal expires
@@ -712,7 +713,7 @@ describe("Proposal expiration tests (no virtual clock)", () => {
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
     // the professor inserts a proposal
-    logIn("marco.torchiano@teacher.it");
+    logIn("maurizio.morisio@teacher.it");
     const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // the proposal expires
@@ -960,7 +961,7 @@ describe("Story Insert Student Request", () => {
 
 describe("Secretary clerk story", () => {
   it("Approve a student thesis request", async () => {
-    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+    start_request.supervisor = "s234567"; // maurizio.morisio@teacher.it
 
     logIn("s309618@studenti.polito.it");
     const response = await startRequest(start_request);
@@ -975,7 +976,7 @@ describe("Secretary clerk story", () => {
     expect(thesisRequests).toContainEqual({
       ...start_request,
       id: thesisRequestId,
-      supervisor: "marco.torchiano@teacher.it",
+      supervisor: "maurizio.morisio@teacher.it",
       student_id: "s309618",
       status: "requested",
     });
@@ -990,7 +991,7 @@ describe("Secretary clerk story", () => {
     expect(newThesisRequests).toContainEqual({
       ...start_request,
       id: thesisRequestId,
-      supervisor: "marco.torchiano@teacher.it",
+      supervisor: "maurizio.morisio@teacher.it",
       student_id: "s309618",
       status: "secretary_accepted",
     });
