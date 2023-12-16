@@ -1183,84 +1183,57 @@ describe("Secretary clerk story", () => {
 });
 
 describe("Delete proposals", () => {
-  beforeEach(() => {
-    db.prepare("delete from PROPOSALS").run();
-  });
   it("You should not be able to archive a proposal deleted", async () => {
     logIn("marco.torchiano@teacher.it");
 
     // insert a proposal
-    const id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-        .expect(200)
-    ).body;
+    const { body: id, status } = await insertProposal(proposal);
+    expect(status).toBe(200);
 
     // delete the proposal
-    await request(app).delete(`/api/proposals/${id}`).expect(200);
+    const { status: status2 } = await deleteProposal(id);
+    expect(status2).toBe(200);
 
     // archive the proposal
-    await request(app)
-      .patch(`/api/proposals/${id}`)
-      .set("Content-Type", "application/json")
-      .send({
-        archived: true,
-      })
-      .expect(404);
+    const { status: status3 } = await archiveProposal(id);
+    expect(status3).toBe(404);
   });
   it("You should not be able to apply for a proposal deleted", async () => {
     logIn("marco.torchiano@teacher.it");
 
     // insert a proposal
-    const id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-        .expect(200)
-    ).body;
+    const { body: id, status } = await insertProposal(proposal);
+    expect(status).toBe(200);
 
     // delete the proposal
-    await request(app).delete(`/api/proposals/${id}`).expect(200);
+    const { status: status2 } = await deleteProposal(id);
+    expect(status2).toBe(200);
 
     logIn("s309618@studenti.polito.it");
 
     // apply for the proposal
-    await request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send({
-        proposal: id,
-      })
-      .expect(404);
+    const { status: status3 } = await applyForProposal(id);
+    expect(status3).toBe(404);
   });
   it("You should not be able to update a proposal deleted", async () => {
     logIn("marco.torchiano@teacher.it");
 
     // insert a proposal
-    const id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-        .expect(200)
-    ).body;
+    const { body: id, status } = await insertProposal(proposal);
+    expect(status).toBe(200);
 
     // delete the proposal
-    await request(app).delete(`/api/proposals/${id}`).expect(200);
+    const { status: status2 } = await deleteProposal(id);
+    expect(status2).toBe(200);
 
     // update the proposal
-    const updateMessage = (
-      await request(app)
-        .put(`/api/proposals/${id}`)
-        .send({
-          ...proposal,
-          title: "Updated title",
-        })
-        .expect(404)
-    ).body;
-    expect(updateMessage).toBe("Proposal not found");
+    const { body: updateMessage, status: status3 } = await modifyProposal(id, {
+      ...proposal,
+      title: "Updated title",
+    });
+    expect(status3).toBe(404);
+    expect(updateMessage).toEqual({
+      message: "Proposal not found",
+    });
   });
 });

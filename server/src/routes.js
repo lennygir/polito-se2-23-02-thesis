@@ -659,7 +659,7 @@ router.put(
         });
       }
       if (proposal.deleted === 1) {
-        return res.status(404).json("Proposal not found");
+        return res.status(404).json({ message: "Proposal not found" });
       }
       if (proposal.manually_archived === 1) {
         return res
