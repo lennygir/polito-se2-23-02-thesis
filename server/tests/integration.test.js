@@ -963,7 +963,7 @@ describe("Secretary clerk story", () => {
   it("Approve a student thesis request", async () => {
     start_request.supervisor = "s234567"; // maurizio.morisio@teacher.it
 
-    logIn("s309618@studenti.polito.it");
+    logIn("s308747@studenti.polito.it");
     const response = await startRequest(start_request);
     expect(response.status).toBe(200);
     const thesisRequestId = response.body;
@@ -977,7 +977,7 @@ describe("Secretary clerk story", () => {
       ...start_request,
       id: thesisRequestId,
       supervisor: "maurizio.morisio@teacher.it",
-      student_id: "s309618",
+      student_id: "s308747",
       status: "requested",
     });
 
@@ -992,7 +992,7 @@ describe("Secretary clerk story", () => {
       ...start_request,
       id: thesisRequestId,
       supervisor: "maurizio.morisio@teacher.it",
-      student_id: "s309618",
+      student_id: "s308747",
       status: "secretary_accepted",
     });
   });
