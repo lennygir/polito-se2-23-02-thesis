@@ -27,7 +27,7 @@
     "supertest": "^6.3.3"
   },
   "scripts": {
-    "test": "jest --watchAll --detectOpenHandles",
+    "test": "jest --watchAll",
     "start": "node index.js"
   }
 }
