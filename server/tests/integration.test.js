@@ -29,11 +29,10 @@ const { createPDF } = require("../test_utils/pdf");
 jest.mock("../src/db");
 jest.mock("../src/protect-routes");
 
-let default_proposal;
-let default_request;
+let proposal, start_request;
 
 beforeEach(() => {
-  default_proposal = {
+  proposal = {
     title: "Test title",
     co_supervisors: ["test_mail@email.com", "test_mail2@email.com"],
     groups: ["SOFTENG"],
@@ -46,7 +45,7 @@ beforeEach(() => {
     level: "MSC",
     cds: "LM-32-D",
   };
-  default_request = {
+  start_request = {
     title: "Title",
     supervisor: "s123456",
     description: "description",
@@ -69,7 +68,7 @@ describe("Protected routes", () => {
   });
   it("Insertion of a correct proposal by a professor", async () => {
     logIn("marco.torchiano@teacher.it");
-    const response = await insertProposal(default_proposal);
+    const response = await insertProposal(proposal);
     expect(response.status).toBe(200);
     expect(response.body).toBeDefined();
   });
@@ -79,7 +78,7 @@ describe("Story 12: Archive Proposals", () => {
   const past_date = dayjs().subtract(7, "day").format("YYYY-MM-DD");
   it("If a proposal becomes archived, a student should not be able to apply for it", async () => {
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
     await archiveProposal(inserted_proposal_id);
 
     logIn("s309618@studenti.polito.it");
@@ -89,7 +88,7 @@ describe("Story 12: Archive Proposals", () => {
   });
   it("If I reject an application its proposal should not become archived", async () => {
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     logIn("s309618@studenti.polito.it");
     const insertedApplication = (await applyForProposal(inserted_proposal_id))
@@ -109,11 +108,11 @@ describe("Story 12: Archive Proposals", () => {
   });
   it("A proposal manually archived should not be modifiable", async () => {
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     const first_modification = await modifyProposal(
       inserted_proposal_id,
-      default_proposal,
+      proposal,
     );
     expect(first_modification.status).toBe(200);
 
@@ -121,13 +120,13 @@ describe("Story 12: Archive Proposals", () => {
 
     const second_modification = await modifyProposal(
       inserted_proposal_id,
-      default_proposal,
+      proposal,
     );
     expect(second_modification.status).toBe(401);
   });
   it("Create a proposal, then archive it", async () => {
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     const response = await archiveProposal(inserted_proposal_id);
     expect(response.status).toBe(200);
@@ -140,7 +139,7 @@ describe("Story 12: Archive Proposals", () => {
   });
   it("Multiple tries should not trigger any errors (idempotency)", async () => {
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // archive the proposal the first time
     await archiveProposal(inserted_proposal_id);
@@ -153,10 +152,10 @@ describe("Story 12: Archive Proposals", () => {
   });
 
   it("An expired proposal should be archived", async () => {
-    default_proposal.expiration_date = past_date;
+    proposal.expiration_date = past_date;
 
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
     const proposals = (await getProposals()).body;
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
@@ -164,7 +163,7 @@ describe("Story 12: Archive Proposals", () => {
   });
   it("The admitted field on the body should be only 'true'", async () => {
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // try to archive with a wrong request body
     await request(app)
@@ -185,7 +184,7 @@ describe("Story 12: Archive Proposals", () => {
 
   it("If a proposal is manually archived, its pending applications become canceled", async () => {
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     logIn("s309618@studenti.polito.it");
 
@@ -210,7 +209,7 @@ describe("Story 12: Archive Proposals", () => {
 
   it("The proposal should exist", async () => {
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     const wrong_proposal_id = inserted_proposal_id + 1;
 
@@ -220,7 +219,7 @@ describe("Story 12: Archive Proposals", () => {
 
   it("A professor should be able to archive only proposals created by him", async () => {
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     logIn("luigi.derussis@teacher.it");
 
@@ -233,13 +232,13 @@ describe("Story 12: Archive Proposals", () => {
     logIn("marco.torchiano@teacher.it");
     // insert 5 not archived proposals
     for (let i = 0; i < 5; i++) {
-      await insertProposal(default_proposal);
+      await insertProposal(proposal);
     }
 
     // insert 5 archived proposals
-    default_proposal.expiration_date = past_date;
+    proposal.expiration_date = past_date;
     for (let i = 0; i < 5; i++) {
-      await insertProposal(default_proposal);
+      await insertProposal(proposal);
     }
 
     // get active proposals just inserted
@@ -261,7 +260,7 @@ describe("Story 12: Archive Proposals", () => {
   });
   it("When an application gets accepted, its proposal should become archived", async () => {
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     logIn("s309618@studenti.polito.it");
     await applyForProposal(inserted_proposal_id);
@@ -287,7 +286,7 @@ describe("Story 12: Archive Proposals", () => {
   });
   it("A student should be able to see only active proposals", async () => {
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
     const response = await archiveProposal(inserted_proposal_id);
 
     expect(response.status).toBe(200);
@@ -386,7 +385,7 @@ describe("Story 13: student CV", () => {
   //});
   it("Try to upload a pdf", async () => {
     logIn("marco.torchiano@teacher.it");
-    const proposalId = (await insertProposal(default_proposal)).body;
+    const proposalId = (await insertProposal(proposal)).body;
 
     logIn("s309618@studenti.polito.it");
     const response = await applyForProposal(proposalId);
@@ -418,18 +417,16 @@ describe("Story 13: student CV", () => {
 
 it("prova", async () => {
   logIn("marco.torchiano@teacher.it");
-  const proposal_id = (await insertProposal(default_proposal)).body;
+  const proposal_id = (await insertProposal(proposal)).body;
   let expected_proposal = {
-    ...default_proposal,
+    ...proposal,
     supervisor: "s123456", // marco.torchiano@teacher.it's id
-    type: default_proposal.types.join(", "),
+    type: proposal.types.join(", "),
     id: proposal_id,
-    co_supervisors: default_proposal.co_supervisors.join(", "),
-    groups: default_proposal.groups.join(", "),
-    keywords: default_proposal.keywords.join(", "),
-    expiration_date: dayjs(default_proposal.expiration_date).format(
-      "YYYY-MM-DD",
-    ),
+    co_supervisors: proposal.co_supervisors.join(", "),
+    groups: proposal.groups.join(", "),
+    keywords: proposal.keywords.join(", "),
+    expiration_date: dayjs(proposal.expiration_date).format("YYYY-MM-DD"),
   };
   delete expected_proposal.types;
   let returned_proposal = db
@@ -443,19 +440,17 @@ it("prova", async () => {
 
 it("CRUD on proposal", async () => {
   logIn("marco.torchiano@teacher.it");
-  const proposalId = (await insertProposal(default_proposal)).body;
+  const proposalId = (await insertProposal(proposal)).body;
   const proposals = (await getProposals()).body;
   let expectedProposal = {
-    ...default_proposal,
+    ...proposal,
     supervisor: "s123456", // marco.torchiano@teacher.it
-    type: default_proposal.types.join(", "),
+    type: proposal.types.join(", "),
     id: proposalId,
-    co_supervisors: default_proposal.co_supervisors.join(", "),
-    groups: default_proposal.groups.join(", "),
-    keywords: default_proposal.keywords.join(", "),
-    expiration_date: dayjs(default_proposal.expiration_date).format(
-      "YYYY-MM-DD",
-    ),
+    co_supervisors: proposal.co_supervisors.join(", "),
+    groups: proposal.groups.join(", "),
+    keywords: proposal.keywords.join(", "),
+    expiration_date: dayjs(proposal.expiration_date).format("YYYY-MM-DD"),
     archived: false,
   };
   delete expectedProposal.types;
@@ -463,7 +458,7 @@ it("CRUD on proposal", async () => {
     expectedProposal,
   );
   const response = await modifyProposal(proposalId, {
-    ...default_proposal,
+    ...proposal,
     title: "Updated title",
   });
   expect(response.status).toBe(200);
@@ -488,44 +483,44 @@ it("CRUD on proposal", async () => {
 
 describe("Proposal insertion tests", () => {
   it("Insertion of a proposal with no notes", async () => {
-    default_proposal.notes = null;
+    proposal.notes = null;
 
     logIn("marco.torchiano@teacher.it");
-    const response = await insertProposal(default_proposal);
+    const response = await insertProposal(proposal);
     expect(response.status).toBe(200);
     expect(response.body).toBeDefined();
   });
   it("Insertion with an invalid date", async () => {
-    default_proposal.expiration_date = "0";
+    proposal.expiration_date = "0";
 
     logIn("marco.torchiano@teacher.it");
-    const response = await insertProposal(default_proposal);
+    const response = await insertProposal(proposal);
 
     expect(response.status).toBe(400);
     expect(response.body.message).toBe("Invalid proposal content");
   });
   it("Insertion of a proposal with wrong level format", async () => {
-    default_proposal.level = "wrong-level";
+    proposal.level = "wrong-level";
 
     logIn("marco.torchiano@teacher.it");
-    const response = await insertProposal(default_proposal);
+    const response = await insertProposal(proposal);
 
     expect(response.status).toBe(400);
     expect(response.body.message).toBe("Invalid proposal content");
   });
   it("Insertion of a proposal with an invalid group", async () => {
-    default_proposal.groups.push("WRONG GROUP");
+    proposal.groups.push("WRONG GROUP");
 
     logIn("marco.torchiano@teacher.it");
-    const response = await insertProposal(default_proposal);
+    const response = await insertProposal(proposal);
 
     expect(response.status).toBe(400);
     expect(response.body.message).toBe("Invalid proposal content");
   });
   it("Insertion of a proposal with a single keyword (no array)", async () => {
-    default_proposal.keywords = "SOFTWARE ENGINEERING";
+    proposal.keywords = "SOFTWARE ENGINEERING";
     logIn("marco.torchiano@teacher.it");
-    const response = await insertProposal(default_proposal);
+    const response = await insertProposal(proposal);
 
     expect(response.status).toBe(400);
     expect(response.body.message).toBe("Invalid proposal content");
@@ -558,7 +553,7 @@ describe("Proposals retrieval tests", () => {
 describe("Application Insertion Tests", () => {
   it("Insertion of an application from a wrong student", async () => {
     logIn("marco.torchiano@teacher.it");
-    const proposal_id = (await insertProposal(default_proposal)).body;
+    const proposal_id = (await insertProposal(proposal)).body;
 
     logIn("wrong.student@student.it");
     const response = await applyForProposal(proposal_id);
@@ -570,7 +565,7 @@ describe("Application Insertion Tests", () => {
   });
   it("Insertion of a correct application", async () => {
     logIn("marco.torchiano@teacher.it");
-    const proposalId = (await insertProposal(default_proposal)).body;
+    const proposalId = (await insertProposal(proposal)).body;
 
     logIn("s309618@studenti.polito.it");
     const response = await applyForProposal(proposalId);
@@ -583,8 +578,8 @@ describe("Application Insertion Tests", () => {
   });
   it("Insertion of an application for a student who already applied to a proposal", async () => {
     logIn("marco.torchiano@teacher.it");
-    const proposalId = (await insertProposal(default_proposal)).body;
-    const anotherProposalId = (await insertProposal(default_proposal)).body;
+    const proposalId = (await insertProposal(proposal)).body;
+    const anotherProposalId = (await insertProposal(proposal)).body;
 
     logIn("s309618@studenti.polito.it");
     await applyForProposal(proposalId);
@@ -600,7 +595,7 @@ describe("Application Insertion Tests", () => {
 describe("Notifications Retrieval Tests", () => {
   it("Get a notification if the professor accepts the application", async () => {
     logIn("marco.torchiano@teacher.it");
-    const proposal_id = (await insertProposal(default_proposal)).body;
+    const proposal_id = (await insertProposal(proposal)).body;
 
     logIn("s309618@studenti.polito.it");
     const application = (await applyForProposal(proposal_id)).body;
@@ -618,7 +613,7 @@ describe("Notifications Retrieval Tests", () => {
   });
   it("Get a notification if the professor rejects the application", async () => {
     logIn("marco.torchiano@teacher.it");
-    const proposal_id = (await insertProposal(default_proposal)).body;
+    const proposal_id = (await insertProposal(proposal)).body;
 
     logIn("s309618@studenti.polito.it");
     const application = (await applyForProposal(proposal_id)).body;
@@ -639,13 +634,11 @@ describe("Notifications Retrieval Tests", () => {
 describe("Proposal expiration tests (no virtual clock)", () => {
   it("Pending application for a proposal that expires", async () => {
     // set expiration date to the future
-    default_proposal.expiration_date = dayjs()
-      .add(1, "day")
-      .format("YYYY-MM-DD");
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
     // the professor inserts a proposal
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // the student applies for the proposal
     logIn("s309618@studenti.polito.it");
@@ -659,11 +652,9 @@ describe("Proposal expiration tests (no virtual clock)", () => {
 
     // another professor inserts a proposal
     logIn("luigi.derussis@teacher.it");
-    default_proposal.expiration_date = dayjs()
-      .add(1, "day")
-      .format("YYYY-MM-DD");
-    default_proposal.groups = ["ELITE"];
-    const notExpiredProposalId = (await insertProposal(default_proposal)).body;
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
+    proposal.groups = ["ELITE"];
+    const notExpiredProposalId = (await insertProposal(proposal)).body;
 
     // the same student, now that the previous proposal is expired, can apply to another proposal
     logIn("s309618@studenti.polito.it");
@@ -672,13 +663,11 @@ describe("Proposal expiration tests (no virtual clock)", () => {
   });
   it("a pending application for a proposal that expires should be set cancelled", async () => {
     // set expiration date to the future
-    default_proposal.expiration_date = dayjs()
-      .add(1, "day")
-      .format("YYYY-MM-DD");
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
     // the professor inserts a proposal
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // the student applies for that proposal
     logIn("s309618@studenti.polito.it");
@@ -699,13 +688,11 @@ describe("Proposal expiration tests (no virtual clock)", () => {
 
   it("cannot apply to a proposal expired", async () => {
     // set the expiration date to tomorrow
-    default_proposal.expiration_date = dayjs()
-      .add(1, "day")
-      .format("YYYY-MM-DD");
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
     // the professor inserts a proposal
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // the proposal expires
     const pastDate = dayjs().subtract(2, "day").format("YYYY-MM-DD");
@@ -723,13 +710,11 @@ describe("Proposal expiration tests (no virtual clock)", () => {
   });
 
   it("getProposals for student shouldn't return expired proposals", async () => {
-    default_proposal.expiration_date = dayjs()
-      .add(1, "day")
-      .format("YYYY-MM-DD");
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
     // the professor inserts a proposal
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // the proposal expires
     const pastDate = dayjs().subtract(2, "day").format("YYYY-MM-DD");
@@ -748,13 +733,11 @@ describe("Proposal expiration tests (no virtual clock)", () => {
     ).toBe(undefined);
   });
   it("If the proposal is expired it can't be deleted", async () => {
-    default_proposal.expiration_date = dayjs()
-      .add(1, "day")
-      .format("YYYY-MM-DD");
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
     // the professor inserts a proposal
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // the proposal expires
     const pastDate = dayjs().subtract(2, "day").format("YYYY-MM-DD");
@@ -772,13 +755,11 @@ describe("Proposal expiration tests (no virtual clock)", () => {
 
 describe("test the correct flow for a proposal expiration (virtual clock)", () => {
   it("a pending application for a proposal that expires should be set canceled", async () => {
-    default_proposal.expiration_date = dayjs()
-      .add(1, "day")
-      .format("YYYY-MM-DD");
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
     // the professor inserts a proposal
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // the student applies for that proposal
     logIn("s309618@studenti.polito.it");
@@ -795,13 +776,11 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
   });
 
   it("cannot apply to a proposal expired", async () => {
-    default_proposal.expiration_date = dayjs()
-      .add(1, "day")
-      .format("YYYY-MM-DD");
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
     // the professor inserts a proposal
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // change the virtual clock to the future, to make the previously inserted proposal expired
     await setClock(2);
@@ -816,13 +795,11 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
   });
 
   it("getProposals for student shouldn't return expired proposals", async () => {
-    default_proposal.expiration_date = dayjs()
-      .add(1, "day")
-      .format("YYYY-MM-DD");
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
     // the professor inserts a proposal
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // set the virtual clock to two days after now
     await setClock(2);
@@ -841,13 +818,11 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
 
   it("A proposal that expires should become archived", async () => {
     // set expiration date to the future
-    default_proposal.expiration_date = dayjs()
-      .add(3, "day")
-      .format("YYYY-MM-DD");
+    proposal.expiration_date = dayjs().add(3, "day").format("YYYY-MM-DD");
 
     // the professor inserts a proposal
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // set the expiration date to the past
     const pastDate = dayjs().subtract(3, "day").format("YYYY-MM-DD");
@@ -865,13 +840,11 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
 
   it("A proposal that expires today should not be archived", async () => {
     // set expiration date to the future
-    default_proposal.expiration_date = dayjs()
-      .add(3, "day")
-      .format("YYYY-MM-DD");
+    proposal.expiration_date = dayjs().add(3, "day").format("YYYY-MM-DD");
 
     // the professor inserts a proposal
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // set the expiration date to today
     const today = dayjs().format("YYYY-MM-DD");
@@ -890,13 +863,11 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
 
 describe("Proposal acceptance", () => {
   it("If a proposal gets accepted for a student, other students' applications should become canceled", async () => {
-    default_proposal.expiration_date = dayjs()
-      .add(1, "day")
-      .format("YYYY-MM-DD");
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
     // the professor inserts a proposal
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(default_proposal)).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // the student1 applies for that proposal
     logIn("s309618@studenti.polito.it");
@@ -945,12 +916,12 @@ describe("Virtual clock", () => {
 describe("Story Insert Student Request", () => {
   it("Correct student request insertion", async () => {
     logIn("s309618@studenti.polito.it");
-    const response = await startRequest(default_request);
+    const response = await startRequest(start_request);
     expect(response.status).toBe(200);
   });
   it("Two different students insert a request", async () => {
     logIn("s309618@studenti.polito.it");
-    const response = await startRequest(default_request);
+    const response = await startRequest(start_request);
     expect(response.status).toBe(200);
 
     logIn("s308747@studenti.polito.it");
@@ -964,7 +935,7 @@ describe("Story Insert Student Request", () => {
   it("The same student inserts a request two times", async () => {
     logIn("s309618@studenti.polito.it");
 
-    const response = await startRequest(default_request);
+    const response = await startRequest(start_request);
     expect(response.status).toBe(200);
 
     const response2 = await startRequest({
@@ -976,26 +947,24 @@ describe("Story Insert Student Request", () => {
   });
   it("You must be a student to start a request", async () => {
     logIn("marco.torchiano@teacher.it");
-    const response = await startRequest(default_request);
+    const response = await startRequest(start_request);
     expect(response.status).toBe(401);
   });
   it("The supervisor must exist", async () => {
-    default_request.supervisor = "s000000";
+    start_request.supervisor = "s000000";
 
     logIn("s309618@studenti.polito.it");
-    const response = await startRequest(default_request);
+    const response = await startRequest(start_request);
     expect(response.status).toBe(400);
   });
 });
 
 describe("Secretary clerk story", () => {
   it("Approve a student thesis request", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+
     logIn("s309618@studenti.polito.it");
-    const response = await startRequest({
-      title: "Title",
-      supervisor: "s123456",
-      description: "description",
-    });
+    const response = await startRequest(start_request);
     expect(response.status).toBe(200);
     const thesisRequestId = response.body;
 
@@ -1005,11 +974,10 @@ describe("Secretary clerk story", () => {
     const { body: thesisRequests, status } = await getRequests();
     expect(status).toBe(200);
     expect(thesisRequests).toContainEqual({
+      ...start_request,
       id: thesisRequestId,
-      title: "Title",
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",
-      description: "description",
       status: "requested",
     });
 
@@ -1021,22 +989,18 @@ describe("Secretary clerk story", () => {
     const { body: newThesisRequests, status: status3 } = await getRequests();
     expect(status3).toBe(200);
     expect(newThesisRequests).toContainEqual({
+      ...start_request,
       id: thesisRequestId,
-      title: "Title",
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",
-      description: "description",
       status: "secretary_accepted",
     });
   });
   it("Reject a student thesis request", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+
     logIn("s309618@studenti.polito.it");
-    const response = await startRequest({
-      title: "Title",
-      supervisor: "s123456",
-      description: "description",
-      co_supervisors: ["luigi.derussis@teacher.it"],
-    });
+    const response = await startRequest(start_request);
     expect(response.status).toBe(200);
     const thesisRequestId = response.body;
 
@@ -1046,12 +1010,10 @@ describe("Secretary clerk story", () => {
     const { body: thesisRequests, status } = await getRequests();
     expect(status).toBe(200);
     expect(thesisRequests).toContainEqual({
+      ...start_request,
       id: thesisRequestId,
-      title: "Title",
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",
-      co_supervisors: ["luigi.derussis@teacher.it"],
-      description: "description",
       status: "requested",
     });
 
@@ -1063,23 +1025,18 @@ describe("Secretary clerk story", () => {
     const { body: newThesisRequests, status: status3 } = await getRequests();
     expect(status3).toBe(200);
     expect(newThesisRequests).toContainEqual({
+      ...start_request,
       id: thesisRequestId,
-      title: "Title",
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",
-      co_supervisors: ["luigi.derussis@teacher.it"],
-      description: "description",
       status: "rejected",
     });
   });
   it("If a student thesis request is already evaluated, it should not be approved/rejected", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+
     logIn("s309618@studenti.polito.it");
-    const response = await startRequest({
-      title: "Title",
-      supervisor: "s123456",
-      description: "description",
-      co_supervisors: ["luigi.derussis@teacher.it"],
-    });
+    const response = await startRequest(start_request);
     expect(response.status).toBe(200);
     const thesisRequestId = response.body;
 
@@ -1099,18 +1056,18 @@ describe("Secretary clerk story", () => {
 
     // the thesis should remain untouched
     expect(newThesisRequests).toContainEqual({
+      ...start_request,
       id: thesisRequestId,
-      title: "Title",
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",
-      co_supervisors: ["luigi.derussis@teacher.it"],
-      description: "description",
       status: "secretary_accepted",
     });
   });
   it("To approve/reject a student thesis request you must be a secretary clerk", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+
     logIn("s309618@studenti.polito.it");
-    const response = await startRequest(default_request);
+    const response = await startRequest(start_request);
     expect(response.status).toBe(200);
     const thesisRequestId = response.body;
 
@@ -1130,12 +1087,10 @@ describe("Secretary clerk story", () => {
 
     // the thesis should remain untouched
     expect(newThesisRequests).toContainEqual({
+      ...start_request,
       id: thesisRequestId,
-      title: "Title",
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",
-      co_supervisors: ["luigi.derussis@teacher.it", "antonio.lioy@teacher.it"],
-      description: "description",
       status: "requested",
     });
   });
@@ -1258,60 +1213,4 @@ describe("Secretary clerk story", () => {
        .expect(400);
    });
 
-});*/
-
-/*describe("Update proposals", () => {
-  test("Correct update of a proposal", async () => {
-    const proposalId = 1; // Replace with the proposal ID you want to update
-    const updatedFields = {
-      // Specify the fields and their updated values
-      title: "Updated Title",
-      supervisor: "s940590",
-      // Add other fields to update
-    };
-
-    // Send the PATCH request to update the proposal
-    const response = await request(app)
-      .patch(`/api/proposals/${proposalId}`)
-      .send(updatedFields);
-
-    // Check if the response status is successful (e.g., 200 OK)
-    expect(response.status).toBe(200);
-  });
-
-  test("Should return 400 if the proposal is already accepted", async () => {
-    const proposalId = 8; // Replace with the proposal ID you want to update
-    const updatedFields = {
-      // Specify the fields and their updated values
-      title: "Updated Title",
-      supervisor: "s940590",
-      // Add other fields to update
-    };
-
-    // Send the PATCH request to update the proposal
-    const response = await request(app)
-      .patch(`/api/proposals/${proposalId}`)
-      .send(updatedFields);
-
-    // Check if the response status is successful (e.g., 200 OK)
-    expect(response.status).toBe(400);
-  });
-
-  test("Should return 500 for an incorrect server behaviour", async () => {
-    const proposalId = 1; // Replace with the proposal ID you want to update
-    const updatedFields = {
-      // Specify the fields and their updated values
-      title: "Updated4 Title",
-      supervisor: "s9405902309090",
-      // Add other fields to update
-    };
-
-    // Send the PATCH request to update the proposal
-    const response = await request(app)
-      .patch(`/api/proposals/${proposalId}`)
-      .send(updatedFields);
-
-    // Check if the response status is successful (e.g., 200 OK)
-    expect(response.status).toBe(500);
-  });
 });*/
