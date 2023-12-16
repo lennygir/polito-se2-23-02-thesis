@@ -76,12 +76,14 @@ function ProposalRow(props) {
     switch (type) {
       case "RESEARCH":
         return <Chip key={type} icon={<BiotechIcon />} label={type} color="info" size="small" />;
-      case "COMPANY":
-        return <Chip key={type} icon={<BusinessIcon />} label={type} color="rose" size="small" />;
-      case "EXPERIMENTAL":
-        return <Chip key={type} icon={<ScienceIcon />} label={type} color="success" size="small" />;
       case "ABROAD":
         return <Chip key={type} icon={<PublicIcon />} label={type} color="warning" size="small" />;
+      case "EXPERIMENTAL":
+        return <Chip key={type} icon={<ScienceIcon />} label={type} color="success" size="small" />;
+      case "COMPANY":
+        return <Chip key={type} icon={<BusinessIcon />} label={type} color="rose" size="small" />;
+      default:
+        return null;
     }
   };
 

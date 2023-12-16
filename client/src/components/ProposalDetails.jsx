@@ -81,6 +81,8 @@ function ProposalDetails(props) {
         return <Chip key={type} icon={<ScienceIcon />} label={type} color="success" size="small" />;
       case "ABROAD":
         return <Chip key={type} icon={<PublicIcon />} label={type} color="warning" size="small" />;
+      default:
+        return null;
     }
   };
 
