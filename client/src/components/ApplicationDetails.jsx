@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
+import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
@@ -27,6 +28,7 @@ function ApplicationDetails(props) {
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
   const [studentCareer, setStudentCareer] = useState([]);
+  const [showExams, setShowExams] = useState(false);
 
   useEffect(() => {
     let message = "";
@@ -199,8 +201,13 @@ function ApplicationDetails(props) {
         {application.student_id + "@studenti.polito.it"}
       </Typography>
       <Box>
-        <span style={{ fontWeight: "bold" }}>Career: </span>
-        <StudentCareerTable career={studentCareer} />
+        <span style={{ fontWeight: "bold" }}>
+          Career:{" "}
+          <Link component="button" variant="body2" onClick={() => setShowExams(!showExams)}>
+            {showExams ? "Hide" : "Show"}
+          </Link>
+        </span>
+        {showExams && <StudentCareerTable career={studentCareer} />}
       </Box>
       {application.attached_file && (
         <Stack direction="row" spacing={5} alignItems="center" marginY={3}>
