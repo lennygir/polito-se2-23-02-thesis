@@ -426,16 +426,15 @@ it("prova", async () => {
     co_supervisors: proposal.co_supervisors.join(", "),
     groups: proposal.groups.join(", "),
     keywords: proposal.keywords.join(", "),
+    manually_archived: 0,
+    deleted: 0,
     expiration_date: dayjs(proposal.expiration_date).format("YYYY-MM-DD"),
   };
   delete expected_proposal.types;
   let returned_proposal = db
     .prepare("select * from main.PROPOSALS where id = ?")
     .get(proposal_id);
-  expect(returned_proposal).toEqual({
-    ...expected_proposal,
-    manually_archived: 0,
-  });
+  expect(returned_proposal).toEqual(expected_proposal);
 });
 
 it("CRUD on proposal", async () => {
@@ -1183,34 +1182,85 @@ describe("Secretary clerk story", () => {
   });
 });
 
-/*describe("Delete proposals", () => {
-  test("Correct elimination of a proposal", () => {
-    const id = 2;
-    return request(app)
-      .delete(`/api/proposals/${id}`)
-      .expect(200);
+describe("Delete proposals", () => {
+  beforeEach(() => {
+    db.prepare("delete from PROPOSALS").run();
   });
+  it("You should not be able to archive a proposal deleted", async () => {
+    logIn("marco.torchiano@teacher.it");
 
-  test("Should retrun a 400 error if the proposal is already accepted", () => {
-    const id = 8;
-    return request(app)
-      .delete(`/api/proposals/${id}`)
-      .expect(400);
-  });
+    // insert a proposal
+    const id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+        .expect(200)
+    ).body;
 
+    // delete the proposal
+    await request(app).delete(`/api/proposals/${id}`).expect(200);
 
-  test("Get 404 error for no rows eliminated", () => {
-   const id = 10000;
-    return request(app)
-      .delete(`/api/proposals/${id}`)
+    // archive the proposal
+    await request(app)
+      .patch(`/api/proposals/${id}`)
+      .set("Content-Type", "application/json")
+      .send({
+        archived: true,
+      })
       .expect(404);
   });
+  it("You should not be able to apply for a proposal deleted", async () => {
+    logIn("marco.torchiano@teacher.it");
 
-  test("Get 404 error for incorrect data format in", () => {
-    const id = "a";
-     return request(app)
-       .delete(`/api/proposals/${id}`)
-       .expect(400);
-   });
+    // insert a proposal
+    const id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+        .expect(200)
+    ).body;
 
-});*/
+    // delete the proposal
+    await request(app).delete(`/api/proposals/${id}`).expect(200);
+
+    logIn("s309618@studenti.polito.it");
+
+    // apply for the proposal
+    await request(app)
+      .post("/api/applications")
+      .set("Content-Type", "application/json")
+      .send({
+        proposal: id,
+      })
+      .expect(404);
+  });
+  it("You should not be able to update a proposal deleted", async () => {
+    logIn("marco.torchiano@teacher.it");
+
+    // insert a proposal
+    const id = (
+      await request(app)
+        .post("/api/proposals")
+        .set("Content-Type", "application/json")
+        .send(proposal)
+        .expect(200)
+    ).body;
+
+    // delete the proposal
+    await request(app).delete(`/api/proposals/${id}`).expect(200);
+
+    // update the proposal
+    const updateMessage = (
+      await request(app)
+        .put(`/api/proposals/${id}`)
+        .send({
+          ...proposal,
+          title: "Updated title",
+        })
+        .expect(404)
+    ).body;
+    expect(updateMessage).toBe("Proposal not found");
+  });
+});

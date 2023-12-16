@@ -175,7 +175,7 @@ router.post(
   (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
-        return res.status(400).send({ message: "Invalid proposal content" });
+        return res.status(400).json({ message: "Invalid proposal content" });
       }
       const {
         title,
@@ -213,7 +213,7 @@ router.post(
       });
       return res.status(200).json(teacher);
     } catch (e) {
-      return res.status(500).send({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );
@@ -232,7 +232,7 @@ router.post(
       if (!validationResult(req).isEmpty()) {
         return res
           .status(400)
-          .send({ message: "Invalid start request content" });
+          .json({ message: "Invalid start request content" });
       }
       const newStartRequest = req.body;
       const supervisor = getTeacher(newStartRequest.supervisor);
@@ -264,7 +264,7 @@ router.post(
       const startRequest = insertStartRequest(newStartRequest);
       return res.status(200).json(startRequest);
     } catch (e) {
-      return res.status(500).send({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );
@@ -317,7 +317,7 @@ router.get("/api/teachers", isLoggedIn, (req, res) => {
   try {
     return res.status(200).json(getTeachers());
   } catch (e) {
-    return res.status(500).send({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -326,7 +326,7 @@ router.get("/api/groups", isLoggedIn, (req, res) => {
   try {
     return res.status(200).json(getGroups());
   } catch (e) {
-    return res.status(500).send({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -335,7 +335,7 @@ router.get("/api/degrees", isLoggedIn, (req, res) => {
   try {
     return res.status(200).json(getDegrees());
   } catch (e) {
-    return res.status(500).send({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -346,7 +346,7 @@ router.get(
   (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
-        return res.status(400).send({ message: "Invalid parameters" });
+        return res.status(400).json({ message: "Invalid parameters" });
       }
       const user = getUser(req.user);
       if (!user) {
@@ -363,6 +363,7 @@ router.get(
       proposals.map((proposal) => {
         proposal.archived = isArchived(proposal);
         delete proposal.manually_archived;
+        delete proposal.deleted;
         return proposal;
       });
       if (req.query.archived !== undefined) {
@@ -399,6 +400,9 @@ router.post(
       const db_proposal = getProposal(proposal);
       if (db_proposal === undefined) {
         return res.status(400).json({ message: "Invalid application content" });
+      }
+      if (db_proposal.deleted === 1) {
+        return res.status(404).json("Proposal not found");
       }
       if (getAcceptedApplicationsOfStudent(user.id).length !== 0) {
         return res.status(400).json({
@@ -503,7 +507,7 @@ router.patch(
   async (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
-        return res.status(400).send({ message: "Invalid proposal content" });
+        return res.status(400).json({ message: "Invalid proposal content" });
       }
       const user = getUser(req.user);
       if (user) {
@@ -543,7 +547,7 @@ router.get(
   (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
-        return res.status(400).send({ message: "Invalid proposal content" });
+        return res.status(400).json({ message: "Invalid proposal content" });
       }
       return res.status(200).json(getExamsOfStudent(req.params.studentId));
     } catch (e) {
@@ -572,7 +576,7 @@ router.patch(
   (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
-        return res.status(400).send({ message: "Invalid proposal content" });
+        return res.status(400).json({ message: "Invalid proposal content" });
       }
       const user = getUser(req.user);
       if (!user || user.role !== "teacher") {
@@ -588,6 +592,9 @@ router.patch(
         return res.status(401).json({
           message: "Unauthorized to change other teacher's proposal",
         });
+      }
+      if (proposal.deleted === 1) {
+        return res.status(404).json("Proposal not found");
       }
       updateArchivedStateProposal(1, req.params.id);
       cancelPendingApplications(req.params.id);
@@ -620,11 +627,11 @@ router.put(
   (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
-        return res.status(400).send({ message: "Invalid proposal content" });
+        return res.status(400).json({ message: "Invalid proposal content" });
       }
       const user = getUser(req.user);
       if (!user) {
-        return res.status(500).send({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error" });
       }
       if (user.role !== "teacher") {
         return res.status(401).json({
@@ -650,6 +657,9 @@ router.put(
         return res.status(404).json({
           message: `Proposal ${proposal_id} not found`,
         });
+      }
+      if (proposal.deleted === 1) {
+        return res.status(404).json("Proposal not found");
       }
       if (proposal.manually_archived === 1) {
         return res
@@ -682,9 +692,9 @@ router.put(
         level: level,
         cds: cds,
       });
-      return res.status(200).send({ message: "Proposal updated successfully" });
+      return res.status(200).json({ message: "Proposal updated successfully" });
     } catch (e) {
-      return res.status(500).send({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );
@@ -696,7 +706,7 @@ router.delete(
   async (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
-        return res.status(400).send({ message: "Invalid proposal content" });
+        return res.status(400).json({ message: "Invalid proposal content" });
       }
       const teacher = getUser(req.user);
       if (!teacher || teacher.role !== "teacher") {
@@ -724,7 +734,7 @@ router.delete(
       deleteProposal(req.params.id);
       return res
         .status(200)
-        .send({ message: "Proposal deleted successfully." });
+        .json({ message: "Proposal deleted successfully." });
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
@@ -746,17 +756,17 @@ router.patch(
   async (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
-        return res.status(400).send({ message: "Invalid date content" });
+        return res.status(400).json({ message: "Invalid date content" });
       }
       const newDelta = dayjs(req.body.date).diff(
         dayjs().format("YYYY-MM-DD"),
         "day",
       );
       if (newDelta < getDelta().delta) {
-        return res.status(400).send({ message: "Cannot go back in the past" });
+        return res.status(400).json({ message: "Cannot go back in the past" });
       }
       setDelta(newDelta);
-      return res.status(200).send({ message: "Date successfully changed" });
+      return res.status(200).json({ message: "Date successfully changed" });
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
@@ -791,7 +801,7 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
       }
       return request;
     });
-    return res.status(200).send(requests);
+    return res.status(200).json(requests);
   } catch (err) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
