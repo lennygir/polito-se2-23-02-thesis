@@ -118,7 +118,7 @@ exports.getApplication = (student_id, proposal_id) => {
 };
 
 exports.getProposalsBySupervisor = (id) => {
-  return db.prepare("select * from PROPOSALS where supervisor = ?").all(id);
+  return db.prepare("select * from PROPOSALS where supervisor = ? and deleted = 0").all(id);
 };
 
 exports.getTeacher = (id) => {
@@ -190,7 +190,7 @@ exports.getProposalsByDegree = (cds) => {
       `
       SELECT *
       FROM PROPOSALS
-      WHERE cds = ? AND id NOT IN (
+      WHERE cds = ? AND deleted = 0 AND id NOT IN (
         SELECT proposal_id
         FROM APPLICATIONS
         WHERE state = 'accepted' AND proposal_id IS NOT NULL
@@ -416,7 +416,7 @@ exports.getNotifications = (user_id) => {
 };
 
 exports.deleteProposal = (proposal_id) => {
-  db.prepare("DELETE FROM PROPOSALS WHERE id = ?").run(proposal_id);
+  db.prepare("update PROPOSALS set deleted = 1 WHERE id = ?").run(proposal_id);
 };
 
 exports.updateArchivedStateProposal = (new_archived_state, proposal_id) => {
