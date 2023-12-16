@@ -248,14 +248,14 @@ function ProposalForm(props) {
   const ChipProps = { sx: { height: 26 } };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} noValidate>
+    <Box name="proposal-form" component="form" onSubmit={handleSubmit} noValidate>
       {/* Title field */}
       <FormControl fullWidth sx={{ mt: { md: 2, xs: 0 } }}>
         <TextField
           required
           multiline
           rows={2}
-          name="title"
+          name="proposal-title"
           label="Title"
           margin="normal"
           value={formData.title}
@@ -271,7 +271,7 @@ function ProposalForm(props) {
           required
           multiline
           rows={6}
-          name="description"
+          name="proposal-description"
           label="Description"
           margin="normal"
           value={formData.description}
