@@ -168,9 +168,8 @@ function RequestForm(props) {
             options={teachers.map((teacher) => teacher.email)}
             value={formData.coSupervisors}
             onChange={(event, value) => handleFormInputChange("coSupervisors", value)}
-            filterSelectedOptions
-            PaperComponent={CustomPaper}
             ChipProps={ChipProps}
+            PaperComponent={CustomPaper}
             renderInput={(params) => (
               <TextField {...params} label="Co-supervisors" placeholder="Email" margin="normal" />
             )}
@@ -179,6 +178,7 @@ function RequestForm(props) {
                 {option}
               </li>
             )}
+            filterSelectedOptions
           />
         </FormControl>
       </Stack>
