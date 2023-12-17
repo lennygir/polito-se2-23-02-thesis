@@ -790,7 +790,7 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
     const response = await applyForProposal(inserted_proposal_id);
     expect(response.status).toBe(401);
     expect(response.body).toEqual({
-      message: `The proposal ${inserted_proposal_id} is archived, cannot apply`,
+      message: `The proposal ${inserted_proposal_id.toString()} is archived, cannot apply`,
     });
   });
 
