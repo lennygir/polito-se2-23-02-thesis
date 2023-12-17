@@ -780,17 +780,17 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
 
     // the professor inserts a proposal
     logIn("marco.torchiano@teacher.it");
-    const inserted_proposal_id = (await insertProposal(proposal)).body;
+    const proposal_response = await insertProposal(proposal);
 
     // change the virtual clock to the future, to make the previously inserted proposal expired
     await setClock(2);
 
     // the student applies for that proposal
     logIn("s309618@studenti.polito.it");
-    const response = await applyForProposal(inserted_proposal_id);
+    const response = await applyForProposal(proposal_response.body);
     expect(response.status).toBe(401);
     expect(response.body).toEqual({
-      message: `The proposal ${inserted_proposal_id.toString()} is archived, cannot apply`,
+      message: `The proposal ${proposal_response.body} is archived, cannot apply`,
     });
   });
 
