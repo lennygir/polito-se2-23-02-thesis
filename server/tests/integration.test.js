@@ -959,78 +959,57 @@ describe("Story Insert Student Request", () => {
   });
 });
 
+async function evaluateRequestTest(approve) {
+  start_request.supervisor = "s234567"; // maurizio.morisio@teacher.it
+
+  logIn("s308747@studenti.polito.it");
+  const response = await startRequest(start_request);
+  expect(response.status).toBe(200);
+  const thesisRequestId = response.body;
+
+  logIn("laura.ferrari@example.com");
+
+  // get all thesis requests
+  const { body: thesisRequests, status } = await getRequests();
+  expect(status).toBe(200);
+  expect(thesisRequests).toContainEqual({
+    ...start_request,
+    id: thesisRequestId,
+    supervisor: "maurizio.morisio@teacher.it",
+    student_id: "s308747",
+    status: "requested",
+  });
+
+  let status2;
+  if (approve) {
+    // approve the request
+    status2 = (await approveRequest(thesisRequestId)).status;
+  } else {
+    // reject the request
+    status2 = (await rejectRequest(thesisRequestId)).status;
+  }
+  expect(status2).toBe(200);
+
+  let request_status = approve ? "secretary_accepted" : "rejected";
+
+  // get all thesis requests
+  const { body: newThesisRequests, status: status3 } = await getRequests();
+  expect(status3).toBe(200);
+  expect(newThesisRequests).toContainEqual({
+    ...start_request,
+    id: thesisRequestId,
+    supervisor: "maurizio.morisio@teacher.it",
+    student_id: "s308747",
+    status: request_status,
+  });
+}
+
 describe("Secretary clerk story", () => {
   it("Approve a student thesis request", async () => {
-    start_request.supervisor = "s234567"; // maurizio.morisio@teacher.it
-
-    logIn("s308747@studenti.polito.it");
-    const response = await startRequest(start_request);
-    expect(response.status).toBe(200);
-    const thesisRequestId = response.body;
-
-    logIn("laura.ferrari@example.com");
-
-    // get all thesis requests
-    const { body: thesisRequests, status } = await getRequests();
-    expect(status).toBe(200);
-    expect(thesisRequests).toContainEqual({
-      ...start_request,
-      id: thesisRequestId,
-      supervisor: "maurizio.morisio@teacher.it",
-      student_id: "s308747",
-      status: "requested",
-    });
-
-    // approve the request
-    const { status: status2 } = await approveRequest(thesisRequestId);
-    expect(status2).toBe(200);
-
-    // get all thesis requests
-    const { body: newThesisRequests, status: status3 } = await getRequests();
-    expect(status3).toBe(200);
-    expect(newThesisRequests).toContainEqual({
-      ...start_request,
-      id: thesisRequestId,
-      supervisor: "maurizio.morisio@teacher.it",
-      student_id: "s308747",
-      status: "secretary_accepted",
-    });
+    await evaluateRequestTest(true);
   });
   it("Reject a student thesis request", async () => {
-    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
-
-    logIn("s309618@studenti.polito.it");
-    const response = await startRequest(start_request);
-    expect(response.status).toBe(200);
-    const thesisRequestId = response.body;
-
-    logIn("laura.ferrari@example.com");
-
-    // get all thesis requests
-    const { body: thesisRequests, status } = await getRequests();
-    expect(status).toBe(200);
-    expect(thesisRequests).toContainEqual({
-      ...start_request,
-      id: thesisRequestId,
-      supervisor: "marco.torchiano@teacher.it",
-      student_id: "s309618",
-      status: "requested",
-    });
-
-    // reject thesis request
-    const { status: status2 } = await rejectRequest(thesisRequestId);
-    expect(status2).toBe(200);
-
-    // get all thesis requests
-    const { body: newThesisRequests, status: status3 } = await getRequests();
-    expect(status3).toBe(200);
-    expect(newThesisRequests).toContainEqual({
-      ...start_request,
-      id: thesisRequestId,
-      supervisor: "marco.torchiano@teacher.it",
-      student_id: "s309618",
-      status: "rejected",
-    });
+    await evaluateRequestTest(false);
   });
   it("If a student thesis request is already evaluated, it should not be approved/rejected", async () => {
     start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
