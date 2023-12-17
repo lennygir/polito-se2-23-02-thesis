@@ -26,7 +26,11 @@ function ProposalTable(props) {
             <TableRow>
               {user?.role === "student" &&
                 STUDENT_HEADERS.map((headCell) => (
-                  <TableCell key={headCell} align={headCell === "Expiration" ? "center" : "inherit"} variant="head">
+                  <TableCell
+                    key={headCell}
+                    align={headCell === "Expiration Date" ? "center" : "inherit"}
+                    variant="head"
+                  >
                     <Typography fontWeight={700} fontSize={18}>
                       {headCell}
                     </Typography>

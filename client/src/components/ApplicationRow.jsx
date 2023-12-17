@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import PropTypes from "prop-types";
 import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
+import Link from "@mui/material/Link";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
@@ -27,7 +28,11 @@ function ApplicationRow(props) {
           textOverflow: "ellipsis"
         }}
       >
-        {application.title}
+        <Tooltip title={application.title}>
+          <Link color="inherit" underline="none">
+            {application.title}
+          </Link>
+        </Tooltip>
       </TableCell>
       <TableCell align="center">
         {application.state === "rejected" && <Chip label="REJECTED" size="small" color="error" />}
@@ -41,7 +46,7 @@ function ApplicationRow(props) {
           </Tooltip>
         )}
       </TableCell>
-      <TableCell>
+      <TableCell align="center">
         <Tooltip title="View application">
           <IconButton component={NavLink} to={"/applications/" + application.id} state={{ application: application }}>
             <FileOpenIcon />

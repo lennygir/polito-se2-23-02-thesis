@@ -7,11 +7,11 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import AttachFileIcon from "@mui/icons-material/AttachFile";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import ErrorContext from "../contexts/ErrorContext";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import UserContext from "../contexts/UserContext";
 import ConfirmationDialog from "./ConfirmationDialog";
 import { useThemeContext } from "../theme/ThemeContextProvider";
@@ -164,7 +164,7 @@ function ApplicationDetails(props) {
         // Create a link element and trigger a click to initiate the download
         const link = document.createElement("a");
         link.href = url;
-        link.download = `student_cv_${application.student_id}.pdf`;
+        link.download = `${application.student_id}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -210,12 +210,12 @@ function ApplicationDetails(props) {
         {showExams && <StudentCareerTable career={studentCareer} />}
       </Box>
       {application.attached_file && (
-        <Stack direction="row" spacing={5} alignItems="center" marginY={3}>
+        <Stack direction="row" spacing={2} alignItems="center" marginY={2}>
           <Typography variant="body1">
-            <span style={{ fontWeight: "bold" }}>View CV: </span>
+            <span style={{ fontWeight: "bold" }}>Attachment: </span>
           </Typography>
-          <Button variant="outlined" startIcon={<AttachFileIcon />} onClick={handleDownloadFile}>
-            Student CV
+          <Button variant="outlined" startIcon={<FileDownloadIcon />} onClick={handleDownloadFile}>
+            Download pdf
           </Button>
         </Stack>
       )}
