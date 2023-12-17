@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
+import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
@@ -18,6 +19,7 @@ function RequestDetails(props) {
   const [decision, setDecision] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
+  const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
     let message = "";
@@ -156,7 +158,10 @@ function RequestDetails(props) {
       </Typography>
       <Typography variant="body1" gutterBottom>
         <span style={{ fontWeight: "bold" }}>Description: </span>
-        {request.description}
+        {showMore ? `${request.description} ` : `${request.description.substring(0, 250)}... `}
+        <Link component="button" variant="body2" onClick={() => setShowMore(!showMore)}>
+          {showMore ? "Show less" : "Show more"}
+        </Link>
       </Typography>
 
       <Box paddingTop={4} sx={{ display: "flex", justifyContent: "center" }}>

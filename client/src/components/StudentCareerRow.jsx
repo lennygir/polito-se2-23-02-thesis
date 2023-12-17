@@ -7,15 +7,13 @@ function StudentCareerRow(props) {
   const { course } = props;
 
   return (
-    <>
-      <TableRow>
-        <TableCell>{course.cod_course}</TableCell>
-        <TableCell>{course.title_course}</TableCell>
-        <TableCell align="center">{course.grade}</TableCell>
-        <TableCell align="center">{course.cfu}</TableCell>
-        <TableCell align="center">{dayjs(course.date).format("DD MMM YYYY")}</TableCell>
-      </TableRow>
-    </>
+    <TableRow>
+      <TableCell>{course.cod_course}</TableCell>
+      <TableCell>{course.title_course}</TableCell>
+      <TableCell align="center">{course.grade}</TableCell>
+      <TableCell align="center">{course.cfu}</TableCell>
+      <TableCell align="center">{dayjs(course.date).format("DD MMM YYYY")}</TableCell>
+    </TableRow>
   );
 }
 

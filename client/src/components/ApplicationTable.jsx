@@ -16,7 +16,7 @@ const STUDENT_HEADERS = ["Teacher", "Proposal", "Status", "Open"];
 
 function generateTableHeaders(headers, align) {
   return headers.map((headCell) => (
-    <TableCell key={headCell} align={headCell === "Status" ? "center" : align} variant="head">
+    <TableCell key={headCell} align={headCell === "Status" || headCell === "Open" ? "center" : align} variant="head">
       <Typography fontWeight={700} fontSize={18}>
         {headCell}
       </Typography>
@@ -29,6 +29,17 @@ function ApplicationTable(props) {
   const user = useContext(UserContext);
   const headers = user?.role === "student" ? STUDENT_HEADERS : TEACHER_HEADERS;
 
+  const customSort = (a, b) => {
+    // If the status is "accepted", prioritize it
+    if (a.state === "accepted") {
+      return -1;
+    } else if (b.state === "accepted") {
+      return 1;
+    } else {
+      return 0;
+    }
+  };
+
   return (
     <Paper sx={{ mt: { md: 3, xs: 1 }, mx: { md: 4, xs: 0 }, overflow: "hidden", borderRadius: 4 }}>
       <TableContainer sx={{ maxHeight: "60vh" }}>
@@ -37,7 +48,7 @@ function ApplicationTable(props) {
             <TableRow>{generateTableHeaders(headers, "inherit")}</TableRow>
           </TableHead>
           <TableBody>
-            {applications.map((application) => (
+            {applications.sort(customSort).map((application) => (
               <ApplicationRow key={application.id} application={application} />
             ))}
           </TableBody>
