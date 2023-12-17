@@ -15,7 +15,6 @@ const {
   cancelPendingApplications,
   getProposal,
   getStudent,
-  getPendingOrAcceptedApplicationsOfStudent,
   findAcceptedProposal,
   findRejectedApplication,
   getNotifications,
@@ -604,7 +603,7 @@ describe("PATCH /api/applications/:id", () => {
       .send({ state: "wrong" });
 
     expect(response.status).toBe(400);
-    expect(response.body).toEqual({ message: "Invalid proposal content" });
+    expect(response.body).toEqual({ message: "Invalid content" });
   });
   test("Should return 200 if the state is accepted for an existent application", async () => {
     getApplicationById.mockReturnValue({

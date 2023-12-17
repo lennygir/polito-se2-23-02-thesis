@@ -30,20 +30,21 @@ exports.searchAcceptedApplication = (student_id) => {
     .get(student_id);
 };
 
-exports.insertProposal = (
-  title,
-  supervisor,
-  co_supervisors,
-  groups,
-  keywords,
-  types,
-  description,
-  required_knowledge,
-  notes,
-  expiration_date,
-  level,
-  cds,
-) => {
+exports.insertProposal = (proposal) => {
+  const {
+    title,
+    supervisor,
+    co_supervisors,
+    groups,
+    keywords,
+    types,
+    description,
+    required_knowledge,
+    notes,
+    expiration_date,
+    level,
+    cds,
+  } = proposal;
   return db
     .prepare(
       "insert into PROPOSAlS(title, supervisor, co_supervisors, keywords, type, groups, description, required_knowledge, notes, expiration_date, level, cds) values(?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -245,11 +246,11 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
   // Send email to a student
   const applicationJoined = db
     .prepare(
-      "SELECT S.id, P.title, S.email, S.surname, S.name \
-    FROM APPLICATIONS A \
-    JOIN PROPOSALS P ON P.id = A.proposal_id \
-    JOIN STUDENT S ON S.id = A.student_id \
-    WHERE A.id = ?",
+      `SELECT S.id, P.title, S.email, S.surname, S.name
+    FROM APPLICATIONS A
+    JOIN PROPOSALS P ON P.id = A.proposal_id
+    JOIN STUDENT S ON S.id = A.student_id
+    WHERE A.id = ?`,
     )
     .get(applicationId);
   const mailBody = applicationDecisionTemplate({
@@ -282,10 +283,10 @@ exports.notifyNewApplication = async (proposalId) => {
   // Send email to the supervisor
   const proposalJoined = db
     .prepare(
-      "SELECT P.title, T.id, T.email, T.surname, T.name \
-      FROM PROPOSALS P \
-      JOIN TEACHER T ON T.id = P.supervisor \
-      WHERE P.id = ?",
+      `SELECT P.title, T.id, T.email, T.surname, T.name
+      FROM PROPOSALS P
+      JOIN TEACHER T ON T.id = P.supervisor
+      WHERE P.id = ?`,
     )
     .get(proposalId);
   const mailBody = newApplicationTemplate({
@@ -314,7 +315,6 @@ exports.notifyNewApplication = async (proposalId) => {
 };
 
 /**
- * todo: I think it's ugly to return student's info and teacher's info
  * @param teacher_id
  * @returns {[
  *   {
@@ -436,21 +436,22 @@ exports.setDelta = (delta) => {
     .run(delta);
 };
 
-exports.updateProposal = (
-  proposal_id,
-  title,
-  supervisor,
-  co_supervisors,
-  groups,
-  keywords,
-  types,
-  description,
-  required_knowledge,
-  notes,
-  expiration_date,
-  level,
-  cds,
-) => {
+exports.updateProposal = (proposal) => {
+  const {
+    proposal_id,
+    title,
+    supervisor,
+    co_supervisors,
+    groups,
+    keywords,
+    types,
+    description,
+    required_knowledge,
+    notes,
+    expiration_date,
+    level,
+    cds,
+  } = proposal;
   return db
     .prepare(
       "UPDATE PROPOSALS SET title = ?, supervisor = ?, co_supervisors = ?, keywords = ?, type = ?, groups = ?, description = ?, required_knowledge = ?, notes = ?, expiration_date = ?, level = ?, cds = ? WHERE id = ?",

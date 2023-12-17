@@ -4,7 +4,8 @@
 
 const { db } = require("./db");
 
-exports.getUser = (email) => {
+exports.getUser = (reqUser) => {
+  const { email } = reqUser;
   const student = db
     .prepare("select * from main.STUDENT where email = ?")
     .get(email);
@@ -21,5 +22,5 @@ exports.getUser = (email) => {
   } else if (secretary_clerk) {
     secretary_clerk.role = "secretary_clerk";
   }
-  return student || teacher  || secretary_clerk;
+  return student || teacher || secretary_clerk;
 };

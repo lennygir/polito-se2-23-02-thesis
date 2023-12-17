@@ -26,7 +26,6 @@ const {
   getApplicationById,
   getTeacherByEmail,
   cancelPendingApplications,
-  getPendingOrAcceptedApplicationsOfStudent,
   findAcceptedProposal,
   findRejectedApplication,
   notifyApplicationDecision,
@@ -44,6 +43,59 @@ const {
   getPendingApplicationsOfStudent,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
+
+function getDate() {
+  const clock = getDelta();
+  return dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
+}
+
+function isArchived(proposal) {
+  return (
+    !!proposal.manually_archived ||
+    dayjs(proposal.expiration_date).isBefore(dayjs(getDate()))
+  );
+}
+
+function validateProposal(res, proposal, user) {
+  const { co_supervisors, groups, level } = proposal;
+  for (const group of groups) {
+    if (getGroup(group) === undefined) {
+      return res.status(400).json({ message: "Invalid proposal content" });
+    }
+  }
+  if (level !== "MSC" && level !== "BSC") {
+    return res.status(400).json({ message: "Invalid proposal content" });
+  }
+  const legal_groups = [user.cod_group];
+  for (const co_supervisor_email of co_supervisors) {
+    const co_supervisor = getTeacherByEmail(co_supervisor_email);
+    if (co_supervisor !== undefined) {
+      legal_groups.push(co_supervisor.cod_group);
+    }
+  }
+  if (!groups.every((group) => legal_groups.includes(group))) {
+    return res.status(400).json({ message: "Invalid groups" });
+  }
+}
+
+async function setStateToApplication(req, res, state) {
+  const application = getApplicationById(req.params.id);
+  if (application === undefined) {
+    return res.status(400).json({ message: "Application not existent" });
+  }
+  if (application.state !== "pending") {
+    return res.status(400).json({
+      message: "You cannot modify an application already accepted or rejected",
+    });
+  }
+  updateApplication(application.id, state);
+  await notifyApplicationDecision(application.id, state);
+  if (state === "accepted") {
+    updateArchivedStateProposal(1, application.proposal_id);
+    cancelPendingApplications(application.proposal_id);
+  }
+  return res.status(200).json({ message: `Application ${state}` });
+}
 
 // ==================================================
 // Routes
@@ -80,8 +132,7 @@ router.post(
  * If user authenticated return user
  */
 router.get("/api/sessions/current", isLoggedIn, (req, res) => {
-  const { email } = req.user;
-  const user = getUser(email);
+  const user = getUser(req.user);
   if (user) {
     return res.status(200).json(user);
   } else {
@@ -122,11 +173,10 @@ router.post(
   check("level").isString().isLength({ min: 3, max: 3 }),
   check("cds").isString(),
   (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      return res.status(400).json({ message: "Invalid proposal content" });
-    }
     try {
+      if (!validationResult(req).isEmpty()) {
+        return res.status(400).json({ message: "Invalid proposal content" });
+      }
       const {
         title,
         co_supervisors,
@@ -140,45 +190,27 @@ router.post(
         level,
         cds,
       } = req.body;
-      const { email } = req.user;
-      const user = getUser(email);
+      const user = getUser(req.user);
       if (!user || user.role !== "teacher") {
         return res.status(401).json({
           message: "You must be authenticated as teacher to add a proposal",
         });
       }
-      for (const group of groups) {
-        if (getGroup(group) === undefined) {
-          return res.status(400).json({ message: "Invalid proposal content" });
-        }
-      }
-      if (level !== "MSC" && level !== "BSC") {
-        return res.status(400).json({ message: "Invalid proposal content" });
-      }
-      const legal_groups = [user.cod_group];
-      for (const co_supervisor_email of co_supervisors) {
-        const co_supervisor = getTeacherByEmail(co_supervisor_email);
-        if (co_supervisor !== undefined) {
-          legal_groups.push(co_supervisor.cod_group);
-        }
-      }
-      if (!groups.every((group) => legal_groups.includes(group))) {
-        return res.status(400).json({ message: "Invalid groups" });
-      }
-      const teacher = insertProposal(
-        title,
-        user.id,
-        co_supervisors.join(", "),
-        groups.join(", "),
-        keywords.join(", "),
-        types.join(", "),
-        description,
-        required_knowledge,
-        notes,
-        dayjs(expiration_date).format("YYYY-MM-DD"),
-        level,
-        cds,
-      );
+      validateProposal(res, req.body, user);
+      const teacher = insertProposal({
+        title: title,
+        supervisor: user.id,
+        co_supervisors: co_supervisors.join(", "),
+        groups: groups.join(", "),
+        keywords: keywords.join(", "),
+        types: types.join(", "),
+        description: description,
+        required_knowledge: required_knowledge,
+        notes: notes,
+        expiration_date: dayjs(expiration_date).format("YYYY-MM-DD"),
+        level: level,
+        cds: cds,
+      });
       return res.status(200).json(teacher);
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
@@ -196,20 +228,20 @@ router.post(
   check("description").isString(),
   check("supervisor").isString(),
   (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      return res.status(400).json({ message: "Invalid start request content" });
-    }
     try {
+      if (!validationResult(req).isEmpty()) {
+        return res
+          .status(400)
+          .json({ message: "Invalid start request content" });
+      }
       const newStartRequest = req.body;
       const supervisor = getTeacher(newStartRequest.supervisor);
-      if (supervisor == undefined) {
+      if (supervisor === undefined) {
         return res.status(400).json({
           message: "The supervisor doesn't exist",
         });
       }
-      const { email } = req.user;
-      const user = getUser(email);
+      const user = getUser(req.user);
       if (!user || user.role !== "student") {
         return res.status(401).json({
           message:
@@ -242,13 +274,11 @@ router.patch(
   isLoggedIn,
   check("approved").isBoolean(),
   (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      return res.status(400).json({ message: "Invalid request content" });
-    }
     try {
-      const { email } = req.user;
-      const user = getUser(email);
+      if (!validationResult(req).isEmpty()) {
+        return res.status(400).json({ message: "Invalid content" });
+      }
+      const user = getUser(req.user);
       if (
         !user ||
         (user.role !== "secretary_clerk" && user.role !== "teacher")
@@ -263,10 +293,7 @@ router.patch(
       let new_status;
       const old_status = getStatusStartRequest(req_id);
       if (user.role === "secretary_clerk") {
-        if (
-          old_status.status === "rejected" ||
-          old_status.status === "secretary_accepted"
-        ) {
+        if (old_status.status !== "requested") {
           return res.status(401).json({
             message: "The request has been already approved / rejected",
           });
@@ -288,9 +315,7 @@ router.patch(
 // endpoint to get all teachers {id, surname, name, email}
 router.get("/api/teachers", isLoggedIn, (req, res) => {
   try {
-    const teachers = getTeachers();
-
-    return res.status(200).json(teachers);
+    return res.status(200).json(getTeachers());
   } catch (e) {
     return res.status(500).json({ message: "Internal server error" });
   }
@@ -299,9 +324,7 @@ router.get("/api/teachers", isLoggedIn, (req, res) => {
 // endpoint to get all groups {cod_group}
 router.get("/api/groups", isLoggedIn, (req, res) => {
   try {
-    //get the groups from db
-    const groups = getGroups();
-    return res.status(200).json(groups);
+    return res.status(200).json(getGroups());
   } catch (e) {
     return res.status(500).json({ message: "Internal server error" });
   }
@@ -310,61 +333,43 @@ router.get("/api/groups", isLoggedIn, (req, res) => {
 // endpoint to get all degrees {cod_degree, title_degree}
 router.get("/api/degrees", isLoggedIn, (req, res) => {
   try {
-    const degrees = getDegrees();
-    return res.status(200).json(degrees);
+    return res.status(200).json(getDegrees());
   } catch (e) {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-
-function getDate() {
-  const clock = getDelta();
-  return dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
-}
 
 router.get(
   "/api/proposals",
   check("archived").isBoolean().optional({ values: "falsy" }),
   isLoggedIn,
   (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      return res.status(400).json({ message: "Invalid parameters" });
-    }
     try {
-      const { email } = req.user;
-      const user = getUser(email);
-      const date = getDate();
+      if (!validationResult(req).isEmpty()) {
+        return res.status(400).json({ message: "Invalid parameters" });
+      }
+      const user = getUser(req.user);
       if (!user) {
         return res.status(500).json({ message: "Internal server error" });
       }
       let proposals;
       if (user.role === "student") {
-        proposals = getProposalsByDegree(user.cod_degree).filter(
-          (proposal) =>
-            dayjs(date).isBefore(dayjs(proposal.expiration_date)) ||
-            dayjs(date).isSame(dayjs(proposal.expiration_date)),
-        );
+        proposals = getProposalsByDegree(user.cod_degree);
       } else if (user.role === "teacher") {
         proposals = getProposalsBySupervisor(user.id);
       } else {
         return res.status(500).json({ message: "Internal server error" });
       }
       proposals.map((proposal) => {
-        if (proposal.manually_archived === 1) {
-          proposal.archived = true;
-        } else
-          proposal.archived = !!dayjs(proposal.expiration_date).isBefore(
-            dayjs(date),
-          );
+        proposal.archived = isArchived(proposal);
         delete proposal.manually_archived;
         delete proposal.deleted;
         return proposal;
       });
       if (req.query.archived !== undefined) {
-        proposals = proposals.filter((proposal) => {
-          return proposal.archived === req.query.archived;
-        });
+        proposals = proposals.filter(
+          (proposal) => proposal.archived === req.query.archived,
+        );
       }
       if (user.role === "student") {
         proposals = proposals.filter((proposal) => !proposal.archived);
@@ -380,14 +385,12 @@ router.post(
   "/api/applications",
   isLoggedIn,
   check("proposal").isInt({ gt: 0 }),
-  (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      return res.status(400).json({ message: "Invalid application content" });
-    }
+  async (req, res) => {
     try {
-      const { email } = req.user;
-      const user = getUser(email);
+      if (!validationResult(req).isEmpty()) {
+        return res.status(400).json({ message: "Invalid application content" });
+      }
+      const user = getUser(req.user);
       if (!user || user.role !== "student") {
         return res
           .status(401)
@@ -410,16 +413,9 @@ router.post(
         user.id,
       );
       if (
-        pendingApplicationsOfStudent.find((application) => {
-          const expirationDateOfProposal = dayjs(
-            getProposal(application.proposal_id).expiration_date,
-          );
-          const currentDate = getDate();
-          return (
-            expirationDateOfProposal.isSame(currentDate) ||
-            expirationDateOfProposal.isAfter(currentDate)
-          );
-        })
+        pendingApplicationsOfStudent.find(
+          (application) => !isArchived(getProposal(application.proposal_id)),
+        )
       ) {
         return res.status(400).json({
           message: `The student ${user.id} has already applied to a proposal`,
@@ -436,14 +432,13 @@ router.post(
             "The student has already applied for this application and it was rejected",
         });
       }
-      const date = getDate();
-      if (dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day")) {
-        return res.status(400).json({
-          message: `The proposal ${proposal} is expired, cannot apply`,
+      if (isArchived(db_proposal)) {
+        return res.status(401).json({
+          message: `The proposal ${proposal} is archived, cannot apply`,
         });
       }
       const application = insertApplication(proposal, user.id, "pending");
-      notifyNewApplication(application?.proposal_id);
+      await notifyNewApplication(application?.proposal_id);
       return res.status(200).json(application);
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
@@ -453,12 +448,10 @@ router.post(
 
 router.get("/api/applications", isLoggedIn, (req, res) => {
   try {
-    const { email } = req.user;
-    const user = getUser(email);
+    const user = getUser(req.user);
     if (!user) {
       return res.status(500).json({ message: "Internal server error" });
     }
-    const date = getDate();
     let applications;
     if (user.role === "teacher") {
       applications = getApplicationsOfTeacher(user.id);
@@ -469,17 +462,10 @@ router.get("/api/applications", isLoggedIn, (req, res) => {
     }
     applications = applications.map((application) => {
       let db_proposal = getProposal(application.proposal_id);
-      if (
-        dayjs(date).isAfter(dayjs(db_proposal.expiration_date), "day") &&
-        application.state === "pending"
-      ) {
+      if (isArchived(db_proposal) && application.state === "pending") {
         application.state = "canceled";
       }
-      if (application.attached_file) {
-        application.attached_file = true;
-      } else {
-        application.attached_file = false;
-      }
+      application.attached_file = !!application.attached_file;
       return application;
     });
     return res.status(200).json(applications);
@@ -493,47 +479,25 @@ router.get(
   check("id").isInt({ min: 1 }),
   isLoggedIn,
   (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      return res.status(400).json({ message: "Invalid application content" });
-    }
     try {
-      const { id } = req.params;
-      const application = getApplicationById(id);
+      if (!validationResult(req).isEmpty()) {
+        return res.status(400).json({ message: "Invalid parameters" });
+      }
+      const application = getApplicationById(req.params.id);
       if (application === undefined) {
         return res.status(404).json({ message: "Application not found" });
       }
-      const attachedFile = application.attached_file;
-      if (attachedFile === undefined) {
+      if (application.attached_file === undefined) {
         return res
           .status(404)
           .json({ message: "The application has not any attached files" });
       }
-      return res.status(200).send(attachedFile);
+      return res.status(200).send(application.attached_file);
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   },
 );
-
-async function setStateToApplication(req, res, state) {
-  const application = getApplicationById(req.params.id);
-  if (application === undefined) {
-    return res.status(400).json({ message: "Application not existent" });
-  }
-  if (application.state !== "pending") {
-    return res.status(400).json({
-      message: "You cannot modify an application already accepted or rejected",
-    });
-  }
-  updateApplication(application.id, state);
-  await notifyApplicationDecision(application.id, state);
-  if (state === "accepted") {
-    updateArchivedStateProposal(1, application.proposal_id);
-    cancelPendingApplications(application.proposal_id);
-  }
-  return res.status(200).json({ message: `Application ${state}` });
-}
 
 router.patch(
   "/api/applications/:id",
@@ -541,18 +505,15 @@ router.patch(
   check("state").isIn(["accepted", "rejected"]).optional({ values: "falsy" }),
   check("id").isInt({ min: 1 }),
   async (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      return res.status(400).json({ message: "Invalid proposal content" });
-    }
     try {
-      const { email } = req.user;
-      const user = getUser(email);
+      if (!validationResult(req).isEmpty()) {
+        return res.status(400).json({ message: "Invalid content" });
+      }
+      const user = getUser(req.user);
       if (user) {
         if (user.role === "teacher") {
-          const { state } = req.body;
-          if (state) {
-            return await setStateToApplication(req, res, state);
+          if (req.body.state) {
+            return await setStateToApplication(req, res, req.body.state);
           } else {
             return res.status(400).json({
               message:
@@ -567,8 +528,7 @@ router.patch(
             });
           }
           // I am expecting a pdf file
-          const uploadedFile = req.body;
-          insertPDFInApplication(uploadedFile, req.params.id);
+          insertPDFInApplication(req.body, req.params.id);
           return res.status(200).json({ message: "File uploaded correctly" });
         }
       } else {
@@ -585,13 +545,11 @@ router.get(
   isLoggedIn,
   check("studentId").isAlphanumeric().isLength({ min: 7, max: 7 }),
   (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      return res.status(400).json({ message: "Invalid proposal content" });
-    }
     try {
-      const { studentId } = req.params;
-      return res.status(200).json(getExamsOfStudent(studentId));
+      if (!validationResult(req).isEmpty()) {
+        return res.status(400).json({ message: "Invalid parameters" });
+      }
+      return res.status(200).json(getExamsOfStudent(req.params.studentId));
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
@@ -600,13 +558,11 @@ router.get(
 
 router.get("/api/notifications", isLoggedIn, (req, res) => {
   try {
-    const { email } = req.user;
-    const user = getUser(email);
+    const user = getUser(req.user);
     if (!user) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
-    const notifications = getNotifications(user.id);
-    return res.status(200).json(notifications);
+    return res.status(200).json(getNotifications(user.id));
   } catch (e) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
@@ -618,20 +574,17 @@ router.patch(
   check("archived").equals("true"),
   isLoggedIn,
   (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      return res.status(400).json({ message: "Invalid proposal content" });
-    }
     try {
-      const { email } = req.user;
-      const user = getUser(email);
+      if (!validationResult(req).isEmpty()) {
+        return res.status(400).json({ message: "Invalid content" });
+      }
+      const user = getUser(req.user);
       if (!user || user.role !== "teacher") {
         return res
           .status(401)
           .json({ message: "Only teachers can archive proposals" });
       }
-      const { id } = req.params;
-      const proposal = getProposal(id);
+      const proposal = getProposal(req.params.id);
       if (proposal === undefined) {
         return res.status(404).json({ message: "Proposal not found" });
       }
@@ -643,8 +596,8 @@ router.patch(
       if (proposal.deleted === 1) {
         return res.status(404).json("Proposal not found");
       }
-      updateArchivedStateProposal(1, id);
-      cancelPendingApplications(id);
+      updateArchivedStateProposal(1, req.params.id);
+      cancelPendingApplications(req.params.id);
       return res.status(200).json({ ...proposal, archived: true });
     } catch (e) {
       return res.status(500).json({ message: "Internal Server Error" });
@@ -672,13 +625,11 @@ router.put(
   check("level").isString().isLength({ min: 3, max: 3 }),
   check("cds").isString(),
   (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      return res.status(400).json({ message: "Invalid proposal content" });
-    }
     try {
-      const { email } = req.user;
-      const user = getUser(email);
+      if (!validationResult(req).isEmpty()) {
+        return res.status(400).json({ message: "Invalid proposal content" });
+      }
+      const user = getUser(req.user);
       if (!user) {
         return res.status(500).json({ message: "Internal server error" });
       }
@@ -708,7 +659,7 @@ router.put(
         });
       }
       if (proposal.deleted === 1) {
-        return res.status(404).json("Proposal not found");
+        return res.status(404).json({ message: "Proposal not found" });
       }
       if (proposal.manually_archived === 1) {
         return res
@@ -725,39 +676,22 @@ router.put(
           message: `The proposal ${proposal_id} is already accepted for another student`,
         });
       }
-      for (const group of groups) {
-        if (getGroup(group) === undefined) {
-          return res.status(400).json({ message: "Invalid proposal content" });
-        }
-      }
-      if (level !== "MSC" && level !== "BSC") {
-        return res.status(400).json({ message: "Invalid proposal content" });
-      }
-      const legal_groups = [user.cod_group];
-      for (const co_supervisor_email of co_supervisors) {
-        const co_supervisor = getTeacherByEmail(co_supervisor_email);
-        if (co_supervisor !== undefined) {
-          legal_groups.push(co_supervisor.cod_group);
-        }
-      }
-      if (!groups.every((group) => legal_groups.includes(group))) {
-        return res.status(400).json({ message: "Invalid groups" });
-      }
-      updateProposal(
-        proposal_id,
-        title,
-        user.id,
-        co_supervisors.join(", "),
-        groups.join(", "),
-        keywords.join(", "),
-        types.join(", "),
-        description,
-        required_knowledge,
-        notes,
-        dayjs(expiration_date).format("YYYY-MM-DD"),
-        level,
-        cds,
-      );
+      validateProposal(res, req.body, user);
+      updateProposal({
+        proposal_id: proposal_id,
+        title: title,
+        supervisor: user.id,
+        co_supervisors: co_supervisors.join(", "),
+        groups: groups.join(", "),
+        keywords: keywords.join(", "),
+        types: types.join(", "),
+        description: description,
+        required_knowledge: required_knowledge,
+        notes: notes,
+        expiration_date: dayjs(expiration_date).format("YYYY-MM-DD"),
+        level: level,
+        cds: cds,
+      });
       return res.status(200).json({ message: "Proposal updated successfully" });
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
@@ -770,13 +704,11 @@ router.delete(
   isLoggedIn,
   check("id").isInt(),
   async (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      return res.status(400).json({ message: "Invalid proposal content" });
-    }
     try {
-      const { email } = req.user;
-      const teacher = getUser(email);
+      if (!validationResult(req).isEmpty()) {
+        return res.status(400).json({ message: "Invalid parameters" });
+      }
+      const teacher = getUser(req.user);
       if (!teacher || teacher.role !== "teacher") {
         return res.status(401).json({
           message: "You must be authenticated as teacher to delete a proposal",
@@ -811,8 +743,7 @@ router.delete(
 
 router.get("/api/virtualClock", isLoggedIn, async (req, res) => {
   try {
-    const date = getDate();
-    return res.status(200).json(date);
+    return res.status(200).json(getDate());
   } catch (err) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
@@ -823,17 +754,15 @@ router.patch(
   isLoggedIn,
   check("date").isISO8601().toDate(),
   async (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      return res.status(400).json({ message: "Invalid date content" });
-    }
     try {
-      const clock = getDelta();
+      if (!validationResult(req).isEmpty()) {
+        return res.status(400).json({ message: "Invalid date content" });
+      }
       const newDelta = dayjs(req.body.date).diff(
         dayjs().format("YYYY-MM-DD"),
         "day",
       );
-      if (newDelta < clock.delta) {
+      if (newDelta < getDelta().delta) {
         return res.status(400).json({ message: "Cannot go back in the past" });
       }
       setDelta(newDelta);
@@ -846,17 +775,13 @@ router.patch(
 
 router.get("/api/start-requests", isLoggedIn, async (req, res) => {
   try {
-    const { email } = req.user;
-    const user = getUser(email);
+    const user = getUser(req.user);
     if (!user) {
       return res.status(500).json({ message: "Internal server error" });
     }
     let requests;
     if (user.role === "secretary_clerk") {
-      requests = getRequestForClerk().map((request) => {
-        delete request.approval_date;
-        return request;
-      });
+      requests = getRequestForClerk();
     } else if (user.role === "teacher") {
       // requests = getRequestForTeacher();
     } else if (user.role === "student") {
@@ -864,12 +789,15 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
       return res.status(500).json({ message: "Internal server error" });
     }
     requests.map((request) => {
-      const supervisor = getTeacher(request.supervisor);
-      request.supervisor = supervisor.email;
+      request.supervisor = getTeacher(request.supervisor).email;
       if (!request.co_supervisors) {
         delete request.co_supervisors;
       } else {
         request.co_supervisors = request.co_supervisors.split(", ");
+      }
+      const { approval_date } = request;
+      if (approval_date === null) {
+        delete request["approval_date"];
       }
       return request;
     });
@@ -883,7 +811,7 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS
 // ==================================================
 router.use(function (req, res) {
-  res.status(404).json({
+  return res.status(404).json({
     message: "Endpoint not found, make sure you used the correct URL / Method",
   });
 });
