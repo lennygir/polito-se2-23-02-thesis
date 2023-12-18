@@ -1,6 +1,8 @@
+import { useContext } from "react";
 import PropTypes from "prop-types";
 import IconButton from "@mui/material/IconButton";
 import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -11,17 +13,30 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import RequestRow from "./RequestRow";
-import { Stack } from "@mui/material";
+import UserContext from "../contexts/UserContext";
 
 const HEADERS = ["Student", "Supervisor", "Title", "Status", "Open"];
 
-const LEGEND = `• REQUESTED: the request has been issued by a student
-                • APPROVED: the request has been approved by a secretary clerk
-                • STARTED: the request has been accepted by a teacher
-                • REJECTED: the request has been rejected by a secretary clerk or a teacher`;
+const LEGEND_SECRETARY = `• REQUESTED: the request has been issued by a student
+                          • APPROVED: the request has been approved by a secretary clerk
+                          • STARTED: the request has been accepted by a teacher
+                          • REJECTED: the request has been rejected by a secretary clerk or a teacher`;
+
+const LEGEND_TEACHER = `• PENDING: the request is waiting for a teacher evaluation
+                        • CHANGES REQUESTED: the request is waiting for student changes
+                        • STARTED: the request has been accepted by a teacher
+                        • REJECTED: the request has been rejected by a secretary clerk or a teacher`;
 
 function RequestTable(props) {
   const { requests, teachers } = props;
+  const user = useContext(UserContext);
+  const renderHeaders = () => {
+    if (user.role === "teacher") {
+      return HEADERS.filter((header) => header !== "Supervisor");
+    } else {
+      return HEADERS;
+    }
+  };
 
   return (
     <Paper sx={{ mt: 1, mx: { md: 4, xs: 0 }, overflow: "hidden", borderRadius: 4 }}>
@@ -29,7 +44,7 @@ function RequestTable(props) {
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              {HEADERS.map((headCell) => (
+              {renderHeaders().map((headCell) => (
                 <TableCell
                   key={headCell}
                   align={headCell === "Status" || headCell === "Open" ? "center" : "inherit"}
@@ -41,7 +56,7 @@ function RequestTable(props) {
                         {headCell}
                       </Typography>
                       <Tooltip
-                        title={LEGEND}
+                        title={user.role === "teacher" ? LEGEND_TEACHER : LEGEND_SECRETARY}
                         arrow
                         slotProps={{ tooltip: { sx: { whiteSpace: "pre-line", maxWidth: "none" } } }}
                       >

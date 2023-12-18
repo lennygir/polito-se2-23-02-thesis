@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
@@ -7,14 +7,22 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import EditIcon from "@mui/icons-material/Edit";
+import ChangeRequestDialog from "../components/ChangeRequestDialog";
 import RequestDetails from "../components/RequestDetails";
 import ErrorContext from "../contexts/ErrorContext";
+import UserContext from "../contexts/UserContext";
 import API from "../utils/API";
 
 function ViewRequestPage(props) {
-  const location = useLocation();
   const { fetchRequests, setAlert, requests } = props;
+  const user = useContext(UserContext);
+  const location = useLocation();
   const handleErrors = useContext(ErrorContext);
+
+  const [changesMessage, setChangesMessage] = useState("");
+  const [changesError, setChangesError] = useState("");
+  const [openChangesDialog, setOpenChangesDialog] = useState(false);
 
   const request = location.state?.request;
 
@@ -30,8 +38,35 @@ function ViewRequestPage(props) {
       .catch((err) => handleErrors(err));
   };
 
+  const handleCloseDialog = () => {
+    setOpenChangesDialog(false);
+    setChangesError("");
+  };
+
+  const handleSubmit = () => {
+    if (changesMessage.trim() === "") {
+      setChangesError("Message cannot be empty");
+      return;
+    }
+    handleCloseDialog();
+
+    // TODO: Call API to submit message
+    console.log(changesMessage);
+
+    setChangesMessage("");
+  };
+
   return (
     <div id="view-request-page">
+      <ChangeRequestDialog
+        changesMessage={changesMessage}
+        setChangesMessage={setChangesMessage}
+        changesError={changesError}
+        setChangesError={setChangesError}
+        open={openChangesDialog}
+        handleClose={handleCloseDialog}
+        handleSubmit={handleSubmit}
+      />
       <Stack
         paddingTop={4}
         sx={{ pt: { md: 4, xs: 0 } }}
@@ -48,6 +83,16 @@ function ViewRequestPage(props) {
         >
           Back
         </Button>
+        {user.role === "teacher" && request.status === "secretary_accepted" && (
+          <Button
+            variant="contained"
+            startIcon={<EditIcon />}
+            sx={{ mr: { md: 4, xs: 0 } }}
+            onClick={() => setOpenChangesDialog(true)}
+          >
+            Request changes
+          </Button>
+        )}
       </Stack>
       <Typography variant="h4" sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}>
         Request Details

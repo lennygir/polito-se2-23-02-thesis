@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -10,11 +10,13 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import ConfirmationDialog from "./ConfirmationDialog";
+import UserContext from "../contexts/UserContext";
 import { useThemeContext } from "../theme/ThemeContextProvider";
 
 function RequestDetails(props) {
   const { theme } = useThemeContext();
   const { request, evaluateRequest, requests } = props;
+  const user = useContext(UserContext);
 
   const [decision, setDecision] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
@@ -26,9 +28,12 @@ function RequestDetails(props) {
     if (decision === "approved") {
       message =
         "By submitting, you are indicating your approval for this request. Please note that this action is irreversible, and your decision will be communicated to the respective supervisor.";
+    } else if (decision === "started") {
+      message =
+        "By submitting, you are indicating your acceptance for this request. Please note that this action is irreversible, and your decision will be communicated to the student to begin the thesis work.";
     } else if (decision === "rejected") {
       message =
-        "By submitting, you are confirming your decision to reject this request. It's important to note that this action is irreversible, and your decision will be communicated to the respective supervisors.";
+        "By submitting, you are confirming your decision to reject this request. It's important to note that this action is irreversible.";
     }
     setDialogMessage(message);
   }, [decision]);
@@ -56,14 +61,45 @@ function RequestDetails(props) {
     const status = requests.find((req) => req.id === request.id).status;
     switch (status) {
       case "secretary_accepted":
-        return (
-          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <AccessTimeIcon color="info" />
-            <Typography variant="h6" fontWeight={700} style={{ color: theme.palette.info.main }}>
-              REQUEST APPROVED
-            </Typography>
-          </Box>
-        );
+        if (user.role === "secretary_clerk") {
+          return (
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <AccessTimeIcon color="info" />
+              <Typography variant="h6" fontWeight={700} style={{ color: theme.palette.info.main }}>
+                REQUEST APPROVED
+              </Typography>
+            </Box>
+          );
+        } else if (user.role === "teacher") {
+          return (
+            <Stack direction="row" spacing={3} sx={{ width: "100%" }}>
+              <Button
+                variant="outlined"
+                color="error"
+                fullWidth
+                sx={{ mt: 3, mb: 2 }}
+                onClick={() => {
+                  setDecision("rejected");
+                  handleOpenDialog();
+                }}
+              >
+                Reject
+              </Button>
+              <Button
+                variant="contained"
+                fullWidth
+                sx={{ mt: 3, mb: 2 }}
+                onClick={() => {
+                  setDecision("started");
+                  handleOpenDialog();
+                }}
+              >
+                Accept
+              </Button>
+            </Stack>
+          );
+        }
+        break;
       case "requested":
         return (
           <Stack direction="row" spacing={3} sx={{ width: "100%" }}>
@@ -118,8 +154,10 @@ function RequestDetails(props) {
   return (
     <>
       <ConfirmationDialog
-        mode="submit"
+        title="Confirm Decision"
         message={dialogMessage}
+        primaryButtonLabel="Submit"
+        secondaryButtonLabel="Cancel"
         open={openDialog}
         handleClose={handleCloseDialog}
         handleSubmit={handleDecisionSubmit}

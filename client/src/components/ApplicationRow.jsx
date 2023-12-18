@@ -22,7 +22,7 @@ function ApplicationRow(props) {
       )}
       <TableCell
         sx={{
-          maxWidth: "500px",
+          maxWidth: "30vw",
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis"
