@@ -134,7 +134,7 @@ Context Usage:
 -   Utilizes `useContext` hook from React to access the `UserContext` and `ErrorContext`, extracting `user` information and an `error handling` function.
 
 If the user that has been signed in is a teacher, he/she can decide about accepting or rejecting an application (by using the buttons "accept" or "reject") on this page.
-If the user is a student, he/she can view the message regarding his/her application. ("application pending", "application rejected", "application accepted",  and "application canceled".
+If the user is a student, he/she can view the message regarding his/her application. "application pending", "application rejected", "application accepted",  and "application canceled".
  
  Export:
 -   Exports the `ApplicationDetails` component as the default export.
@@ -257,6 +257,32 @@ If the user is a student, he/she can view the message regarding his/her applicat
       - 401 Unauthorized: Authentication failure (user not authenticated as student)
       - 409 Conflict: If the user already has a pending or accepted start request.
       - 500 Internal Server Error: For internal server errors.
+
+- PATCH `/api/start-requests/:thesisRequestId`
+    - Description
+      - Updates the status of a thesis request.
+    - Parameters
+      - thesisRequestId: String - Thesis Request ID
+    - Request Body
+      - approved: Boolean
+    - Request body content example
+      ```
+      {
+        "approved" : true
+      }
+      ```
+    - Response
+      - 200 OK: Returns a JSON object with a message.
+      ```
+      {
+        "message": "Request updated successfully"
+      }
+      ```
+    - Error Handling
+      - 400 Bad Request: Invalid start request content
+      - 401 Unauthorized: Authentication failure (user not authenticated as student)
+      - 500 Internal Server Error: For internal server errors.
+
 
 - GET `/api/teachers`
   - Description
@@ -661,6 +687,41 @@ If the user is a student, he/she can view the message regarding his/her applicat
     - Error Handling
       - 400 Bad Request: Invalid date content (incorrect format or going back in the past)
       - 500 Internal Server Error: For internal server errors.
+ - GET `/api/applications`
+  - Description
+    - Retrieves start requests based on the user's role.
+  - Response
+    - 200 OK: Returns an array of start requests based on the user's role.
+  ```
+    [
+      {
+        id: 5,
+        title: Game Desigh,
+        description: 'Lorem ipsum',
+        supervisor: 's123456',
+        co_supervisors: '[s024689][s193578]',
+        approval_date: 'YYYY-MM-DDTHH:mm:ssZ',
+        student_id: 's319823',
+        status: 'secretary_accepted'
+        
+      },
+      {
+        id: 5,
+        title: Game Emphaty,
+        description: 'Lorem ipsum',
+        supervisor: 's123456',
+        co_supervisors: '[s024689][s193578]',
+        approval_date: 'YYYY-MM-DDTHH:mm:ssZ',
+        student_id: 's319823',
+        status: 'secretary_accepted'
+      }
+    ]
+  ```
+  - Error Handling
+    - 400 Bad Request: If the request contains invalid application content.
+    - 404 Not Found: If no applications match the provided criteria.
+    - 500 Internal Server Error: If there's an internal server error while processing the request.
+
 ## Users
 
 
