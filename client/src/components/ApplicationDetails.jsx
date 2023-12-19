@@ -3,28 +3,32 @@ import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
+import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import AttachFileIcon from "@mui/icons-material/AttachFile";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import ErrorContext from "../contexts/ErrorContext";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import UserContext from "../contexts/UserContext";
 import ConfirmationDialog from "./ConfirmationDialog";
 import { useThemeContext } from "../theme/ThemeContextProvider";
 import API from "../utils/API";
+import StudentCareerTable from "./StudentCareerTable";
 
 function ApplicationDetails(props) {
   const user = useContext(UserContext);
-  const { handleErrors } = useContext(ErrorContext);
+  const handleErrors = useContext(ErrorContext);
   const { theme } = useThemeContext();
   const { application, evaluateApplication, applications } = props;
 
   const [decision, setDecision] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
+  const [studentCareer, setStudentCareer] = useState([]);
+  const [showExams, setShowExams] = useState(false);
 
   useEffect(() => {
     let message = "";
@@ -37,6 +41,16 @@ function ApplicationDetails(props) {
     }
     setDialogMessage(message);
   }, [decision]);
+
+  useEffect(() => {
+    fetchStudentCareer(application.student_id);
+  }, []);
+
+  const fetchStudentCareer = (studentId) => {
+    API.getCareerOfStudent(studentId).then((career) => {
+      setStudentCareer(career);
+    });
+  };
 
   const handleOpenDialog = () => {
     setOpenDialog(true);
@@ -150,7 +164,7 @@ function ApplicationDetails(props) {
         // Create a link element and trigger a click to initiate the download
         const link = document.createElement("a");
         link.href = url;
-        link.download = `student_cv_${application.student_id}.pdf`;
+        link.download = `${application.student_id}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -186,13 +200,22 @@ function ApplicationDetails(props) {
         <span style={{ fontWeight: "bold" }}>Email: </span>
         {application.student_id + "@studenti.polito.it"}
       </Typography>
+      <Box>
+        <span style={{ fontWeight: "bold" }}>
+          Career:{" "}
+          <Link component="button" variant="body2" onClick={() => setShowExams(!showExams)}>
+            {showExams ? "Hide" : "Show"}
+          </Link>
+        </span>
+        {showExams && <StudentCareerTable career={studentCareer} />}
+      </Box>
       {application.attached_file && (
-        <Stack direction="row" spacing={5} alignItems="center" marginY={3}>
+        <Stack direction="row" spacing={2} alignItems="center" marginY={2}>
           <Typography variant="body1">
-            <span style={{ fontWeight: "bold" }}>View CV: </span>
+            <span style={{ fontWeight: "bold" }}>Attachment: </span>
           </Typography>
-          <Button variant="outlined" startIcon={<AttachFileIcon />} onClick={handleDownloadFile}>
-            Student CV
+          <Button variant="outlined" startIcon={<FileDownloadIcon />} onClick={handleDownloadFile}>
+            Download pdf
           </Button>
         </Stack>
       )}

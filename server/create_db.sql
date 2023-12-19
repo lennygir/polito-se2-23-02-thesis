@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS DEGREE;
 DROP TABLE IF EXISTS TEACHER;
 DROP TABLE IF EXISTS GROUPS;
 DROP TABLE IF EXISTS DEPARTMENTS;
+DROP TABLE IF EXISTS SECRETARY_CLERK;
 
 CREATE TABLE IF NOT EXISTS DEGREE ( 
   cod_degree TEXT PRIMARY KEY,
@@ -64,6 +65,13 @@ CREATE TABLE IF NOT EXISTS TEACHER (
   FOREIGN KEY (cod_department) REFERENCES DEPARTMENTS (cod_department)
 );
 
+CREATE TABLE IF NOT EXISTS SECRETARY_CLERK (
+  id TEXT PRIMARY KEY,
+  surname TEXT,
+  name TEXT,
+  email TEXT NOT NULL UNIQUE
+);
+
 CREATE TABLE IF NOT EXISTS PROPOSALS (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT,
@@ -79,6 +87,7 @@ CREATE TABLE IF NOT EXISTS PROPOSALS (
   level TEXT,
   cds TEXT,
   manually_archived INTEGER DEFAULT 0, -- 0 false, 1 true
+  deleted INTEGER DEFAULT 0, -- 0 not deleted, 1 deleted
   FOREIGN KEY (supervisor) REFERENCES TEACHER (id),
   FOREIGN KEY (cds) REFERENCES DEGREE (cod_degree)
 );
@@ -283,6 +292,12 @@ VALUES  ('s123456', 'Torchiano', 'Marco', 'marco.torchiano@teacher.it', 'SOFTENG
         ('s909920', 'Lerede', 'Daniele', 'daniele.lerede@teacher.it', 'MAHTEP', 'DENERG'),
         ('s328382', 'Millo', 'Federico', 'federico.millo@teacher.it', 'E3', 'DENERG');
 
+INSERT INTO SECRETARY_CLERK (id, surname, name, email)
+VALUES  ('d123456', 'Ferrari', 'Laura', 'laura.ferrari@example.com'),
+        ('d234567', 'Russo', 'Fabio', 'fabio.russo@example.com'),
+        ('d345678', 'Romano', 'Alessia', 'alessia.romano@example.com'),
+        ('d456789', 'Gallo', 'Marco', 'marco.gallo@example.com');
+
 -- careers of Carlos, Luca, Lorenzo
 INSERT INTO CAREER (id, cod_course, title_course, cfu, grade, date)
 VALUES  ('s308747', '01SQMOV', 'Data Science and Database Technologies', 8, 30, '2023-01-23'),
@@ -362,6 +377,18 @@ VALUES ('New decision on your thesis application', 'Dear Tortore Luca,' || char(
 -- Add notifications to teachers
 INSERT INTO NOTIFICATIONS (object, content, teacher_id)
 VALUES ('New application on your thesis proposal', 'Dear Torchiano Marco,' || char(10) || 'your thesis proposal "Gamification di attività di modellazione UML" received a new application.' || char(10) || 'Best regards,' || char(10) || 'the Thesis Managment system', 's123456');
+
+-- Add start thesis requests for Luca, Lorenzo and Carlos
+INSERT INTO START_REQUESTS (title, description, supervisor, co_supervisors, student_id, status)
+VALUES  ('Gamification di attività di modellazione UML', 'La gamification è definita come l applicazione di elementi tipici dei videogiochi (punteggi, competizione con altri utenti, regole di gioco, ecc.) a qualsiasi altra attività, in modo da incrementare il coinvolgimento e le prestazioni degli utenti coinvolti. Lobiettivo della tesi è lapplicazione di caratteristiche tipiche della gamification alla pratica della modellazione UML, e la valutazione dei benefici derivanti. La tesi consisterà nello sviluppo di una piattaforma con funzionalità di gaming competitivo della costruzione di diagrammi delle classi UML. I meccanismi di gamification dovranno premiare diversi aspetti di qualità del modello costruito, quali completezza, correttezza, coerenza, minimalità e leggibilità. Il sistema dovrà prevedere funzionalità di mantenimento dello storico dei punteggi, e di visualizzazione della classifica corrente dei giocatori.', 's123456', null, 's316543', 'started'),
+        ('Detecting the risk discrimination in classifiers with imbalance measures', 'Having imbalanced classes in a training set can impact the outcome of the classification model in several ways. First, an imbalanced dataset can bias the classification model towards the majority class. Since the model is trained on a dataset with a majority of negative examples, it will be more likely to predict the negative class, even when presented with examples of the positive class. This can lead to poor performance on the minority class, such as a low recall or precision rate. Second, imbalanced data can also make it more difficult for the model to learn the underlying relationships between the features and the classes. With a large number of negative examples and a small number of positive examples, the model may have difficulty finding the signal in the data that distinguishes the positive class from the negative class. This can lead to suboptimal model performance on both classes. In both cases, when the objects of automated decision are individuals, such disparate performance of the algorithm means in practice to systematically and unfairly discriminate against certain individuals or groups of individuals in favor of others [by denying] an opportunity for a good or [assigning] an undesirable outcome to an individual or groups of individuals on grounds that are unreasonable or inappropriate. The goal of the thesis is to test the capability of imbalance measures to predict unfair classifications Previous work on the topic and material (a few initial metrics, code, datasets) will be made available.', 's123456', 'luigi.derussis@teacher.it', 's308920', 'secretary_accepted'),
+        ('Integrating Renewable Energy Sources into Smart Grids', 'The integration of renewable energy sources poses challenges in managing energy distribution efficiently. This thesis aims to explore the integration of renewable energy sources into smart grids. Students will investigate energy management strategies, IoT-based monitoring, and control mechanisms for smart grids with a significant share of renewable energy. The research may involve simulation studies and experimentation with real-world energy systems. The goal is to contribute to the development of smart grid solutions that facilitate the seamless integration of renewable energy sources.', 's678901', 'igor.stievano@teacher.it, debora.fino@teacher.it', 's309876', 'requested'),
+        ('Integrating Renewable Energy Sources into Smart Grids', 'The integration of renewable energy sources poses challenges in managing energy distribution efficiently. This thesis aims to explore the integration of renewable energy sources into smart grids. Students will investigate energy management strategies, IoT-based monitoring, and control mechanisms for smart grids with a significant share of renewable energy. The research may involve simulation studies and experimentation with real-world energy systems. The goal is to contribute to the development of smart grid solutions that facilitate the seamless integration of renewable energy sources.', 's678901', 'igor.stievano@teacher.it, debora.fino@teacher.it', 's316543', 'rejected'),
+        ('Well being app', 'Obiettivo della tesi è sviluppare una app e relativo back end per supportare le persone a perseguire uno stile di vita salutare. La app raccoglie (direttamente, o tramite device esterni tipo smartwatch o fitbit) dati sulla vita della persona (attività fisica, qualità e durata del sonno, pressione, pulsazioni) (nutrizione, tipo e quantità del cibo mangiato e delle bevande). Confrontando i dati raccolti con pattern predefiniti e possibilmente con analisi mediche supplettive la app suggerisce modifiche allo stile di vita (recommendation). Via via che la persona viene monitorata altre modifiche sono suggerite e il loro effetto verificato. La parte back end della app raccoglie in modo anonimo i dati di molti utenti e utilizzando tecniche statistiche e di machine learning costruisce e raffina modelli e pattern predittivi da usare per le recommendation. Le recommendation iniziali sono derivate dalla letteratura scientifica su aging e well being (vedere ad esempio Fontana L., The path to longevity). Scopo di lungo termine della app è di raccogliere dati per validare e migliorare le recommendation.', 's234567', null, 's321503', 'requested'),
+        ('Generative Methods to Enhance Creativity in User Interface Design', 'This thesis focuses on the use of generative methods to enhance creativity in User Interface (UI) design. The emergence of generative methods, particularly deep learning techniques, has provided new opportunities for computer-aided design. Recent developments in generative adversarial networks (GANs) and autoencoders have shown promising results in generating creative content in various domains such as graphics, music, and text. However, the application of these methods in the field of UI design remains largely unexplored. UI design is a critical aspect of software development that greatly impacts user experience. However, the design process can be challenging due to the necessity of considering multiple factors, such as aesthetic appeal, usability, and accessibility. Generative methods have the potential to provide designers with novel and innovative design options, enhancing their creativity and supporting them in overcoming design challenges. The main goals of this thesis are: * Review the current state of the art in generative methods and their applications in creative design. * Develop a generative model for UI design that can provide creative and usable design options. * Evaluate the effectiveness and usability of the generated designs through user studies. If appropriate, the outcome of the work will be released as an open-source project.', 's345678', null, 's320123', 'requested'),
+        ('Secure and Privacy-Preserving Data Sharing in Healthcare Systems', 'Healthcare systems often involve the sharing of sensitive patient data among different entities for collaborative research or treatment purposes. Ensuring the security and privacy of this data is crucial. This thesis aims to explore secure and privacy-preserving techniques for data sharing in healthcare systems. Students will investigate encryption mechanisms, access control models, and other cryptographic techniques to protect sensitive healthcare data during transmission and storage. The research may involve the development of prototypes or simulations to evaluate the proposed solutions. The goal is to contribute to the development of robust and privacy-aware data sharing mechanisms in healthcare settings.', 's890123', 'antonio.lioy@teacher.it, igor.stievano@teacher.it', 's318234', 'started'),
+        ('IoT-enabled Smart Building Management for Energy Efficiency', 'Smart building management systems, powered by the Internet of Things (IoT), play a crucial role in optimizing energy consumption and enhancing overall efficiency. This thesis focuses on IoT-enabled smart building management for energy efficiency. Students will explore the design and implementation of IoT solutions that can monitor and control various aspects of building operations to minimize energy usage. The research may involve the deployment of sensor networks, development of control algorithms, and the evaluation of the proposed solutions in real-world settings. The goal is to contribute to the development of sustainable and energy-efficient smart building technologies.', 's123345', 'cataldo.basile@teacher.it', 's321234', 'requested'),
+        ('Gamification di attività di modellazione UML', 'La gamification è definita come l applicazione di elementi tipici dei videogiochi (punteggi, competizione con altri utenti, regole di gioco, ecc.) a qualsiasi altra attività, in modo da incrementare il coinvolgimento e le prestazioni degli utenti coinvolti. Lobiettivo della tesi è lapplicazione di caratteristiche tipiche della gamification alla pratica della modellazione UML, e la valutazione dei benefici derivanti. La tesi consisterà nello sviluppo di una piattaforma con funzionalità di gaming competitivo della costruzione di diagrammi delle classi UML. I meccanismi di gamification dovranno premiare diversi aspetti di qualità del modello costruito, quali completezza, correttezza, coerenza, minimalità e leggibilità. Il sistema dovrà prevedere funzionalità di mantenimento dello storico dei punteggi, e di visualizzazione della classifica corrente dei giocatori.', 's123456', null, 's318765', 'requested');
 
 -- ACTIVATE FOREIGN KEYS
 PRAGMA foreign_keys = ON;

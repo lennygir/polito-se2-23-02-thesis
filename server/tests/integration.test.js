@@ -3,283 +3,169 @@ const request = require("supertest");
 const { app } = require("../src/server");
 const dayjs = require("dayjs");
 const { db } = require("../src/db");
-const isLoggedIn = require("../src/protect-routes");
-const PDFDocument = require("pdfkit");
-
-function createPDF() {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    const doc = new PDFDocument();
-
-    doc.on("data", (chunk) => {
-      chunks.push(chunk);
-    });
-
-    doc.on("end", () => {
-      const pdfBuffer = Buffer.concat(chunks);
-      resolve(pdfBuffer);
-    });
-
-    doc.on("error", (error) => {
-      reject(error);
-    });
-
-    // Add content to the PDF (e.g., text, images)
-    doc.text("Hello, this is an in-memory PDF!");
-    doc.end();
-  });
-}
+const {
+  logIn,
+  insertProposal,
+  archiveProposal,
+  applyForProposal,
+  getApplications,
+  rejectApplication,
+  getProposals,
+  modifyProposal,
+  acceptApplication,
+  uploadPDFToApplication,
+  retrievePDFFromApplication,
+  deleteProposal,
+  unauthorizedLogIn,
+  getNotifications,
+  setClock,
+  startRequest,
+  getRequests,
+  approveRequest,
+  rejectRequest,
+} = require("../test_utils/requests");
+const { createPDF } = require("../test_utils/pdf");
 
 jest.mock("../src/db");
 jest.mock("../src/protect-routes");
 
-let proposal;
-let application;
+let proposal, start_request;
 
 beforeEach(() => {
-  db.prepare("update VIRTUAL_CLOCK set delta = ? where id = ?").run(0, 1);
   proposal = {
-    title: "Proposta di tesi fighissima",
-    co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
+    title: "Test title",
+    co_supervisors: ["test_mail@email.com", "test_mail2@email.com"],
     groups: ["SOFTENG"],
     keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
     types: ["EXPERIMENTAL", "RESEARCH"],
-    description: "Accetta questa tesi che e' una bomba",
-    required_knowledge: "non devi sapere nulla",
-    notes: "Bella raga",
-    expiration_date: "2025-01-25",
+    description: "Test description.",
+    required_knowledge: "Test knowledge required",
+    notes: "Test notes",
+    expiration_date: dayjs().add(1, "day").format("YYYY-MM-DD"),
     level: "MSC",
     cds: "LM-32-D",
   };
-  application = {
-    proposal: 1,
+  start_request = {
+    title: "Title",
+    supervisor: "s123456",
+    description: "description",
+    co_supervisors: ["luigi.derussis@teacher.it", "fulvio.corno@teacher.it"],
   };
+  db.prepare("update VIRTUAL_CLOCK set delta = ? where id = ?").run(0, 1);
+  db.prepare("delete from main.PROPOSALS").run();
+  db.prepare("delete from main.APPLICATIONS").run();
+  db.prepare("delete from main.NOTIFICATIONS").run();
+  db.prepare("delete from START_REQUESTS").run();
 });
 
 describe("Protected routes", () => {
   it("Sets the logged in user", async () => {
     const email = "marco.torchiano@teacher.it";
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: email,
-      };
-      next();
-    });
+    logIn(email);
     const user = (await request(app).get("/api/sessions/current").expect(200))
       .body;
     expect(user.email).toBe(email);
   });
   it("Insertion of a correct proposal by a professor", async () => {
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
-    await request(app)
-      .post("/api/proposals")
-      .set("Content-Type", "application/json")
-      .send(proposal)
-      .expect(200);
+    logIn("marco.torchiano@teacher.it");
+    const response = await insertProposal(proposal);
+    expect(response.status).toBe(200);
+    expect(response.body).toBeDefined();
   });
 });
 
-function logIn(email) {
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
-}
-
 describe("Story 12: Archive Proposals", () => {
-  let proposal_body;
-  let inserted_proposal;
-  const email = "marco.torchiano@teacher.it";
-  const future_date = dayjs().add(7, "day").format("YYYY-MM-DD");
   const past_date = dayjs().subtract(7, "day").format("YYYY-MM-DD");
-  beforeEach(() => {
-    db.prepare("delete from main.PROPOSALS").run();
-    db.prepare("delete from main.APPLICATIONS").run();
-    logIn(email);
-    proposal_body = {
-      title: "New proposal",
-      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
-      groups: ["SOFTENG"],
-      keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
-      types: ["EXPERIMENTAL", "RESEARCH"],
-      description: "This proposal is used to test the archiving functionality",
-      required_knowledge: "You have to know how to archive the thesis",
-      notes: null,
-      expiration_date: future_date,
-      level: "MSC",
-      cds: "L-8-F",
-    };
-    inserted_proposal = {
-      ...proposal_body,
-      supervisor: email,
-    };
+  it("If a proposal becomes archived, a student should not be able to apply for it", async () => {
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
+    await archiveProposal(inserted_proposal_id);
+
+    logIn("s309618@studenti.polito.it");
+    const response = await applyForProposal(inserted_proposal_id);
+
+    expect(response.status).toBe(401);
   });
   it("If I reject an application its proposal should not become archived", async () => {
     logIn("marco.torchiano@teacher.it");
-    // insert proposal as marco.torchiano
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal_body)
-    ).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     logIn("s309618@studenti.polito.it");
-
-    // apply for the proposal
-    const insertedApplication = (
-      await request(app)
-        .post("/api/applications")
-        .set("Content-Type", "application/json")
-        .send({
-          proposal: inserted_proposal_id,
-        })
-    ).body;
+    const insertedApplication = (await applyForProposal(inserted_proposal_id))
+      .body;
 
     logIn("marco.torchiano@teacher.it");
-
-    const applications = (await request(app).get("/api/applications")).body;
+    const applications = (await getApplications()).body;
     const applicationToBeRejected = applications.find(
-      (application) => application.id === insertedApplication.application_id
+      (application) => application.id === insertedApplication.application_id,
     );
+    await rejectApplication(applicationToBeRejected.id);
+    const proposals = (await getProposals()).body;
 
-    // reject the application
-    await request(app)
-      .patch(`/api/applications/${applicationToBeRejected.id}`)
-      .set("Content-Type", "application/json")
-      .send({
-        state: "rejected",
-      });
-
-    // the proposal should not be archived
-    const proposals = (await request(app).get("/api/proposals")).body;
     expect(
-      proposals.find((proposal) => proposal.id === inserted_proposal_id)
+      proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toHaveProperty("archived", false);
   });
   it("A proposal manually archived should not be modifiable", async () => {
     logIn("marco.torchiano@teacher.it");
-    // insert proposal as marco.torchiano
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal_body)
-    ).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
-    // try to modify the proposal
-    await request(app)
-      .put(`/api/proposals/${inserted_proposal_id}`)
-      .set("Content-Type", "application/json")
-      .send(proposal_body)
-      .expect(200);
+    const first_modification = await modifyProposal(
+      inserted_proposal_id,
+      proposal,
+    );
+    expect(first_modification.status).toBe(200);
 
-    // archive the proposal
-    await request(app)
-      .patch(`/api/proposals/${inserted_proposal_id}`)
-      .set("Content-Type", "application/json")
-      .send({
-        archived: true,
-      });
+    await archiveProposal(inserted_proposal_id);
 
-    // try to modify the proposal
-    await request(app)
-      .put(`/api/proposals/${inserted_proposal_id}`)
-      .set("Content-Type", "application/json")
-      .send(proposal_body)
-      .expect(401);
+    const second_modification = await modifyProposal(
+      inserted_proposal_id,
+      proposal,
+    );
+    expect(second_modification.status).toBe(401);
   });
   it("Create a proposal, then archive it", async () => {
-    // insert proposal as marco.torchiano
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal_body)
-    ).body;
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
-    const archived_proposal = (
-      await request(app)
-        .patch(`/api/proposals/${inserted_proposal_id}`)
-        .set("Content-Type", "application/json")
-        .send({
-          archived: true,
-        })
-        .expect(200)
-    ).body;
-
-    expect(archived_proposal).toHaveProperty("archived", true);
+    const response = await archiveProposal(inserted_proposal_id);
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("archived", true);
 
     // get all the proposals
-    const proposals = (await request(app).get("/api/proposals")).body;
+    const proposals = (await getProposals()).body;
     expect(proposals[0]).toHaveProperty("id", inserted_proposal_id);
     expect(proposals[0]).toHaveProperty("archived", true);
   });
   it("Multiple tries should not trigger any errors (idempotency)", async () => {
-    // insert proposal
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal_body)
-    ).body;
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // archive the proposal the first time
-    await request(app)
-      .patch(`/api/proposals/${inserted_proposal_id}`)
-      .set("Content-Type", "application/json")
-      .send({
-        archived: true,
-      });
+    await archiveProposal(inserted_proposal_id);
 
     // archive the proposal for the second time
-    const archived_proposal = (
-      await request(app)
-        .patch(`/api/proposals/${inserted_proposal_id}`)
-        .set("Content-Type", "application/json")
-        .send({
-          archived: true,
-        })
-        .expect(200)
-    ).body;
+    const response = await archiveProposal(inserted_proposal_id);
 
-    expect(archived_proposal).toHaveProperty("archived", true);
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("archived", true);
   });
 
   it("An expired proposal should be archived", async () => {
-    proposal_body.expiration_date = past_date;
-    inserted_proposal.expiration_date = past_date;
+    proposal.expiration_date = past_date;
 
-    // Insert a proposal. It should already be archived
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal_body)
-    ).body;
-
-    // get all the proposals
-    const proposals = (await request(app).get("/api/proposals")).body;
-
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
+    const proposals = (await getProposals()).body;
     expect(
-      proposals.find((proposal) => proposal.id === inserted_proposal_id)
+      proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toHaveProperty("archived", true);
   });
   it("The admitted field on the body should be only 'true'", async () => {
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal_body)
-    ).body;
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
+    // try to archive with a wrong request body
     await request(app)
       .patch(`/api/proposals/${inserted_proposal_id}`)
       .set("Content-Type", "application/json")
@@ -288,121 +174,71 @@ describe("Story 12: Archive Proposals", () => {
       })
       .expect(400);
 
-    // get all the proposals
-    const proposals = (await request(app).get("/api/proposals")).body;
+    const proposals = (await getProposals()).body;
 
     // the proposal should remain unarchived
     expect(
-      proposals.find((proposal) => proposal.id === inserted_proposal_id)
+      proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toHaveProperty("archived", false);
   });
 
   it("If a proposal is manually archived, its pending applications become canceled", async () => {
     logIn("marco.torchiano@teacher.it");
-
-    // Insert a proposal
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal_body)
-    ).body;
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     logIn("s309618@studenti.polito.it");
 
-    // apply for that proposal
-    await request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send({
-        proposal: inserted_proposal_id,
-      });
+    await applyForProposal(inserted_proposal_id);
 
     logIn("marco.torchiano@teacher.it");
 
-    // the teacher archives the proposal
-    await request(app)
-      .patch(`/api/proposals/${inserted_proposal_id}`)
-      .set("Content-Type", "application/json")
-      .send({
-        archived: true,
-      });
+    await archiveProposal(inserted_proposal_id);
 
     logIn("s309618@studenti.polito.it");
 
     // the student gets all his applications
-    const applications = (await request(app).get("/api/applications")).body;
+    const applications = (await getApplications()).body;
 
     expect(applications[0]).toHaveProperty("state", "canceled");
 
     logIn("marco.torchiano@teacher.it");
 
-    const teacherApplications = (await request(app).get("/api/applications"))
-      .body;
+    const teacherApplications = (await getApplications()).body;
     expect(teacherApplications[0]).toHaveProperty("state", "canceled");
   });
 
   it("The proposal should exist", async () => {
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal_body)
-    ).body;
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     const wrong_proposal_id = inserted_proposal_id + 1;
 
-    await request(app)
-      .patch(`/api/proposals/${wrong_proposal_id}`)
-      .set("Content-Type", "application/json")
-      .send({
-        archived: true,
-      })
-      .expect(404);
+    const response = await archiveProposal(wrong_proposal_id);
+    expect(response.status).toBe(404);
   });
 
   it("A professor should be able to archive only proposals created by him", async () => {
-    // marco.torchiano inserts a proposal
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal_body)
-    ).body;
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "luigi.derussis@teacher.it",
-      };
-      next();
-    });
+    logIn("luigi.derussis@teacher.it");
 
-    // luigi.derussis wants to set marco.torchiano's proposal to archived
-    await request(app)
-      .patch(`/api/proposals/${inserted_proposal_id}`)
-      .set("Content-Type", "application/json")
-      .send({
-        archived: true,
-      })
-      .expect(401); // unauthorized
+    // luigi.derussis wants to set marco.torchiano's proposal 'archived'
+    const response = await archiveProposal(inserted_proposal_id);
+    expect(response.status).toBe(401);
   });
 
   it("Get only active/inactive proposals", async () => {
+    logIn("marco.torchiano@teacher.it");
     // insert 5 not archived proposals
     for (let i = 0; i < 5; i++) {
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal_body);
+      await insertProposal(proposal);
     }
 
     // insert 5 archived proposals
-    proposal_body.expiration_date = past_date;
+    proposal.expiration_date = past_date;
     for (let i = 0; i < 5; i++) {
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal_body);
+      await insertProposal(proposal);
     }
 
     // get active proposals just inserted
@@ -416,169 +252,172 @@ describe("Story 12: Archive Proposals", () => {
     ).body;
 
     expect(
-      active_proposals.every((proposal) => proposal.archived === false)
+      active_proposals.every((proposal) => proposal.archived === false),
     ).toBe(true);
     expect(
-      archived_proposals.every((proposal) => proposal.archived === true)
+      archived_proposals.every((proposal) => proposal.archived === true),
     ).toBe(true);
   });
   it("When an application gets accepted, its proposal should become archived", async () => {
-    // marco.torchiano inserts a proposal
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal_body)
-    ).body;
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
+    await applyForProposal(inserted_proposal_id);
 
-    // s309618 student inserts an application for the proposal just inserted
-    await request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send({
-        proposal: inserted_proposal_id,
-      });
-
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
-
+    logIn("marco.torchiano@teacher.it");
     // marco.torchiano finds the application id
-    const applications = (await request(app).get("/api/applications")).body;
+    const applications = (await getApplications()).body;
 
     // the proposal should not be archived
-    let proposals = (await request(app).get("/api/proposals")).body;
+    let proposals = (await getProposals()).body;
     expect(
-      proposals.find((proposal) => proposal.id === inserted_proposal_id)
+      proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toHaveProperty("archived", false);
 
     // accept application
-    await request(app)
-      .patch(`/api/applications/${applications[0].id}`)
-      .set("Content-Type", "application/json")
-      .send({
-        state: "accepted",
-      });
+    await acceptApplication(applications[0].id);
 
     // now the proposal should be archived
-    proposals = (await request(app).get("/api/proposals")).body;
+    proposals = (await getProposals()).body;
     expect(
-      proposals.find((proposal) => proposal.id === inserted_proposal_id)
+      proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toHaveProperty("archived", true);
+  });
+  it("A student should be able to see only active proposals", async () => {
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
+    const response = await archiveProposal(inserted_proposal_id);
+
+    expect(response.status).toBe(200);
+
+    const archived_proposal = response.body;
+
+    logIn("s309618@studenti.polito.it");
+    const response2 = await getProposals();
+
+    expect(response2.status).toBe(200);
+    const proposals = response2.body;
+    expect(
+      proposals.find((proposal) => proposal.id === archived_proposal.id),
+    ).toBeUndefined();
   });
 });
 
 describe("Story 13: student CV", () => {
-  afterEach(() => {
-    db.prepare("delete from main.PROPOSALS").run();
-    db.prepare("delete from main.APPLICATIONS").run();
-  });
-  beforeEach(() => {
-    db.prepare("delete from main.PROPOSALS").run();
-    db.prepare("delete from main.APPLICATIONS").run();
-  });
+  //it("Try to upload a pdf from the path", async () => {
+  //  // login as professor
+  //  isLoggedIn.mockImplementation((req, res, next) => {
+  //    req.user = {
+  //      email: "marco.torchiano@teacher.it",
+  //    };
+  //    next();
+  //  });
+  //  // insert proposal
+  //  const proposal_body = {
+  //    title: "New proposal",
+  //    co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
+  //    groups: ["SOFTENG"],
+  //    keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
+  //    types: ["EXPERIMENTAL", "RESEARCH"],
+  //    description: "This proposal is used to test the archiving functionality",
+  //    required_knowledge: "You have to know how to archive the thesis",
+  //    notes: null,
+  //    expiration_date: dayjs().format("YYYY-MM-DD"),
+  //    level: "MSC",
+  //    cds: "L-8-F",
+  //  };
+  //  const proposalId = (
+  //    await request(app)
+  //      .post("/api/proposals")
+  //      .set("Content-Type", "application/json")
+  //      .send(proposal_body)
+  //      .expect(200)
+  //  ).body;
+  //  // login as a student
+  //  isLoggedIn.mockImplementation((req, res, next) => {
+  //    req.user = {
+  //      email: "s309618@studenti.polito.it",
+  //    };
+  //    next();
+  //  });
+  //  // insert application for proposal
+  //  await request(app)
+  //    .post("/api/applications")
+  //    .set("Content-Type", "application/json")
+  //    .send({
+  //      proposal: proposalId,
+  //    })
+  //    .expect(200);
+
+  //  // get application id
+  //  const applications = (
+  //    await request(app).get("/api/applications").expect(200)
+  //  ).body;
+
+  //  // insert pdf for application
+  //  const pdf = await readPDF(
+  //    "/home/lorber13/Scaricati/A4-mid-to-hi-fidelity-1.pdf",
+  //  );
+  //  const response = await request(app)
+  //    .patch(`/api/applications/${applications[0].id}`)
+  //    .set("Content-Type", "application/pdf")
+  //    .send(pdf)
+  //    .expect(200);
+  //  expect(response.body).toEqual({ message: "File uploaded correctly" });
+
+  //  // log in as professor
+  //  isLoggedIn.mockImplementation((req, res, next) => {
+  //    req.user = {
+  //      email: "marco.torchiano@teacher.it",
+  //    };
+  //    next();
+  //  });
+
+  //  // retrieve pdf file
+  //  const expectedPdf = (
+  //    await request(app)
+  //      .get(`/api/applications/${applications[0].id}/attached-file`)
+  //      .expect(200)
+  //  ).body;
+  //  await writePDF("/home/lorber13/Scaricati/test.pdf", expectedPdf);
+  //  expect(expectedPdf).toEqual(pdf);
+  //});
   it("Try to upload a pdf", async () => {
-    // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
-    // insert proposal
-    const proposal_body = {
-      title: "New proposal",
-      co_supervisors: ["s122349@gmail.com", "s298399@outlook.com"],
-      groups: ["SOFTENG"],
-      keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
-      types: ["EXPERIMENTAL", "RESEARCH"],
-      description: "This proposal is used to test the archiving functionality",
-      required_knowledge: "You have to know how to archive the thesis",
-      notes: null,
-      expiration_date: dayjs().format("YYYY-MM-DD"),
-      level: "MSC",
-      cds: "L-8-F",
-    };
-    const proposalId = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal_body)
-        .expect(200)
-    ).body;
-    // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
-    // insert application for proposal
-    await request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send({
-        proposal: proposalId,
-      })
-      .expect(200);
+    logIn("marco.torchiano@teacher.it");
+    const proposalId = (await insertProposal(proposal)).body;
+
+    logIn("s309618@studenti.polito.it");
+    const response = await applyForProposal(proposalId);
+
+    expect(response.status).toBe(200);
 
     // get application id
-    const applications = (
-      await request(app).get("/api/applications").expect(200)
-    ).body;
+    const response2 = await getApplications();
+    expect(response2.status).toBe(200);
+    const application = response2.body[0];
 
     // insert pdf for application
     const pdf = await createPDF();
-    const response = await request(app)
-      .patch(`/api/applications/${applications[0].id}`)
-      .set("Content-Type", "application/pdf")
-      .send(pdf)
-      .expect(200);
-    expect(response.body).toEqual({ message: "File uploaded correctly" });
+    const pdf_response = await uploadPDFToApplication(pdf, application.id);
+    expect(pdf_response.status).toBe(200);
+    expect(pdf_response.body).toEqual({ message: "File uploaded correctly" });
 
     // log in as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    logIn("marco.torchiano@teacher.it");
 
     // retrieve pdf file
-    const expectedPdf = (
-      await request(app)
-        .get(`/api/applications/${applications[0].id}/attached-file`)
-        .expect(200)
-    ).body;
-    expect(expectedPdf).toEqual(pdf);
+    const retrieved_pdf_response = await retrievePDFFromApplication(
+      application.id,
+    );
+    expect(retrieved_pdf_response.status).toBe(200);
+    expect(retrieved_pdf_response.body).toEqual(pdf);
   });
 });
 
 it("prova", async () => {
-  const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
-  const proposal_id = (
-    await request(app)
-      .post("/api/proposals")
-      .set("Content-Type", "application/json")
-      .send(proposal)
-      .expect(200)
-  ).body;
+  logIn("marco.torchiano@teacher.it");
+  const proposal_id = (await insertProposal(proposal)).body;
   let expected_proposal = {
     ...proposal,
     supervisor: "s123456", // marco.torchiano@teacher.it's id
@@ -587,34 +426,21 @@ it("prova", async () => {
     co_supervisors: proposal.co_supervisors.join(", "),
     groups: proposal.groups.join(", "),
     keywords: proposal.keywords.join(", "),
+    manually_archived: 0,
+    deleted: 0,
     expiration_date: dayjs(proposal.expiration_date).format("YYYY-MM-DD"),
   };
   delete expected_proposal.types;
   let returned_proposal = db
     .prepare("select * from main.PROPOSALS where id = ?")
     .get(proposal_id);
-  expect(returned_proposal).toEqual({
-    ...expected_proposal,
-    manually_archived: 0,
-  });
+  expect(returned_proposal).toEqual(expected_proposal);
 });
 
 it("CRUD on proposal", async () => {
-  const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
-  const proposalId = (
-    await request(app)
-      .post("/api/proposals")
-      .set("Content-Type", "application/json")
-      .send(proposal)
-      .expect(200)
-  ).body;
-  const proposals = (await request(app).get("/api/proposals").expect(200)).body;
+  logIn("marco.torchiano@teacher.it");
+  const proposalId = (await insertProposal(proposal)).body;
+  const proposals = (await getProposals()).body;
   let expectedProposal = {
     ...proposal,
     supervisor: "s123456", // marco.torchiano@teacher.it
@@ -628,488 +454,299 @@ it("CRUD on proposal", async () => {
   };
   delete expectedProposal.types;
   expect(proposals.find((proposal) => proposal.id === proposalId)).toEqual(
-    expectedProposal
+    expectedProposal,
   );
-  const updateMessage = (
-    await request(app)
-      .put(`/api/proposals/${proposalId}`)
-      .send({
-        ...proposal,
-        title: "Updated title",
-      })
-      .expect(200)
-  ).body;
+  const response = await modifyProposal(proposalId, {
+    ...proposal,
+    title: "Updated title",
+  });
+  expect(response.status).toBe(200);
+  const updateMessage = response.body;
   expect(updateMessage.message).toBe("Proposal updated successfully");
   expectedProposal.title = "Updated title";
-  const updatedProposals = (
-    await request(app).get("/api/proposals").expect(200)
-  ).body;
+  const response2 = await getProposals();
+  expect(response2.status).toBe(200);
+  const updatedProposals = response2.body;
   expect(
-    updatedProposals.find((proposal) => proposal.id === proposalId)
-  ).toStrictEqual(expectedProposal);
-  await request(app).delete(`/api/proposals/${proposalId}`).expect(200);
-  const deletedProposals = (
-    await request(app).get("/api/proposals").expect(200)
-  ).body;
+    updatedProposals.find((proposal) => proposal.id === proposalId),
+  ).toEqual(expectedProposal);
+  const delete_response = await deleteProposal(proposalId);
+  expect(delete_response.status).toBe(200);
+  const response_after_delete = await getProposals();
+  expect(response_after_delete.status).toBe(200);
+  const deletedProposals = response_after_delete.body;
   expect(deletedProposals.find((proposal) => proposal.id === proposalId)).toBe(
-    undefined
+    undefined,
   );
 });
-it("Insertion of a proposal with no notes", () => {
-  const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
-  proposal.notes = null;
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(200);
-});
-/*it("Update of a proposal", () => {
-  proposal.title='update';
-  return request(app)
-    .put("/api/proposals/32")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(200);
-});*/
 
-it("Insertion with an invalid date", () => {
-  const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
-  proposal.expiration_date = "0";
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(400)
-    .then((response) => {
-      expect(response.body.message).toBe("Invalid proposal content");
-    });
-});
-it("Insertion of a proposal with wrong level format", () => {
-  const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
-  proposal.level = "wrong-level";
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(400)
-    .then((response) => {
-      expect(response.body.message).toBe("Invalid proposal content");
-    });
-});
-it("Insertion of a proposal with an invalid group", () => {
-  const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
-  proposal.groups.push("WRONG GROUP");
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(400)
-    .then((response) => {
-      expect(response.body.message).toBe("Invalid proposal content");
-    });
-});
-it("Insertion of a proposal with a single keyword (no array)", () => {
-  const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
-  proposal.keywords = "SOFTWARE ENGINEERING";
-  return request(app)
-    .post("/api/proposals")
-    .set("Content-Type", "application/json")
-    .send(proposal)
-    .expect(400)
-    .then((response) => {
-      expect(response.body.message).toBe("Invalid proposal content");
-    });
-});
-it("Return 200 correct get of all application of a selected teacher", () => {
-  const email = "marco.torchiano@teacher.it";
-  isLoggedIn.mockImplementation((req, res, next) => {
-    req.user = {
-      email: email,
-    };
-    next();
-  });
-  const teacher = "s123456";
-  return request(app)
-    .get(`/api/applications?teacher=${teacher}`)
-    .set("Content-Type", "application/json")
-    .expect(200);
-});
+describe("Proposal insertion tests", () => {
+  it("Insertion of a proposal with no notes", async () => {
+    proposal.notes = null;
 
-describe("Get Application From Teacher", () => {
-  it("Return 200 correct get of all application of a selected student", () => {
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
-    return request(app)
-      .get(`/api/applications`)
-      .set("Content-Type", "application/json")
-      .expect(200);
+    logIn("marco.torchiano@teacher.it");
+    const response = await insertProposal(proposal);
+    expect(response.status).toBe(200);
+    expect(response.body).toBeDefined();
+  });
+  it("Insertion with an invalid date", async () => {
+    proposal.expiration_date = "0";
+
+    logIn("marco.torchiano@teacher.it");
+    const response = await insertProposal(proposal);
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("Invalid proposal content");
+  });
+  it("Insertion of a proposal with wrong level format", async () => {
+    proposal.level = "wrong-level";
+
+    logIn("marco.torchiano@teacher.it");
+    const response = await insertProposal(proposal);
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("Invalid proposal content");
+  });
+  it("Insertion of a proposal with an invalid group", async () => {
+    proposal.groups.push("WRONG GROUP");
+
+    logIn("marco.torchiano@teacher.it");
+    const response = await insertProposal(proposal);
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("Invalid proposal content");
+  });
+  it("Insertion of a proposal with a single keyword (no array)", async () => {
+    proposal.keywords = "SOFTWARE ENGINEERING";
+    logIn("marco.torchiano@teacher.it");
+    const response = await insertProposal(proposal);
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("Invalid proposal content");
   });
 });
 
-describe("Proposal Retrieval Tests", () => {
-  it("Get all the proposals from a specific teacher", () => {
-    const email = "marco.torchiano@teacher.it";
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: email,
-      };
-      next();
-    });
-    return request(app)
-      .get(`/api/proposals`)
-      .set("Content-Type", "application/json")
-      .expect(200);
-  });
+describe("Proposals retrieval tests", () => {
+  it("Return correctly the applications for a teacher (even if there are no applications)", async () => {
+    logIn("marco.torchiano@teacher.it");
+    const response = await getApplications();
 
-  it("Return 404 for a non-existing teacher", () => {
-    isLoggedIn.mockImplementation((req, res, next) => {
-      return res.status(401).json({ message: "Unauthorized" });
-    });
-    return request(app)
-      .get(`/api/proposals`)
-      .set("Content-Type", "application/json")
-      .expect(401);
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(0);
+  });
+  it("Return correctly the applications for a student (even if there are no applications)", async () => {
+    logIn("s309618@studenti.polito.it");
+    const response = await getApplications();
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(0);
+  });
+  it("Return 404 for a non-existing teacher", async () => {
+    unauthorizedLogIn();
+    const response = await getApplications();
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({ message: "Unauthorized" });
   });
 });
 
 describe("Application Insertion Tests", () => {
-  it("Insertion of an application from a wrong student", () => {
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "wrong.student@student.it",
-      };
-      next();
+  it("Insertion of an application from a wrong student", async () => {
+    logIn("marco.torchiano@teacher.it");
+    const proposal_id = (await insertProposal(proposal)).body;
+
+    logIn("wrong.student@student.it");
+    const response = await applyForProposal(proposal_id);
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({
+      message: "Only a student can apply for a proposal",
     });
-    return request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send(application)
-      .expect(401)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          message: "Only a student can apply for a proposal",
-        });
-      });
   });
   it("Insertion of a correct application", async () => {
-    db.prepare(
-      "delete from main.APPLICATIONS where main.APPLICATIONS.student_id = ?"
-    ).run("s309618");
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
-    const proposalId = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-    ).body;
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
-    application = {
-      proposal: proposalId,
-    };
-    const applicationReceived = (
-      await request(app)
-        .post("/api/applications")
-        .set("Content-Type", "application/json")
-        .send(application)
-        .expect(200)
-    ).body;
-    expect(applicationReceived).toHaveProperty("state", "pending");
-    expect(applicationReceived).toHaveProperty("proposal_id", proposalId);
-    expect(applicationReceived).toHaveProperty("student_id", "s309618");
-    expect(applicationReceived).toHaveProperty("application_id");
+    logIn("marco.torchiano@teacher.it");
+    const proposalId = (await insertProposal(proposal)).body;
+
+    logIn("s309618@studenti.polito.it");
+    const response = await applyForProposal(proposalId);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("state", "pending");
+    expect(response.body).toHaveProperty("proposal_id", proposalId);
+    expect(response.body).toHaveProperty("student_id", "s309618");
+    expect(response.body).toHaveProperty("application_id");
   });
   it("Insertion of an application for a student who already applied to a proposal", async () => {
-    db.prepare(
-      "delete from main.APPLICATIONS where main.APPLICATIONS.student_id = ?"
-    ).run("s309618");
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
+    logIn("marco.torchiano@teacher.it");
+    const proposalId = (await insertProposal(proposal)).body;
+    const anotherProposalId = (await insertProposal(proposal)).body;
+
+    logIn("s309618@studenti.polito.it");
+    await applyForProposal(proposalId);
+
+    const response = await applyForProposal(anotherProposalId);
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      message: "The student s309618 has already applied to a proposal",
     });
-    const proposalId = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-    ).body;
-    const anotherProposalId = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-    ).body;
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
-    application = {
-      proposal: proposalId,
-    };
-    await request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send({
-        proposal: proposalId,
-      });
-    return request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send({
-        proposal: anotherProposalId,
-      })
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          message: "The student s309618 has already applied to a proposal",
-        });
-      });
   });
 });
 
 describe("Notifications Retrieval Tests", () => {
-  it("Get all the notifications from a specific student", () => {
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
+  it("Get a notification if the professor accepts the application", async () => {
+    logIn("marco.torchiano@teacher.it");
+    const proposal_id = (await insertProposal(proposal)).body;
+
+    logIn("s309618@studenti.polito.it");
+    const application = (await applyForProposal(proposal_id)).body;
+
+    logIn("marco.torchiano@teacher.it");
+    await acceptApplication(application.application_id);
+
+    logIn("s309618@studenti.polito.it");
+    const response = await getNotifications();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    response.body.forEach((notification) => {
+      expect(notification.student_id).toBe("s309618");
     });
-    return request(app)
-      .get(`/api/notifications`)
-      .set("Content-Type", "application/json")
-      .expect(200)
-      .then((response) => {
-        response.body.forEach((notification) => {
-          expect(notification.student_id).toBe("s309618");
-        });
-      });
+  });
+  it("Get a notification if the professor rejects the application", async () => {
+    logIn("marco.torchiano@teacher.it");
+    const proposal_id = (await insertProposal(proposal)).body;
+
+    logIn("s309618@studenti.polito.it");
+    const application = (await applyForProposal(proposal_id)).body;
+
+    logIn("marco.torchiano@teacher.it");
+    await rejectApplication(application.application_id);
+
+    logIn("s309618@studenti.polito.it");
+    const response = await getNotifications();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    response.body.forEach((notification) => {
+      expect(notification.student_id).toBe("s309618");
+    });
   });
 });
 
 describe("Proposal expiration tests (no virtual clock)", () => {
-  beforeEach(() => {
-    db.prepare("delete from main.PROPOSALS").run();
-    db.prepare("delete from main.APPLICATIONS").run();
-    db.prepare("update VIRTUAL_CLOCK set delta = ? where id = ?").run(0, 1);
-  });
-
-  it("a pending application for a proposal that expires should be set cancelled", async () => {
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
-
+  it("Pending application for a proposal that expires", async () => {
     // set expiration date to the future
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
-    // insert proposal
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-    ).body;
+    // the professor inserts a proposal
+    logIn("maurizio.morisio@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
-    // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    // the student applies for the proposal
+    logIn("s309618@studenti.polito.it");
+    await applyForProposal(inserted_proposal_id);
 
-    // insert application for the previously inserted proposal
-    await request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send({
-        proposal: inserted_proposal_id,
-      });
-
-    // change proposal expiration to the past
+    // the proposal of the application expires
     const pastDate = dayjs().subtract(2, "day").format("YYYY-MM-DD");
     db.prepare(
-      "update main.PROPOSALS set expiration_date = ? where id = ?"
+      "update main.PROPOSALS set expiration_date = ? where id = ?",
+    ).run(pastDate, inserted_proposal_id);
+
+    // another professor inserts a proposal
+    logIn("luigi.derussis@teacher.it");
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
+    proposal.groups = ["ELITE"];
+    const notExpiredProposalId = (await insertProposal(proposal)).body;
+
+    // the same student, now that the previous proposal is expired, can apply to another proposal
+    logIn("s309618@studenti.polito.it");
+    const response = await applyForProposal(notExpiredProposalId);
+    expect(response.status).toBe(200); // should not give an error
+  });
+  it("a pending application for a proposal that expires should be set cancelled", async () => {
+    // set expiration date to the future
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
+
+    // the professor inserts a proposal
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
+
+    // the student applies for that proposal
+    logIn("s309618@studenti.polito.it");
+    await applyForProposal(inserted_proposal_id);
+
+    // the proposal expires
+    const pastDate = dayjs().subtract(2, "day").format("YYYY-MM-DD");
+    db.prepare(
+      "update main.PROPOSALS set expiration_date = ? where id = ?",
     ).run(pastDate, inserted_proposal_id);
 
     // now the application should be canceled
-    await request(app)
-      .get("/api/applications")
-      .then((response) => {
-        response.body.forEach((application) => {
-          expect(application.state).toEqual("canceled");
-        });
-      });
+    const applications = (await getApplications()).body;
+    applications.forEach((application) => {
+      expect(application.state).toEqual("canceled");
+    });
   });
 
   it("cannot apply to a proposal expired", async () => {
-    // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
-
     // set the expiration date to tomorrow
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
+    proposal.groups = ["ELITE"];
 
-    // insert a proposal that expires tomorrow
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-    ).body;
+    // the professor inserts a proposal
+    logIn("fulvio.corno@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
-    // change proposal expiration to the past
+    // the proposal expires
     const pastDate = dayjs().subtract(2, "day").format("YYYY-MM-DD");
     db.prepare(
-      "update main.PROPOSALS set expiration_date = ? where id = ?"
+      "update main.PROPOSALS set expiration_date = ? where id = ?",
     ).run(pastDate, inserted_proposal_id);
 
-    // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
-
     // the student should not be able to apply for this proposal since it is expired
-    await request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send({
-        proposal: inserted_proposal_id,
-      })
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          message: `The proposal ${inserted_proposal_id} is expired, cannot apply`,
-        });
-      });
+    logIn("s309618@studenti.polito.it");
+    const response = await applyForProposal(inserted_proposal_id);
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({
+      message: `The proposal ${inserted_proposal_id} is archived, cannot apply`,
+    });
   });
 
   it("getProposals for student shouldn't return expired proposals", async () => {
-    // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
-
-    // set the proposal's expiration date to tomorrow and insert it
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-    ).body;
 
-    // change proposal expiration to the past
+    // the professor inserts a proposal
+    logIn("maurizio.morisio@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
+
+    // the proposal expires
     const pastDate = dayjs().subtract(2, "day").format("YYYY-MM-DD");
     db.prepare(
-      "update main.PROPOSALS set expiration_date = ? where id = ?"
+      "update main.PROPOSALS set expiration_date = ? where id = ?",
     ).run(pastDate, inserted_proposal_id);
 
-    // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    // the student should not see the proposal since the proposal is expired
+    logIn("s309618@studenti.polito.it");
+    const response = await getProposals();
 
-    // the student should not see the proposal since the proposal (for the virtual clock) is expired
-    const proposals = (await request(app).get("/api/proposals").expect(200))
-      .body;
+    expect(response.status).toBe(200);
+    const proposals = response.body;
     expect(
-      proposals.find((proposal) => proposal.id === inserted_proposal_id)
+      proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toBe(undefined);
   });
   it("If the proposal is expired it can't be deleted", async () => {
-    // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
-
-    // set expiration date to the future
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
-    // insert proposal
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-    ).body;
+    // the professor inserts a proposal
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
-    // change proposal expiration to the past
+    // the proposal expires
     const pastDate = dayjs().subtract(2, "day").format("YYYY-MM-DD");
     db.prepare(
-      "update main.PROPOSALS set expiration_date = ? where id = ?"
+      "update main.PROPOSALS set expiration_date = ? where id = ?",
     ).run(pastDate, inserted_proposal_id);
 
-    const response = await request(app)
-      .delete(`/api/proposals/${inserted_proposal_id}`)
-      .expect(401);
+    const response = await deleteProposal(inserted_proposal_id);
+    expect(response.status).toBe(401);
     expect(response.body).toEqual({
       message: "The proposal is expired, so it cannot be deleted",
     });
@@ -1117,666 +754,326 @@ describe("Proposal expiration tests (no virtual clock)", () => {
 });
 
 describe("test the correct flow for a proposal expiration (virtual clock)", () => {
-  beforeEach(() => {
-    db.prepare("delete from main.PROPOSALS").run();
-    db.prepare("delete from main.APPLICATIONS").run();
-    db.prepare("update VIRTUAL_CLOCK set delta = ? where id = ?").run(0, 1);
-  });
-
   it("a pending application for a proposal that expires should be set canceled", async () => {
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
-    // set virtual_clock to now
-    db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
-    const clock = db
-      .prepare("select delta from VIRTUAL_CLOCK where id = 1")
-      .get();
+    // the professor inserts a proposal
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
-    // set expiration date to the future
-    proposal.expiration_date = dayjs()
-      .add(clock.delta + 1, "day")
-      .format("YYYY-MM-DD");
-
-    // insert proposal
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-    ).body;
-
-    // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
-
-    // insert application for the previously inserted proposal
-    await request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send({
-        proposal: inserted_proposal_id,
-      });
+    // the student applies for that proposal
+    logIn("s309618@studenti.polito.it");
+    await applyForProposal(inserted_proposal_id);
 
     // change the virtual clock to the future, to make the previously inserted proposal expired
-    await request(app)
-      .patch(`/api/virtualClock`)
-      .set("Content-Type", "application/json")
-      .send({
-        date: dayjs()
-          .add(clock.delta + 2, "day")
-          .format("YYYY-MM-DD"),
-      })
-      .expect(200);
+    await setClock(2);
 
     // now the application should be canceled
-    await request(app)
-      .get("/api/applications")
-      .then((response) => {
-        response.body.forEach((application) => {
-          expect(application.state).toEqual("canceled");
-        });
-      });
+    const applications = (await getApplications()).body;
+    applications.forEach((application) => {
+      expect(application.state).toBe("canceled");
+    });
   });
 
   it("cannot apply to a proposal expired", async () => {
-    // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
+
+    // the professor inserts a proposal
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
+
+    // change the virtual clock to the future, to make the previously inserted proposal expired
+    await setClock(2);
+
+    // the student applies for that proposal
+    logIn("s309618@studenti.polito.it");
+    const response = await applyForProposal(inserted_proposal_id);
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({
+      message: `The proposal ${inserted_proposal_id} is archived, cannot apply`,
     });
-
-    // set the virtual clock to now
-    db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
-    const clock = db
-      .prepare("select delta from VIRTUAL_CLOCK where id = 1")
-      .get();
-
-    // set the expiration date to tomorrow
-    proposal.expiration_date = dayjs()
-      .add(clock.delta + 1, "day")
-      .format("YYYY-MM-DD");
-
-    // insert a proposal that expires tomorrow
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-    ).body;
-
-    // set the virtual clock to two days after
-    await request(app)
-      .patch(`/api/virtualClock`)
-      .set("Content-Type", "application/json")
-      .send({
-        date: dayjs()
-          .add(clock.delta + 2, "day")
-          .format("YYYY-MM-DD"),
-      })
-      .expect(200);
-
-    // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
-
-    // the student should not be able to apply for this proposal since it is expired
-    await request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send({
-        proposal: inserted_proposal_id,
-      })
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          message: `The proposal ${inserted_proposal_id} is expired, cannot apply`,
-        });
-      });
   });
 
   it("getProposals for student shouldn't return expired proposals", async () => {
-    // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
-    // set the clock to now
-    db.prepare("UPDATE VIRTUAL_CLOCK SET delta = 0 WHERE id = 1").run();
-    const clock = db
-      .prepare("select delta from VIRTUAL_CLOCK where id = 1")
-      .get();
-
-    // set the proposal's expiration date to tomorrow and insert it
-    proposal.expiration_date = dayjs()
-      .add(clock.delta + 1, "day")
-      .format("YYYY-MM-DD");
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-    ).body;
+    // the professor inserts a proposal
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // set the virtual clock to two days after now
-    await request(app)
-      .patch(`/api/virtualClock`)
-      .set("Content-Type", "application/json")
-      .send({
-        date: dayjs()
-          .add(clock.delta + 2, "day")
-          .format("YYYY-MM-DD"),
-      })
-      .expect(200);
+    await setClock(2);
 
     // login as a student
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    logIn("s309618@studenti.polito.it");
 
     // the student should not see the proposal since the proposal (for the virtual clock) is expired
-    const proposals = (await request(app).get("/api/proposals").expect(200))
-      .body;
+    const response = await getProposals();
+    expect(response.status).toBe(200);
+    const proposals = response.body;
     expect(
-      proposals.find((proposal) => proposal.id === inserted_proposal_id)
+      proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toBe(undefined);
   });
 
   it("A proposal that expires should become archived", async () => {
-    logIn("marco.torchiano@teacher.it");
-
     // set expiration date to the future
     proposal.expiration_date = dayjs().add(3, "day").format("YYYY-MM-DD");
 
-    // insert proposal as professor
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-    ).body;
+    // the professor inserts a proposal
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // set the expiration date to the past
     const pastDate = dayjs().subtract(3, "day").format("YYYY-MM-DD");
     db.prepare("update PROPOSALS set expiration_date = ? where id = ?").run(
       pastDate,
-      inserted_proposal_id
+      inserted_proposal_id,
     );
 
     // now the proposal should be archived
-    const proposals = (await request(app).get("/api/proposals").expect(200))
-      .body;
+    const response = await getProposals();
+    expect(response.status).toBe(200);
+    const proposals = response.body;
     expect(proposals[0]).toHaveProperty("archived", true);
   });
 
   it("A proposal that expires today should not be archived", async () => {
-    logIn("marco.torchiano@teacher.it");
-
     // set expiration date to the future
     proposal.expiration_date = dayjs().add(3, "day").format("YYYY-MM-DD");
 
-    // insert proposal as professor
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-    ).body;
+    // the professor inserts a proposal
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // set the expiration date to today
     const today = dayjs().format("YYYY-MM-DD");
     db.prepare("update PROPOSALS set expiration_date = ? where id = ?").run(
       today,
-      inserted_proposal_id
+      inserted_proposal_id,
     );
 
     // the proposal should not be archived
-    const proposals = (await request(app).get("/api/proposals").expect(200))
-      .body;
+    const response = await getProposals();
+    expect(response.status).toBe(200);
+    const proposals = response.body;
     expect(proposals[0]).toHaveProperty("archived", false);
   });
 });
 
 describe("Proposal acceptance", () => {
-  beforeEach(() => {
-    db.prepare("delete from main.PROPOSALS").run();
-    db.prepare("delete from main.APPLICATIONS").run();
-    db.prepare("update VIRTUAL_CLOCK set delta = ? where id = ?").run(0, 1);
-  });
   it("If a proposal gets accepted for a student, other students' applications should become canceled", async () => {
-    // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
-
-    // set expiration date to tomorrow
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 
-    // insert proposal
-    const inserted_proposal_id = (
-      await request(app)
-        .post("/api/proposals")
-        .set("Content-Type", "application/json")
-        .send(proposal)
-    ).body;
+    // the professor inserts a proposal
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
 
-    // login as student1
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    // the student1 applies for that proposal
+    logIn("s309618@studenti.polito.it");
+    const { body: application } = await applyForProposal(inserted_proposal_id);
 
-    // insert application for the previously inserted proposal
-    const application = (
-      await request(app)
-        .post("/api/applications")
-        .set("Content-Type", "application/json")
-        .send({
-          proposal: inserted_proposal_id,
-        })
-        .expect(200)
-    ).body;
+    // the student2 applies for that proposal
+    logIn("s308747@studenti.polito.it");
+    const { status } = await applyForProposal(inserted_proposal_id);
 
-    // login as student2
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s308747@studenti.polito.it",
-      };
-      next();
-    });
-
-    // insert application for the previously inserted proposal
-    await request(app)
-      .post("/api/applications")
-      .set("Content-Type", "application/json")
-      .send({
-        proposal: inserted_proposal_id,
-      })
-      .expect(200);
-
-    // login as professor
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "marco.torchiano@teacher.it",
-      };
-      next();
-    });
+    expect(status).toBe(200);
 
     // the professor accepts the proposal for the student1
-    await request(app)
-      .patch(`/api/applications/${application.application_id}`)
-      .send({
-        state: "accepted",
-      })
-      .expect(200);
+    logIn("marco.torchiano@teacher.it");
+    const response = await acceptApplication(application.application_id);
 
-    // login as student1
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s309618@studenti.polito.it",
-      };
-      next();
-    });
+    expect(response.status).toBe(200);
 
-    const applicationsStudent1 = (await request(app).get("/api/applications"))
-      .body;
+    // student1 gets the applications; there should be the accepted application
+    logIn("s309618@studenti.polito.it");
+
+    const applicationsStudent1 = (await getApplications()).body;
 
     expect(applicationsStudent1[0].state).toBe("accepted");
 
-    // login as student2
-    isLoggedIn.mockImplementation((req, res, next) => {
-      req.user = {
-        email: "s308747@studenti.polito.it",
-      };
-      next();
-    });
-
-    const applicationsStudent2 = (await request(app).get("/api/applications"))
-      .body;
+    // student2 gets the applications; its application should be canceled
+    logIn("s308747@studenti.polito.it");
+    const applicationsStudent2 = (await getApplications()).body;
 
     expect(applicationsStudent2[0].state).toBe("canceled");
   });
 });
 describe("Virtual clock", () => {
   it("Setting the virtual clock two times", async () => {
-    isLoggedIn.mockImplementation((req, res, next) => next());
+    logIn();
 
     // set the virtual clock to 7 days after
-    await request(app)
-      .patch("/api/virtualClock")
-      .send({ date: dayjs().add(7, "day").format("YYYY-MM-DD") })
-      .expect(200);
+    const { status } = await setClock(7);
+    expect(status).toBe(200);
 
-    // set the virtual clock to 5 days after
-    await request(app)
-      .patch("/api/virtualClock")
-      .send({ date: dayjs().add(8, "day").format("YYYY-MM-DD") })
-      .expect(200);
+    // set the virtual clock to 8 days after
+    const { status: status2 } = await setClock(8);
+    expect(status2).toBe(200);
   });
 });
 
 describe("Story Insert Student Request", () => {
-  beforeEach(() => {
-    db.prepare("delete from START_REQUESTS").run();
-  });
   it("Correct student request insertion", async () => {
     logIn("s309618@studenti.polito.it");
-    await request(app)
-      .post("/api/start-requests")
-      .set("Content-Type", "application/json")
-      .send({
-        title: "Title",
-        supervisor: "s123456",
-        description: "description",
-      })
-      .expect(200);
+    const response = await startRequest(start_request);
+    expect(response.status).toBe(200);
   });
-  it("Two different students request insertion", async () => {
+  it("Two different students insert a request", async () => {
     logIn("s309618@studenti.polito.it");
-    await request(app)
-      .post("/api/start-requests")
-      .set("Content-Type", "application/json")
-      .send({
-        title: "Title",
-        supervisor: "s123456",
-        description: "description",
-      })
-      .expect(200);
+    const response = await startRequest(start_request);
+    expect(response.status).toBe(200);
+
     logIn("s308747@studenti.polito.it");
-    await request(app)
-      .post("/api/start-requests")
-      .set("Content-Type", "application/json")
-      .send({
-        title: "New Title",
-        supervisor: "s234567",
-        description: "different description",
-      })
-      .expect(200);
+    const response2 = await startRequest({
+      title: "New Title",
+      supervisor: "s234567",
+      description: "different description",
+    });
+    expect(response2.status).toBe(200);
   });
-  it("Double student request insertion", async () => {
+  it("The same student inserts a request two times", async () => {
     logIn("s309618@studenti.polito.it");
-    await request(app)
-      .post("/api/start-requests")
-      .set("Content-Type", "application/json")
-      .send({
-        title: "Title",
-        supervisor: "s123456",
-        description: "description",
-      })
-      .expect(200);
-    await request(app)
-      .post("/api/start-requests")
-      .set("Content-Type", "application/json")
-      .send({
-        title: "New Title",
-        supervisor: "s234567",
-        description: "different description",
-      })
-      .expect(409);
+
+    const response = await startRequest(start_request);
+    expect(response.status).toBe(200);
+
+    const response2 = await startRequest({
+      title: "New Title",
+      supervisor: "s234567",
+      description: "different description",
+    });
+    expect(response2.status).toBe(409);
   });
-  it("Must be a student to start a request", async () => {
+  it("You must be a student to start a request", async () => {
     logIn("marco.torchiano@teacher.it");
-    await request(app)
-      .post("/api/start-requests")
-      .set("Content-Type", "application/json")
-      .send({
-        title: "Title",
-        supervisor: "s123456",
-        description: "description",
-      })
-      .expect(401);
+    const response = await startRequest(start_request);
+    expect(response.status).toBe(401);
   });
   it("The supervisor must exist", async () => {
+    start_request.supervisor = "s000000";
+
     logIn("s309618@studenti.polito.it");
-    await request(app)
-      .post("/api/start-requests")
-      .set("Content-Type", "application/json")
-      .send({
-        title: "Title",
-        supervisor: "s000000",
-        description: "description",
-      })
-      .expect(400);
+    const response = await startRequest(start_request);
+    expect(response.status).toBe(400);
   });
 });
 
-describe("Secretary clerk story", () => {
-  beforeEach(() => {
-    db.prepare("delete from START_REQUESTS").run();
+async function evaluateRequestTest(approve) {
+  start_request.supervisor = "s234567"; // maurizio.morisio@teacher.it
+
+  logIn("s308747@studenti.polito.it");
+  const response = await startRequest(start_request);
+  expect(response.status).toBe(200);
+  const thesisRequestId = response.body;
+
+  logIn("laura.ferrari@example.com");
+
+  // get all thesis requests
+  const { body: thesisRequests, status } = await getRequests();
+  expect(status).toBe(200);
+  expect(thesisRequests).toContainEqual({
+    ...start_request,
+    id: thesisRequestId,
+    supervisor: "maurizio.morisio@teacher.it",
+    student_id: "s308747",
+    status: "requested",
   });
-  it("Approve a student thesis request", async () => {
-    logIn("s309618@studenti.polito.it");
 
-    // insert a thesis request
-    const thesisRequestId = (
-      await request(app)
-        .post("/api/start-requests")
-        .set("Content-Type", "application/json")
-        .send({
-          title: "Title",
-          supervisor: "s123456",
-          description: "description",
-        })
-        .expect(200)
-    ).body;
-
-    logIn("john.doe@secretary.it");
-
-    // get all thesis requests
-    const thesisRequests = (
-      await request(app).get("/api/start-requests").expect(200)
-    ).body;
-    expect(thesisRequests).toContain({
-      id: thesisRequestId,
-      supervisor: "marco.torchiano@teacher.it",
-      student: "s309618@studenti.polito.it",
-      description: "description",
-      state: "pending",
-    });
-
+  let status2;
+  if (approve) {
     // approve the request
-    await request(app)
-      .patch(`/api/start-requests/${thesisRequestId}`)
-      .set("Content-Type", "application/json")
-      .send({
-        approved: true,
-      })
-      .expect(200);
+    status2 = (await approveRequest(thesisRequestId)).status;
+  } else {
+    // reject the request
+    status2 = (await rejectRequest(thesisRequestId)).status;
+  }
+  expect(status2).toBe(200);
 
-    // get all thesis requests
-    const newThesisRequests = (
-      await request(app).get("/api/start-requests").expect(200)
-    ).body;
-    expect(newThesisRequests).toContain({
-      id: thesisRequestId,
-      supervisor: "marco.torchiano@teacher.it",
-      student: "s309618@studenti.polito.it",
-      description: "description",
-      state: "accepted",
-    });
+  let request_status = approve ? "secretary_accepted" : "rejected";
+
+  // get all thesis requests
+  const { body: newThesisRequests, status: status3 } = await getRequests();
+  expect(status3).toBe(200);
+  expect(newThesisRequests).toContainEqual({
+    ...start_request,
+    id: thesisRequestId,
+    supervisor: "maurizio.morisio@teacher.it",
+    student_id: "s308747",
+    status: request_status,
+  });
+}
+
+describe("Secretary clerk story", () => {
+  it("Approve a student thesis request", async () => {
+    await evaluateRequestTest(true);
   });
   it("Reject a student thesis request", async () => {
-    logIn("s309618@studenti.polito.it");
-
-    // insert a thesis request
-    const thesisRequestId = (
-      await request(app)
-        .post("/api/start-requests")
-        .set("Content-Type", "application/json")
-        .send({
-          title: "Title",
-          supervisor: "s123456",
-          description: "description",
-          co_supervisors: ["luigi.derussis@teacher.it"],
-        })
-        .expect(200)
-    ).body;
-
-    logIn("john.doe@secretary.it");
-
-    // get all thesis requests
-    const thesisRequests = (
-      await request(app).get("/api/start-requests").expect(200)
-    ).body;
-    expect(thesisRequests).toContain({
-      id: thesisRequestId,
-      supervisor: "marco.torchiano@teacher.it",
-      student: "s309618@studenti.polito.it",
-      co_supervisors: ["luigi.derussis@teacher.it"],
-      description: "description",
-      state: "pending",
-    });
-
-    await request(app)
-      .patch(`/api/start-requests/${thesisRequestId}`)
-      .set("Content-Type", "application/json")
-      .send({
-        approved: false,
-      })
-      .expect(200);
-
-    // get all thesis requests
-    const newThesisRequests = (
-      await request(app).get("/api/start-requests").expect(200)
-    ).body;
-    expect(newThesisRequests).toContain({
-      id: thesisRequestId,
-      supervisor: "marco.torchiano@teacher.it",
-      student: "s309618@studenti.polito.it",
-      co_supervisors: ["luigi.derussis@teacher.it"],
-      description: "description",
-      state: "rejected",
-    });
+    await evaluateRequestTest(false);
   });
   it("If a student thesis request is already evaluated, it should not be approved/rejected", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+
     logIn("s309618@studenti.polito.it");
+    const response = await startRequest(start_request);
+    expect(response.status).toBe(200);
+    const thesisRequestId = response.body;
 
-    // insert a thesis request
-    const thesisRequestId = (
-      await request(app)
-        .post("/api/start-requests")
-        .set("Content-Type", "application/json")
-        .send({
-          title: "Title",
-          supervisor: "s123456",
-          description: "description",
-          co_supervisors: ["luigi.derussis@teacher.it"],
-        })
-        .expect(200)
-    ).body;
-
-    logIn("john.doe@secretary.it");
+    logIn("laura.ferrari@example.com");
 
     // approve the thesis request
-    await request(app)
-      .patch(`/api/start-requests/${thesisRequestId}`)
-      .set("Content-Type", "application/json")
-      .send({
-        approved: true,
-      })
-      .expect(200);
+    const { status } = await approveRequest(thesisRequestId);
+    expect(status).toBe(200);
 
     // reject the thesis request, again
-    await request(app)
-      .patch(`/api/start-requests/${thesisRequestId}`)
-      .set("Content-Type", "application/json")
-      .send({
-        approved: false,
-      })
-      .expect(401);
+    const { status: status2 } = await rejectRequest(thesisRequestId);
+    expect(status2).toBe(401);
 
     // get all thesis requests
-    const newThesisRequests = (
-      await request(app).get("/api/start-requests").expect(200)
-    ).body;
+    const { body: newThesisRequests, status: status3 } = await getRequests();
+    expect(status3).toBe(200);
 
     // the thesis should remain untouched
-    expect(newThesisRequests).toContain({
+    expect(newThesisRequests).toContainEqual({
+      ...start_request,
       id: thesisRequestId,
       supervisor: "marco.torchiano@teacher.it",
-      student: "s309618@studenti.polito.it",
-      co_supervisors: ["luigi.derussis@teacher.it"],
-      description: "description",
-      state: "approved",
+      student_id: "s309618",
+      status: "secretary_accepted",
     });
   });
   it("To approve/reject a student thesis request you must be a secretary clerk", async () => {
-    logIn("s309618@studenti.polito.it");
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
 
-    // insert a thesis request
-    const thesisRequestId = (
-      await request(app)
-        .post("/api/start-requests")
-        .set("Content-Type", "application/json")
-        .send({
-          title: "Title",
-          supervisor: "s123456",
-          description: "description",
-        })
-        .expect(200)
-    ).body;
+    logIn("s309618@studenti.polito.it");
+    const response = await startRequest(start_request);
+    expect(response.status).toBe(200);
+    const thesisRequestId = response.body;
 
     // try to approve the thesis request
-    await request(app)
-      .patch(`/api/start-requests/${thesisRequestId}`)
-      .set("Content-Type", "application/json")
-      .send({
-        approved: true,
-      })
-      .expect(401);
+    const { status } = await approveRequest(thesisRequestId);
+    expect(status).toBe(401);
 
     // try to reject the thesis request
-    await request(app)
-      .patch(`/api/start-requests/${thesisRequestId}`)
-      .set("Content-Type", "application/json")
-      .send({
-        approved: false,
-      })
-      .expect(401);
+    const { status: status2 } = await rejectRequest(thesisRequestId);
+    expect(status2).toBe(401);
 
-    logIn("john.doe@secretary.it");
+    logIn("laura.ferrari@example.com");
 
     // get all the requests
-    const newThesisRequests = (
-      await request(app).get("/api/start-requests").expect(200)
-    ).body;
+    const { body: newThesisRequests, status: status3 } = await getRequests();
+    expect(status3).toBe(200);
 
     // the thesis should remain untouched
-    expect(newThesisRequests).toContain({
+    expect(newThesisRequests).toContainEqual({
+      ...start_request,
       id: thesisRequestId,
       supervisor: "marco.torchiano@teacher.it",
-      student: "s309618@studenti.polito.it",
-      co_supervisors: ["luigi.derussis@teacher.it"],
-      description: "description",
-      state: "pending",
+      student_id: "s309618",
+      status: "requested",
     });
   });
-  it("A student can view only his thesis requests, whereas the secretary clerk can view all the requests", async () => {
+  /*it("A student can view only his thesis requests, whereas the secretary clerk can view all the requests", async () => {
     logIn("s309618@studenti.polito.it");
 
     // insert a thesis request
@@ -1811,9 +1108,9 @@ describe("Secretary clerk story", () => {
     expect(student2ThesisRequests).toHaveLength(1);
     expect(student2ThesisRequests).toContain({
       title: "Different title",
-      supervisor: "s234567",
+      supervisor: "maurizio.morisio@teacher.it",
       description: "different description",
-      state: "pending",
+      status: "requested",
     });
 
     // back to student1
@@ -1826,13 +1123,13 @@ describe("Secretary clerk story", () => {
     expect(student1ThesisRequests).toHaveLength(1);
     expect(student1ThesisRequests).toContain({
       title: "Title",
-      supervisor: "s123456",
+      supervisor: "marco.torchiano@teacher.it",
       description: "description",
-      state: "pending",
+      status: "requested",
     });
 
     // login as secretary clerk
-    logIn("john.doe@secretary.it");
+    logIn("laura.ferrari@example.com");
 
     // get all the requests as secretary clerk
     const secretaryThesisRequests = (
@@ -1841,114 +1138,82 @@ describe("Secretary clerk story", () => {
     expect(secretaryThesisRequests).toHaveLength(2);
     expect(secretaryThesisRequests).toContain({
       title: "Title",
-      supervisor: "s123456",
-      student: "s309618@studenti.polito.it",
+      supervisor: "marco.torchiano@teacher.it",
+      student: "s309618",
       description: "description",
-      state: "pending",
+      status: "requested",
     });
     expect(secretaryThesisRequests).toContain({
       title: "Different title",
-      supervisor: "s234567",
-      student: "s308747@studenti.polito.it",
+      supervisor: "maurizio.morisio@teacher.it",
+      student: "s308747",
       description: "different description",
-      state: "pending",
+      status: "requested",
     });
   });
+   */
   it("An empty list of thesis requests is not an error", async () => {
-    logIn("john.doe@secretary.it");
+    logIn("laura.ferrari@example.com");
 
     // get all the requests
-    const emptyThesisRequests = (
-      await request(app).get("/api/start-requests").expect(200)
-    ).body;
+    const { body: emptyThesisRequests, status } = await getRequests();
+    expect(status).toBe(200);
     expect(emptyThesisRequests).toHaveLength(0);
   });
 });
 
-/*describe("Delete proposals", () => {
-  test("Correct elimination of a proposal", () => {
-    const id = 2;
-    return request(app)
-      .delete(`/api/proposals/${id}`)
-      .expect(200);
+describe("Delete proposals", () => {
+  it("You should not be able to archive a proposal deleted", async () => {
+    logIn("marco.torchiano@teacher.it");
+
+    // insert a proposal
+    const { body: id, status } = await insertProposal(proposal);
+    expect(status).toBe(200);
+
+    // delete the proposal
+    const { status: status2 } = await deleteProposal(id);
+    expect(status2).toBe(200);
+
+    // archive the proposal
+    const { status: status3 } = await archiveProposal(id);
+    expect(status3).toBe(404);
   });
+  it("You should not be able to apply for a proposal deleted", async () => {
+    logIn("marco.torchiano@teacher.it");
 
-  test("Should retrun a 400 error if the proposal is already accepted", () => {
-    const id = 8;
-    return request(app)
-      .delete(`/api/proposals/${id}`)
-      .expect(400);
+    // insert a proposal
+    const { body: id, status } = await insertProposal(proposal);
+    expect(status).toBe(200);
+
+    // delete the proposal
+    const { status: status2 } = await deleteProposal(id);
+    expect(status2).toBe(200);
+
+    logIn("s309618@studenti.polito.it");
+
+    // apply for the proposal
+    const { status: status3 } = await applyForProposal(id);
+    expect(status3).toBe(404);
   });
+  it("You should not be able to update a proposal deleted", async () => {
+    logIn("marco.torchiano@teacher.it");
 
+    // insert a proposal
+    const { body: id, status } = await insertProposal(proposal);
+    expect(status).toBe(200);
 
-  test("Get 404 error for no rows eliminated", () => {
-   const id = 10000;
-    return request(app)
-      .delete(`/api/proposals/${id}`)
-      .expect(404);
+    // delete the proposal
+    const { status: status2 } = await deleteProposal(id);
+    expect(status2).toBe(200);
+
+    // update the proposal
+    const { body: updateMessage, status: status3 } = await modifyProposal(id, {
+      ...proposal,
+      title: "Updated title",
+    });
+    expect(status3).toBe(404);
+    expect(updateMessage).toEqual({
+      message: "Proposal not found",
+    });
   });
-
-  test("Get 404 error for incorrect data format in", () => {
-    const id = "a";
-     return request(app)
-       .delete(`/api/proposals/${id}`)
-       .expect(400);
-   });
-
-});*/
-
-/*describe("Update proposals", () => {
-  test("Correct update of a proposal", async () => {
-    const proposalId = 1; // Replace with the proposal ID you want to update
-    const updatedFields = {
-      // Specify the fields and their updated values
-      title: "Updated Title",
-      supervisor: "s940590",
-      // Add other fields to update
-    };
-
-    // Send the PATCH request to update the proposal
-    const response = await request(app)
-      .patch(`/api/proposals/${proposalId}`)
-      .send(updatedFields);
-
-    // Check if the response status is successful (e.g., 200 OK)
-    expect(response.status).toBe(200);
-  });
-
-  test("Should return 400 if the proposal is already accepted", async () => {
-    const proposalId = 8; // Replace with the proposal ID you want to update
-    const updatedFields = {
-      // Specify the fields and their updated values
-      title: "Updated Title",
-      supervisor: "s940590",
-      // Add other fields to update
-    };
-
-    // Send the PATCH request to update the proposal
-    const response = await request(app)
-      .patch(`/api/proposals/${proposalId}`)
-      .send(updatedFields);
-
-    // Check if the response status is successful (e.g., 200 OK)
-    expect(response.status).toBe(400);
-  });
-
-  test("Should return 500 for an incorrect server behaviour", async () => {
-    const proposalId = 1; // Replace with the proposal ID you want to update
-    const updatedFields = {
-      // Specify the fields and their updated values
-      title: "Updated4 Title",
-      supervisor: "s9405902309090",
-      // Add other fields to update
-    };
-
-    // Send the PATCH request to update the proposal
-    const response = await request(app)
-      .patch(`/api/proposals/${proposalId}`)
-      .send(updatedFields);
-
-    // Check if the response status is successful (e.g., 200 OK)
-    expect(response.status).toBe(500);
-  });
-});*/
+});

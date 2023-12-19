@@ -135,7 +135,7 @@ const createApplication = async (application) => {
 
 /**
  * Inserts a file to an existing application by sending a PATCH request to the server's applications endpoint.
- * @param {Object} applicationId - The id of an existing application.
+ * @param {number} applicationId - The id of an existing application.
  * @param {Object} file - An object containing the file in binary format. Can be null since it's optional.
  */
 const attachFileToApplication = async (applicationId, file) => {
@@ -153,7 +153,7 @@ const attachFileToApplication = async (applicationId, file) => {
 
 /**
  * Retrieves a file attached to an existing application.
- * @param {Object} applicationId - The id of an existing application.
+ * @param {number} applicationId - The id of an existing application.
  * @returns {Promise} A promise that resolves to the blob of the file.
  */
 const getApplicationFile = async (applicationId) => {
@@ -191,8 +191,8 @@ const evaluateApplication = async (application) => {
 };
 
 /**
- * Retrieves notifications based on logged in user by sending a GET request to the server's notifications endpoint with a specified student ID.
- * @returns {Promise} A promise that resolves to the parsed JSON content of the applications list response for the specified student.
+ * Retrieves notifications based on logged in user by sending a GET request to the server's notifications endpoint.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the notifications list response for the user logged.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
 const getNotifications = async () => {
@@ -224,7 +224,7 @@ const updateProposal = async (proposal) => {
 
 /**
  * Archive a proposal by sending a PATCH request to the server's proposals endpoint with only fields to change.
- * @param {Object} proposalId - The id of the proposal to be archived.
+ * @param {number} proposalId - The id of the proposal to be archived.
  * @returns {Promise} A promise that resolves to the parsed JSON content of the archived proposal response.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
@@ -243,14 +243,27 @@ const archiveProposal = async (proposalId) => {
 
 /**
  * Deletes a proposal with the specified ID from the server.
- * @param {number} proposal_id - The ID of the proposal to be deleted.
+ * @param {number} proposalId - The ID of the proposal to be deleted.
  * @returns {Promise} A promise that resolves with the result of the deletion.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
-const deleteProposal = async (proposal_id) => {
+const deleteProposal = async (proposalId) => {
   return getJson(
-    fetch(SERVER_URL + "/proposals/" + proposal_id, {
+    fetch(SERVER_URL + "/proposals/" + proposalId, {
       method: "DELETE",
+      credentials: "include"
+    })
+  );
+};
+
+/**
+ * Retrieves start thesis requests based on logged in user by sending a GET request to the server's start requests endpoint.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the start thesis requests list response for the user logged.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
+const getRequests = async () => {
+  return getJson(
+    fetch(SERVER_URL + "/start-requests", {
       credentials: "include"
     })
   );
@@ -297,10 +310,64 @@ const updateVirtualClock = async (date) => {
   );
 };
 
+/**
+ * Get the career of a student.
+ * @param {string} studentId - The id of the student.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the career of a student.
+ * @throws {Error} If there is an issue with the HTTP request or parsing the server response.
+ */
+const getCareerOfStudent = async (studentId) => {
+  return getJson(
+    fetch(SERVER_URL + "/students/" + studentId + "/exams", {
+      method: "GET",
+      credentials: "include"
+    })
+  );
+};
+
+/**
+ * Evaluates a request by sending a PATCH request to the server's thesis requests endpoint with a boolean (true for acceptance, false for rejection).
+ * @param {Object} request - An object containing the request ID and a boolean.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the correct evaluation message.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
+const evaluateRequest = async (request) => {
+  return getJson(
+    fetch(SERVER_URL + "/start-requests/" + request.id, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify({ approved: request.decision })
+    })
+  );
+};
+
+/**
+ * Send a request by sending a POST request to the server's thesis requests endpoint.
+ * @param {Object} request - An object containing the request details.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the sent request response.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
+const createRequest = async (request) => {
+  return getJson(
+    fetch(SERVER_URL + "/start-requests", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify(request)
+    })
+  );
+};
+
 const API = {
   attachFileToApplication,
   createProposal,
   createApplication,
+  createRequest,
   getApplicationFile,
   getDegrees,
   getGroups,
@@ -314,7 +381,10 @@ const API = {
   evaluateApplication,
   updateProposal,
   archiveProposal,
-  deleteProposal
+  deleteProposal,
+  getCareerOfStudent,
+  getRequests,
+  evaluateRequest
 };
 
 export default API;

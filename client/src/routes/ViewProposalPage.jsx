@@ -15,7 +15,7 @@ function ViewProposalPage(props) {
   const navigate = useNavigate();
   const location = useLocation();
   const { setDirty, setAlert, getTeacherById, getDegreeById, applications } = props;
-  const { handleErrors } = useContext(ErrorContext);
+  const handleErrors = useContext(ErrorContext);
 
   const proposal = location.state?.proposal;
 
@@ -26,10 +26,7 @@ function ViewProposalPage(props) {
         // Convert the File object content into binary
         const fileContentArrayBuffer = await readFileAsArrayBuffer(file);
 
-        // Convert ArrayBuffer to binary string
-        const fileContentBinaryString = arrayBufferToBinaryString(fileContentArrayBuffer);
-
-        await API.attachFileToApplication(newApplication.application_id, fileContentBinaryString);
+        await API.attachFileToApplication(newApplication.application_id, fileContentArrayBuffer);
       }
       setAlert({
         message: "Application sent successfully",
@@ -56,13 +53,6 @@ function ViewProposalPage(props) {
 
       fileReader.readAsArrayBuffer(file);
     });
-  };
-
-  // Function to convert ArrayBuffer to binary string
-  const arrayBufferToBinaryString = (arrayBuffer) => {
-    const binaryArray = new Uint8Array(arrayBuffer);
-    const binaryString = String.fromCharCode.apply(null, binaryArray);
-    return binaryString;
   };
 
   return (

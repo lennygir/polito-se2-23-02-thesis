@@ -9,8 +9,22 @@ import UserContext from "../contexts/UserContext";
 function AccountPopover() {
   const user = useContext(UserContext);
 
-  const capitalizeFirstLetter = (string) => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+  const renderRole = () => {
+    let label = "";
+    switch (user.role) {
+      case "student":
+        label = "Student";
+        break;
+      case "teacher":
+        label = "Teacher";
+        break;
+      case "secretary_clerk":
+        label = "Secretary clerk";
+        break;
+      default:
+        break;
+    }
+    return label;
   };
 
   return (
@@ -39,7 +53,7 @@ function AccountPopover() {
             {`${user.surname.charAt(0)}. ${user.name}`}
           </Typography>
           <Typography fontSize={12} fontWeight={500} variant="caption">
-            {capitalizeFirstLetter(user.role)}
+            {renderRole()}
           </Typography>
         </Stack>
       }

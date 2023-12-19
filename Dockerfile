@@ -1,7 +1,7 @@
-FROM node:current-alpine
+FROM node:current-bullseye
 
 # Create a non-root user
-RUN groupadd -r secureUser && useradd -r -g secureUser secureUser
+# RUN groupadd -r secureUser && useradd -r -g secureUser secureUser
 
 # Install and configure apache2 web server
 RUN apt update \
@@ -10,14 +10,15 @@ RUN apt update \
 
 # Install backend dependencies
 COPY server/package.json .
-RUN npm install --ignore-scripts
+RUN npm install --ignore-scripts \
+    && npm rebuild better-sqlite3
 
 # Move frontend and backend files
 COPY ./client/dist /var/www/html
 COPY ./server .
 
 # Change user to non-root user
-USER secureUser
+# USER secureUser
 
 # Expose default apache port
 EXPOSE 80

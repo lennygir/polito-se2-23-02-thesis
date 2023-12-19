@@ -6,6 +6,7 @@ const { app } = require("../src/server");
 const {
   getGroups,
   getTeachers,
+  getTeacher,
   getDegrees,
   updateApplication,
   getApplicationById,
@@ -14,7 +15,6 @@ const {
   cancelPendingApplications,
   getProposal,
   getStudent,
-  getPendingOrAcceptedApplicationsOfStudent,
   findAcceptedProposal,
   findRejectedApplication,
   getNotifications,
@@ -24,6 +24,9 @@ const {
   getApplicationsOfStudent,
   getExamsOfStudent,
   getNotRejectedStartRequest,
+  getRequestForClerk,
+  getPendingApplicationsOfStudent,
+  getAcceptedApplicationsOfStudent,
 } = require("../src/theses-dao");
 
 const dayjs = require("dayjs");
@@ -146,19 +149,26 @@ describe("Application Insertion Tests", () => {
       });
   });
   test("There is already a pending or accepted application for the student", () => {
-    getProposal.mockReturnValue({
+    getProposal.mockReturnValueOnce({
       proposal: "something",
     });
     getStudent.mockReturnValue({
       student: "something",
     });
-    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([
+    getAcceptedApplicationsOfStudent.mockReturnValue([]);
+    getPendingApplicationsOfStudent.mockReturnValue([
       {
         student_id: "s309618",
         proposal_id: "4",
         state: "pending",
       },
     ]);
+    getProposal.mockReturnValueOnce({
+      expiration_date: "2025-05-05",
+    });
+    getDelta.mockReturnValue({
+      delta: 0,
+    });
     return request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
@@ -171,13 +181,14 @@ describe("Application Insertion Tests", () => {
       });
   });
   test("The proposal of the application is accepted for another student", () => {
-    getProposal.mockReturnValue({
+    getProposal.mockReturnValueOnce({
       proposal: "something",
     });
     getStudent.mockReturnValue({
       student: "something",
     });
-    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([]);
+    getAcceptedApplicationsOfStudent.mockReturnValue([]);
+    getPendingApplicationsOfStudent.mockReturnValue([]);
     findAcceptedProposal.mockReturnValue({
       proposal: "proposal",
     });
@@ -193,13 +204,14 @@ describe("Application Insertion Tests", () => {
       });
   });
   test("There same application was already rejected for the student", () => {
-    getProposal.mockReturnValue({
+    getProposal.mockReturnValueOnce({
       proposal: "something",
     });
     getStudent.mockReturnValue({
       student: "something",
     });
-    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([]);
+    getAcceptedApplicationsOfStudent.mockReturnValue([]);
+    getPendingApplicationsOfStudent.mockReturnValue([]);
     findAcceptedProposal.mockReturnValue(undefined);
     findRejectedApplication.mockReturnValue({
       student: "s309618",
@@ -223,11 +235,12 @@ describe("Application Insertion Tests", () => {
       proposal: "something",
       expiration_date: dayjs().add(1, "day"),
     });
-    getDelta.mockReturnValue(0);
+    getDelta.mockReturnValue({ delta: 0 });
     getStudent.mockReturnValue({
       student: "something",
     });
-    getPendingOrAcceptedApplicationsOfStudent.mockReturnValue([]);
+    getAcceptedApplicationsOfStudent.mockReturnValue([]);
+    getPendingApplicationsOfStudent.mockReturnValue([]);
     findAcceptedProposal.mockReturnValue(undefined);
     findRejectedApplication.mockReturnValue(undefined);
     return request(app)
@@ -448,7 +461,7 @@ describe("Applications retrieval tests", () => {
       .set("Content-Type", "application/json")
       .expect(200);
     expect(getApplicationsOfTeacher).toBeCalledWith(
-      "s123456" //"marco.torchiano@teacher.it",
+      "s123456", //"marco.torchiano@teacher.it",
     );
   });
 });
@@ -590,7 +603,7 @@ describe("PATCH /api/applications/:id", () => {
       .send({ state: "wrong" });
 
     expect(response.status).toBe(400);
-    expect(response.body).toEqual({ message: "Invalid proposal content" });
+    expect(response.body).toEqual({ message: "Invalid content" });
   });
   test("Should return 200 if the state is accepted for an existent application", async () => {
     getApplicationById.mockReturnValue({
@@ -768,7 +781,7 @@ describe("PATCH /api/virtualClock", () => {
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty(
       "message",
-      "Date successfully changed"
+      "Date successfully changed",
     );
   });
 
@@ -788,7 +801,7 @@ describe("PATCH /api/virtualClock", () => {
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty(
       "message",
-      "Cannot go back in the past"
+      "Cannot go back in the past",
     );
   });
 });
@@ -801,6 +814,7 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
+    getTeacher.mockReturnValue({ email: "fake@fake.com" });
     getNotRejectedStartRequest.mockReturnValue([]);
     return request(app)
       .post(`/api/start-requests`)
@@ -823,6 +837,7 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
+    getTeacher.mockReturnValue({ email: "fake@fake.com" });
     getNotRejectedStartRequest.mockReturnValue([]);
     return request(app)
       .post(`/api/start-requests`)
@@ -845,6 +860,7 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
+    getTeacher.mockReturnValue({ email: "fake@fake.com" });
     getNotRejectedStartRequest.mockReturnValue([]);
     return request(app)
       .post(`/api/start-requests`)
@@ -863,6 +879,7 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
+    getTeacher.mockReturnValue({ email: "fake@fake.com" });
     getNotRejectedStartRequest.mockReturnValue([
       {
         title: "fake start request",
@@ -880,5 +897,48 @@ describe("POST /api/start-requests", () => {
       })
       .set("Content-Type", "application/json")
       .expect(409);
+  });
+});
+
+describe("GET /api/start-requests", () => {
+  test("Get all the start thesis request to be approved", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "laura.ferrari@example.com",
+      };
+      next();
+    });
+
+    const expectedRequests = [
+      {
+        id: 1,
+        status: "requested",
+      },
+      {
+        id: 2,
+        status: "requested",
+      },
+    ];
+    getRequestForClerk.mockReturnValue(expectedRequests);
+    const requests = (
+      await request(app)
+        .get("/api/start-requests")
+        .set("Content-Type", "application/json")
+        .expect(200)
+    ).body;
+    expect(requests).toEqual(expectedRequests);
+  });
+  test("No requests", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "laura.ferrari@example.com",
+      };
+      next();
+    });
+    getRequestForClerk.mockReturnValue([]);
+    await request(app)
+      .get("/api/start-requests")
+      .set("Content-Type", "application/json")
+      .expect(200);
   });
 });

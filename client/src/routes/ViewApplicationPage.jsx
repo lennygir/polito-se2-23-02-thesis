@@ -14,7 +14,7 @@ import API from "../utils/API";
 function ViewApplicationPage(props) {
   const location = useLocation();
   const { fetchApplications, fetchNotifications, setAlert, applications } = props;
-  const { handleErrors } = useContext(ErrorContext);
+  const handleErrors = useContext(ErrorContext);
 
   const application = location.state?.application;
 

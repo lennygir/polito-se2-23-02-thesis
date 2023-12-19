@@ -11,6 +11,7 @@ import Popover from "@mui/material/Popover";
 import Stack from "@mui/material/Stack";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
+import Tooltip from "@mui/material/Tooltip";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
@@ -43,9 +44,9 @@ function ProposalRow(props) {
   useEffect(() => {
     let message = "";
     if (action === "archive") {
-      message = "You are about to archive this proposal which can be later restored. Do you want to continue?";
+      message = "You are about to archive this proposal. This action is irreversible, do you want to continue?";
     } else if (action === "delete") {
-      message = "You are about to delete this proposal and this action is irreversible. Do you want to continue?";
+      message = "You are about to delete this proposal. This action is irreversible, do you want to continue?";
     }
     setDialogMessage(message);
   }, [action]);
@@ -76,12 +77,14 @@ function ProposalRow(props) {
     switch (type) {
       case "RESEARCH":
         return <Chip key={type} icon={<BiotechIcon />} label={type} color="info" size="small" />;
-      case "COMPANY":
-        return <Chip key={type} icon={<BusinessIcon />} label={type} color="rose" size="small" />;
-      case "EXPERIMENTAL":
-        return <Chip key={type} icon={<ScienceIcon />} label={type} color="success" size="small" />;
       case "ABROAD":
         return <Chip key={type} icon={<PublicIcon />} label={type} color="warning" size="small" />;
+      case "EXPERIMENTAL":
+        return <Chip key={type} icon={<ScienceIcon />} label={type} color="success" size="small" />;
+      case "COMPANY":
+        return <Chip key={type} icon={<BusinessIcon />} label={type} color="rose" size="small" />;
+      default:
+        return null;
     }
   };
 
@@ -113,15 +116,17 @@ function ProposalRow(props) {
             textOverflow: "ellipsis"
           }}
         >
-          <Link
-            color="inherit"
-            underline="hover"
-            component={NavLink}
-            to={`/proposals/${proposal.id}`}
-            state={{ proposal: proposal }}
-          >
-            {proposal.title}
-          </Link>
+          <Tooltip title={proposal.title}>
+            <Link
+              color="inherit"
+              underline="hover"
+              component={NavLink}
+              to={`/proposals/${proposal.id}`}
+              state={{ proposal: proposal }}
+            >
+              {proposal.title}
+            </Link>
+          </Tooltip>
           <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
             {proposal.type.split(",").map((type) => renderType(type.trim()))}
           </Stack>

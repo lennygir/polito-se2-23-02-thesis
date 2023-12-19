@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
+import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
@@ -29,6 +30,7 @@ function ProposalDetails(props) {
 
   const [openDialog, setOpenDialog] = useState(false);
   const [files, setFiles] = useState([]);
+  const [showMore, setShowMore] = useState(false);
 
   const handleOpenDialog = () => {
     setOpenDialog(true);
@@ -81,6 +83,8 @@ function ProposalDetails(props) {
         return <Chip key={type} icon={<ScienceIcon />} label={type} color="success" size="small" />;
       case "ABROAD":
         return <Chip key={type} icon={<PublicIcon />} label={type} color="warning" size="small" />;
+      default:
+        return null;
     }
   };
 
@@ -168,7 +172,10 @@ function ProposalDetails(props) {
       </Stack>
       <Typography variant="body1" gutterBottom>
         <span style={{ fontWeight: "bold" }}>Description: </span>
-        {proposal.description}
+        {showMore ? `${proposal.description} ` : `${proposal.description.substring(0, 250)}... `}
+        <Link component="button" variant="body2" onClick={() => setShowMore(!showMore)}>
+          {showMore ? "Show less" : "Show more"}
+        </Link>
       </Typography>
       <Typography variant="body1" gutterBottom>
         <span style={{ fontWeight: "bold" }}>Required knowledge: </span>

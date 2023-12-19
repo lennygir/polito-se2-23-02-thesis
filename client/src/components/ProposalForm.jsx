@@ -7,13 +7,13 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import FormControl from "@mui/material/FormControl";
 import FormHelperText from "@mui/material/FormHelperText";
-import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import UserContext from "../contexts/UserContext";
 import { DatePicker } from "@mui/x-date-pickers";
 import { LEVELS, TYPES } from "../utils/constants";
+import CustomPaper from "./CustomPaper";
 
 function ProposalForm(props) {
   const user = useContext(UserContext);
@@ -56,19 +56,16 @@ function ProposalForm(props) {
     cds: ""
   });
 
-  const getCdsFormatted = (cds) => {
-    const degree = degrees.find((degree) => degree.cod_degree === cds);
-    if (degree) {
-      return `${degree.cod_degree} ${degree.title_degree}`;
-    } else {
-      return null;
-    }
-  };
-
   /** If a proposal is set, fill the form */
   useEffect(() => {
     if (proposal) {
       getAvailableGroups(proposal.co_supervisors.split(", "));
+      let level = "";
+      if (proposal.level === "MSC") {
+        level = "Master Degree";
+      } else if (proposal.level === "BCS") {
+        level = "Bachelor Degree";
+      }
       setFormData({
         title: proposal.title,
         supervisor: user.email,
@@ -76,7 +73,7 @@ function ProposalForm(props) {
         externalCoSupervisor: "",
         expirationDate: proposal.expiration_date,
         type: proposal.type.split(", "),
-        level: proposal.level === "MSC" ? "Master Degree" : proposal.level === "BCS" ? "Bachelor Degree" : "",
+        level: level,
         groups: proposal.groups.split(", "),
         description: proposal.description,
         requiredKnowledge: proposal.required_knowledge === null ? "" : proposal.required_knowledge,
@@ -114,6 +111,25 @@ function ProposalForm(props) {
     }
   };
 
+  const getCdsFormatted = (cds) => {
+    const degree = degrees.find((degree) => degree.cod_degree === cds);
+    if (degree) {
+      return `${degree.cod_degree} ${degree.title_degree}`;
+    } else {
+      return null;
+    }
+  };
+
+  const getCdsHelperText = () => {
+    if (formErrors.cds !== "") {
+      return formErrors.cds;
+    } else if (formData.level === null) {
+      return "First select a degree level";
+    } else {
+      return "";
+    }
+  };
+
   // Get groups based on the selected co-supervisors
   const getAvailableGroups = (coSupervisors) => {
     const supervisorGroup = user.cod_group;
@@ -145,11 +161,11 @@ function ProposalForm(props) {
         ...prevErrors,
         externalCoSupervisor: "Invalid email address"
       }));
-    } else if (formData.coSupervisors.includes(externalCoSup)) {
+    } else if (formData.coSupervisors.includes(externalCoSup) || teachers.includes(externalCoSup)) {
       // Co-supervisor already present
       setFormErrors((prevErrors) => ({
         ...prevErrors,
-        externalCoSupervisor: "Email address already added"
+        externalCoSupervisor: "Email address already exists"
       }));
     } else {
       setTeachers([...teachers, externalCoSup]);
@@ -166,35 +182,42 @@ function ProposalForm(props) {
   const validateForm = () => {
     const errors = {};
 
-    if (validator.isEmpty(formData.title)) {
-      errors.title = "Please provide a title";
+    validateField(errors, "title", "Please provide a title");
+    validateExpirationDate(errors);
+    validateNonEmptyArray(errors, "type", "Please provide at least one type");
+    validateNonEmptyArray(errors, "groups", "Please provide at least one group");
+    validateField(errors, "level", "Please provide a level");
+    validateField(errors, "cds", "Please provide a cds programme");
+    validateField(errors, "description", "Please provide a description");
+    validateField(errors, "requiredKnowledge", "Please provide required knowledge");
+    validateKeywords(errors);
+
+    return errors;
+  };
+
+  const validateField = (errors, field, errorMessage) => {
+    if (!formData[field] || validator.isEmpty(formData[field])) {
+      errors[field] = errorMessage;
     }
-    if (!validator.isDate(formData.expirationDate)) {
+  };
+
+  const validateExpirationDate = (errors) => {
+    if (!formData.expirationDate || !validator.isDate(formData.expirationDate)) {
       errors.expirationDate = "Please provide an expiration date";
     }
-    if (formData.type.length === 0) {
-      errors.type = "Please provide at least one type";
+  };
+
+  const validateNonEmptyArray = (errors, field, errorMessage) => {
+    if (!formData[field] || formData[field].length === 0) {
+      errors[field] = errorMessage;
     }
-    if (formData.groups.length === 0) {
-      errors.groups = "Please provide at least one group";
-    }
-    if (validator.isEmpty(formData.level)) {
-      errors.level = "Please provide a level";
-    }
-    if (validator.isEmpty(formData.cds)) {
-      errors.cds = "Please provide a cds programme";
-    }
-    if (validator.isEmpty(formData.description)) {
-      errors.description = "Please provide a description";
-    }
-    if (validator.isEmpty(formData.requiredKnowledge)) {
-      errors.requiredKnowledge = "Please provide required knowledge";
-    }
+  };
+
+  const validateKeywords = (errors) => {
     if (!validator.isEmpty(formData.keywords)) {
       const areKeywordsInvalid = formData.keywords.split("\n").some((keyword) => !validator.isAscii(keyword.trim()));
       errors.keywords = areKeywordsInvalid ? "Invalid keywords" : "";
     }
-    return errors;
   };
 
   /** Form Submit handler */
@@ -245,21 +268,17 @@ function ProposalForm(props) {
     }
   };
 
-  const CustomPaper = (props) => {
-    return <Paper elevation={8} sx={{ borderRadius: 3, paddingX: 1 }} {...props} />;
-  };
-
   const ChipProps = { sx: { height: 26 } };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} noValidate>
+    <Box name="proposal-form" component="form" onSubmit={handleSubmit} noValidate>
       {/* Title field */}
       <FormControl fullWidth sx={{ mt: { md: 2, xs: 0 } }}>
         <TextField
           required
           multiline
           rows={2}
-          name="title"
+          name="proposal-title"
           label="Title"
           margin="normal"
           value={formData.title}
@@ -275,7 +294,7 @@ function ProposalForm(props) {
           required
           multiline
           rows={6}
-          name="description"
+          name="proposal-description"
           label="Description"
           margin="normal"
           value={formData.description}
@@ -292,9 +311,10 @@ function ProposalForm(props) {
             textField: {
               color: "primary",
               margin: "normal",
-              helperText: formErrors.expirationDate,
+              helperText: formErrors.expirationDate !== "" ? formErrors.expirationDate : "",
               error: !!formErrors.expirationDate
-            }
+            },
+            desktopPaper: { sx: { borderRadius: 4 } }
           }}
           value={formData.expirationDate ? dayjs(formData.expirationDate) : null}
           onChange={(newDate) => handleFormInputChange("expirationDate", dayjs(newDate).format("YYYY-MM-DD"))}
@@ -464,6 +484,7 @@ function ProposalForm(props) {
                 placeholder="Level"
                 margin="normal"
                 error={!!formErrors.level}
+                helperText={formErrors.level !== "" ? formErrors.level : ""}
               />
             )}
             renderOption={(props, option) => (
@@ -491,9 +512,7 @@ function ProposalForm(props) {
                 placeholder="CDS/Programmes"
                 margin="normal"
                 error={!!formErrors.cds}
-                helperText={
-                  formErrors.cds !== "" ? formErrors.cds : formData.cds === null ? "First select a degree level" : ""
-                }
+                helperText={getCdsHelperText()}
               />
             )}
             renderOption={(props, option) => (
