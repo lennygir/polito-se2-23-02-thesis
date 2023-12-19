@@ -63,7 +63,7 @@ function Sidebar(props) {
     let tabs = [];
     switch (user.role) {
       case "student":
-        tabs = sidebarTabs.filter((tab) => tab.id !== "requets");
+        tabs = sidebarTabs.filter((tab) => tab.id !== "requests");
         break;
       case "teacher":
         tabs = sidebarTabs;

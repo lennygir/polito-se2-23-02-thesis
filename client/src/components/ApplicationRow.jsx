@@ -38,13 +38,7 @@ function ApplicationRow(props) {
         {application.state === "rejected" && <Chip label="REJECTED" size="small" color="error" />}
         {application.state === "accepted" && <Chip label="ACCEPTED" size="small" color="success" />}
         {application.state === "pending" && <Chip label="PENDING" size="small" color="info" />}
-        {application.state === "canceled" && (
-          <Tooltip
-            title={user.role === "student" ? "Another student has been accepted" : "A student has been accepted"}
-          >
-            <Chip label="CANCELED" size="small" color="warning" />
-          </Tooltip>
-        )}
+        {application.state === "canceled" && <Chip label="CANCELED" size="small" color="warning" />}
       </TableCell>
       <TableCell align="center">
         <Tooltip title="View application">

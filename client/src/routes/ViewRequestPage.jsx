@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -97,6 +98,24 @@ function ViewRequestPage(props) {
       <Typography variant="h4" sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}>
         Request Details
       </Typography>
+      {changesMessage !== "" && (
+        <Paper elevation={1} sx={{ mb: 3, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
+          <Stack
+            paddingX={5}
+            paddingY={3}
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            spacing={2}
+          >
+            <Typography variant="body1">
+              <span style={{ fontWeight: "bold" }}>Changes requested: </span>
+              {changesMessage}
+            </Typography>
+            <Chip label="WAITING FOR CHANGES" size="small" color="info" />
+          </Stack>
+        </Paper>
+      )}
       <Paper elevation={1} sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
           <RequestDetails request={request} evaluateRequest={evaluateRequest} requests={requests} />
