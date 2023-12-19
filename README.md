@@ -519,8 +519,161 @@ If the user is a student, he/she can view the message regarding his/her applicat
       - 401 Unauthorized: Authentication failure (user not logged in)
       - 500 Internal Server Error: For internal server errors.
 
-## Users Credentials
+- GET `/api/notifications`
+    - Description
+      - Retrieves notifications for the authenticated user.
+    - Response
+      - 200 OK: Returns a JSON array containing notifications for the user.
+      ```
+      [
+        {
+          "id": 1,
+          "date": "2023-12-12 13:42:10",
+          "object": "New decision on your thesis application",
+          "content": "Lorem ipsum...",
+          "student_id": "s319823",
+          "teacher_id": "s123456"
+        },
+        {
+          "id": 1,
+          "date": "2023-10-09 10:05:15",
+          "object": "New decision on your thesis application",
+          "content": "Lorem ipsum...",
+          "student_id": "s319823",
+          "teacher_id": "s123456"
+        },
+        ...
+      ]
+      ```
+    - Error Handling
+      - 500 Internal Server Error: For internal server errors.
 
-- TEACHER ACCOUNT: email: marco.torchiano@teacher.it, password: s123456
-- STUDENT ACCOUNT: email: s309618@studenti.polito.it, password: s309618
-- STUDENT ACCOUNT: email: s308747@studenti.polito.it, password: s308747
+- PATCH `/api/proposals/:id`
+    - Description
+      - Updates the archival status of a proposal by setting it to archived and canceled all pending applicationsrelated to that proposal.
+    - Parameters
+      - id: Integer - Proposal ID
+    - Request Body
+      - Expects a JSON object with the following field:
+        - archived: String, must be "true"
+    - Response
+      - 200 OK:   Returns a JSON object representing the updated proposal with the archived status set to true..
+      ```
+        {
+          "id": 1,
+          "title": "Gamification di attività di modellazione UML",
+          "supervisor": "s123456",
+          "co_supervisors": "s345678",
+          "keywords": "GAMIFICATION, SOFTWARE ENGINEERING, SOFTWARE QUALITY, UML",
+          "type": "RESEARCH",
+          "groups": "SOFTENG",
+            "description": "Description Text ... ",
+          "notes": null,
+          "expiration_date": "2023-12-18",
+          "level": "MSC",
+          "cds": "LM-32 (DM270)"
+          "archived": true
+        }
+    
+      ```
+    - Error Handling
+      - 400 Bad Request: Invalid proposal content (invalid student ID)
+      - 401 Unauthorized: Authentication failure (user not logged in)
+      - 404 Not Found: Proposal not found.
+      - 500 Internal Server Error: For internal server errors.
+
+- PUT `/api/proposals/:id`
+    - Description
+      - Updates an existing proposal.
+    - Parameters
+      - id: Integer - Proposal ID
+    - Request Body
+      - Expects a JSON object with the following field:
+        - title: String
+        - co_supervisors: Array of email addresses
+        - groups: Array of strings
+        - keywords: Array of strings
+        - types: Array of strings
+        - description: String
+        - required_knowledge: String
+        - notes: String (Optional, can be "null")
+        - expiration_date: Date in ISO 8601 format (e.g., "YYYY-MM-DD")
+        - level: String of length 3, either "MSC" or "BSC"
+        - cds: String
+    - Response
+      - 200 OK:   Returns a success message upon updating the proposal.
+      ```
+      {
+        "message": "Proposal updated successfully"
+      }
+    
+      ```
+    - Error Handling
+      - 400 Bad Request: Invalid proposal content (invalid student ID)
+      - 401 Unauthorized: Authentication failure (user not logged in)
+      - 404 Not Found: Proposal not found.
+      - 500 Internal Server Error: For internal server errors.
+
+- DELETE `/api/proposals/:id`
+    - Description
+      - Deletes an existing proposal and cancel all related pending applications
+    - Parameters
+      - id: Integer - Proposal ID
+    - Response
+      - 200 OK:   Returns a success message upon deleting the proposal.
+      ```
+        {
+          "message": "Proposal deleted successfully."
+        }
+    
+      ```
+    - Error Handling
+      - 400 Bad Request: Invalid proposal content (invalid student ID)
+      - 401 Unauthorized: Authentication failure (user not logged in)
+      - 404 Not Found: Proposal not found.
+      - 500 Internal Server Error: For internal server errors.
+
+- GET `/api/virtualClock`
+    - Description
+      - Retrieves the current date from the virtual clock.
+    - Response
+      - 200 OK:   Returns the current date.
+      ```
+      {
+        "YYYY-MM-DDTHH:mm:ssZ"
+      }
+      ```
+    - Error Handling
+      - 500 Internal Server Error: For internal server errors.
+- PATCH `/api/virtualClock`
+    - Description
+      - Modifies the virtual clock's date.
+    - Request Body
+      - Expects a JSON object with the following field:
+        - date: Date in ISO 8601 format (e.g., "YYYY-MM-DDTHH:mm:ssZ")
+    - Response
+      - 200 OK: Returns a success message upon changing the date..
+      ```
+      {
+        "message": "Date successfully changed"
+      }
+      ```
+    - Error Handling
+      - 400 Bad Request: Invalid date content (incorrect format or going back in the past)
+      - 500 Internal Server Error: For internal server errors.
+## Users
+
+
+
+### Users Credentials
+| Role | Name |Email | Password |
+|----------|----------|----------|----------|
+| Teacher  |Marco Torchiano| marco.torchiano@teacher.it  | s123456  |
+| Teacher  |Luigi De Russis| luigi.derussis@teacher.it  | s345678  |
+| Teacher  |Maurizio Morisio| maurizio.morisio@teacher.it  | s234567  |
+| Secretary  |Laura Ferrari| laura.ferrari@example.com  | d123456  |
+| Student  |Lorenzo Bertetto| s309618@studenti.polito.it  | s309618  |
+| Student  |Carlos Valeriano| s308747@studenti.polito.it  | s308747  |
+| Student  |Luca Tortore| s319823@studenti.polito.it  | s319823  |
+
+
