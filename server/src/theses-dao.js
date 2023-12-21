@@ -309,7 +309,8 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
     // -- Email
     mailBody = cosupervisorApplicationDecisionTemplate({
       name: fullCosupervisor.surname + " " + fullCosupervisor.name,
-      thesis: applicationJoined.title
+      thesis: applicationJoined.title,
+      decision: decision,
     });
     try {
       await nodemailer.sendMail({
