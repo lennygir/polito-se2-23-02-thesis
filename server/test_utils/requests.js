@@ -209,6 +209,20 @@ exports.startRequest = async function (request_details) {
 };
 
 /**
+ * Calls PUT "/api/start-requests/request_id"
+ * @param request_id the id of the request to be changed
+ * @param request_details the fields of the start request
+ * @returns {Promise<Response>} the response of the request
+ */
+exports.modifyRequest = async function (request_id, request_details) {
+  const response = await request(app)
+    .put(`/api/start-requests/${request_id}`)
+    .set("Content-Type", "application/json")
+    .send(request_details);
+  return response;
+};
+
+/**
  * Calls GET "/api/start-requests"
  * @returns {Promise<Response>} the response of the request
  */
@@ -227,7 +241,7 @@ exports.approveRequest = async function (request_id) {
     .patch(`/api/start-requests/${request_id}`)
     .set("Content-Type", "application/json")
     .send({
-      approved: true,
+      decision: "approved",
     });
   return response;
 };
@@ -242,7 +256,23 @@ exports.rejectRequest = async function (request_id) {
     .patch(`/api/start-requests/${request_id}`)
     .set("Content-Type", "application/json")
     .send({
-      approved: false,
+      decision: "rejected",
+    });
+  return response;
+};
+
+/**
+ * Calls PATCH "/api/start-requests/request_id"
+ * @param request_id the request to be evaluated
+ * @returns {Promise<Response>} the response of the request
+ */
+exports.requestChangesForRequest = async function (request_id) {
+  const response = await request(app)
+    .patch(`/api/start-requests/${request_id}`)
+    .set("Content-Type", "application/json")
+    .send({
+      decision: "changes_requested",
+      message: "You have to change this, that, whatever I want",
     });
   return response;
 };

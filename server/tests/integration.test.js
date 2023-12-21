@@ -23,6 +23,8 @@ const {
   getRequests,
   approveRequest,
   rejectRequest,
+  requestChangesForRequest,
+  modifyRequest,
 } = require("../test_utils/requests");
 const { createPDF } = require("../test_utils/pdf");
 
@@ -1216,4 +1218,184 @@ describe("Delete proposals", () => {
       message: "Proposal not found",
     });
   });
+});
+
+describe("Story 28: the professor evaluates student request", () => {
+  it("The professor accepts without requesting changes", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+    logIn("s309618@studenti.polito.it");
+
+    const thesis_request_id = (await startRequest(start_request)).body;
+
+    logIn("laura.ferrari@example.com");
+    let thesis_requests = (await getRequests()).body;
+
+    expect(thesis_requests).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "requested");
+
+    await approveRequest(thesis_request_id);
+    thesis_requests = (await getRequests()).body;
+
+    expect(thesis_requests).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "secretary_accepted");
+
+    logIn("marco.torchiano@teacher.it");
+
+    let response = await getRequests();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "secretary_accepted");
+
+    await approveRequest(thesis_request_id);
+    response = await getRequests();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "started");
+  });
+  it("The professor rejects", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+    logIn("s309618@studenti.polito.it");
+
+    const thesis_request_id = (await startRequest(start_request)).body;
+
+    logIn("laura.ferrari@example.com");
+    let thesis_requests = (await getRequests()).body;
+
+    expect(thesis_requests).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "requested");
+
+    await approveRequest(thesis_request_id);
+    thesis_requests = (await getRequests()).body;
+
+    expect(thesis_requests).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "secretary_accepted");
+
+    logIn("marco.torchiano@teacher.it");
+
+    let response = await getRequests();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "secretary_accepted");
+
+    await rejectRequest(thesis_request_id);
+    response = await getRequests();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "rejected");
+  });
+  it("The professor requests for changes, the student changes the request, the professor accepts", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+    logIn("s309618@studenti.polito.it");
+
+    const thesis_request_id = (await startRequest(start_request)).body;
+
+    logIn("laura.ferrari@example.com");
+    let thesis_requests = (await getRequests()).body;
+
+    expect(thesis_requests).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "requested");
+
+    await approveRequest(thesis_request_id);
+    thesis_requests = (await getRequests()).body;
+
+    expect(thesis_requests).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "secretary_accepted");
+
+    logIn("marco.torchiano@teacher.it");
+
+    let response = await getRequests();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "secretary_accepted");
+
+    await requestChangesForRequest(thesis_request_id);
+    response = await getRequests();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "changes_requested");
+
+    logIn("s309618@studenti.polito.it");
+    response = await getRequests();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "changes_requested");
+
+    const modified_request = {
+      ...start_request,
+      title: "Modified title",
+      description: "Modified_description",
+      co_supervisors: start_request.co_supervisors.push(
+        "giovanni.malnati@teacher.it",
+      ),
+    };
+    response = await modifyRequest(thesis_request_id, modified_request);
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      ...modified_request,
+      id: thesis_request_id,
+      supervisor: "marco.torchiano@teacher.it",
+      student_id: "s309618",
+      status: "changed",
+    });
+
+    response = await getRequests();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "changed");
+
+    logIn("marco.torchiano@teacher.it");
+    response = await getRequests();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "changed");
+
+    response = await approveRequest(thesis_request_id);
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "started");
+
+    logIn("s309618@studenti.polito.it");
+    response = await getRequests();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(thesis_requests[0]).toHaveProperty("status", "started");
+  });
+  it("The professor can view only the thesis requests for which he is a supervisor or a co-supervisor", async () => {
+    const first_request = {
+      ...start_request,
+      supervisor: "s123456", // marco.torchiano@teacher.it
+      co_supervisors: ["maurizio.morisio@teacher.it"],
+    };
+    const second_request = {
+      ...start_request,
+      supervisor: "s234567", // maurizio.morisio@teacher.it
+      co_supervisors: ["luigi.derussis@teacher.it"],
+    };
+
+    logIn("s309618@studenti.polito.it");
+    await startRequest(first_request);
+    logIn("s308747@studenti.polito.it");
+    await startRequest(second_request);
+
+    logIn("marco.torchiano@teacher.it"); // he has one request as supervisor
+    let response = await getRequests();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+
+    logIn("maurizio.morisio@teacher.it"); // he has one request a supervisor, one as co-supervisor
+    response = await getRequests();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(2);
+
+    logIn("luigi.derussis@teacher.it"); // he has one request as co-supervisor
+    response = await getRequests();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+
+    logIn("antonio.lioy@teacher.it"); // he has no requests, neither as supervisor nor co-supervisor
+    response = await getRequests();
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(0);
+  });
+  it("After a professor requests changes, he has to wait for them", () => {});
 });
