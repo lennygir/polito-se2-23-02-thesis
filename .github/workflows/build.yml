@@ -15,10 +15,9 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Move to Client
-        run: cd ./client/ 
-  
-      - name: Install Dependencies - Client
-        run: npm install 
+        run: |
+            cd ./client/
+            npm install
   
       - name: Run Tests and Coverage - Client
         run: npm run test -- --coverage
@@ -27,10 +26,9 @@ jobs:
         run: cd ..
     
       - name: Move to Server
-        run: cd ./server/
-    
-      - name: Install Dependencies - Server
-        run: npm install
+        run: |
+            cd ./server/
+            npm install
     
       - name: Run Tests and Coverage - Server
         run: npm run test -- --coverage
