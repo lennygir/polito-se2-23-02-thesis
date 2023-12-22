@@ -1,0 +1,45 @@
+name: Build
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+jobs:
+  sonarcloud:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Move to Client
+        run: cd client
+  
+      - name: Install Dependencies - Client
+        run: npm install
+  
+      - name: Run Tests and Coverage - Client
+        run: npm run test -- --coverage
+  
+      - name: Back to Repository Root
+        run: cd ..
+    
+      - name: Move to Server
+        run: cd server
+    
+      - name: Install Dependencies - Server
+        run: npm install
+    
+      - name: Run Tests and Coverage - Server
+        run: npm run test -- --coverage
+    
+      - name: Back to Repository Root
+        run: cd ..
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
