@@ -35,7 +35,7 @@ jobs:
       - name: Run Tests and Coverage - Server
         run: |
             cd ./server/
-            npm run test -- --coverage
+            npm run test -- --coverage --detectOpenHandles
     
       - name: Back to Repository Root
         run: cd ..
