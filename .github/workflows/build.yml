@@ -23,9 +23,6 @@ jobs:
         run: |
             cd ./client/
             npm run test -- --coverage
-  
-      - name: Back to Repository Root
-        run: cd ..
     
       - name: Install Dependencies - Server
         run: |
@@ -35,10 +32,7 @@ jobs:
       - name: Run Tests and Coverage - Server
         run: |
             cd ./server/
-            npm run test -- --coverage --detectOpenHandles
-    
-      - name: Back to Repository Root
-        run: cd ..
+            npm run test -- --coverage
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
