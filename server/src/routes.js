@@ -18,11 +18,13 @@ const {
   insertApplication,
   insertStartRequest,
   updateStatusStartRequest,
+  updateDateStartRequest,
   getStatusStartRequest,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   deleteProposal,
   updateProposal,
+  updateStartRequest,
   getApplicationById,
   getTeacherByEmail,
   cancelPendingApplications,
@@ -37,7 +39,8 @@ const {
   insertPDFInApplication,
   updateArchivedStateProposal,
   getNotRejectedStartRequest,
-  getRequestForClerk,
+  getRequest,
+ // getRequestForTeacher,
   getTeacher,
   getAcceptedApplicationsOfStudent,
   getPendingApplicationsOfStudent,
@@ -272,12 +275,12 @@ router.post(
 router.patch(
   "/api/start-requests/:thesisRequestId",
   isLoggedIn,
-  check("approved").isBoolean(),
   (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
         return res.status(400).json({ message: "Invalid content" });
       }
+
       const user = getUser(req.user);
       if (
         !user ||
@@ -287,23 +290,51 @@ router.patch(
           message: "Only a teacher or a secretary can approve a thesis request",
         });
       }
-
-      const approved = req.body.approved;
+      const approved = req.body.decision;
       const req_id = req.params.thesisRequestId;
       let new_status;
       const old_status = getStatusStartRequest(req_id);
+      let current_date = undefined;
+
       if (user.role === "secretary_clerk") {
         if (old_status.status !== "requested") {
           return res.status(401).json({
             message: "The request has been already approved / rejected",
           });
         }
-        if (approved === true) {
+        if (approved === true || approved == "approved") {
           new_status = "secretary_accepted";
         } else {
           new_status = "rejected";
         }
         updateStatusStartRequest(new_status, req_id);
+      } else {
+        if (old_status.status === "changes_requested" ) {
+          return res.status(401).json({
+            message: "The thesis request is still waiting to be changed by the student",
+          });
+        }
+        if (old_status.status !== "secretary_accepted" && old_status.status !== "changed") {
+          return res.status(401).json({
+            message: "The request has been already approved / rejected",
+          });
+        }
+
+        if (approved === true || approved === "approved") {
+          new_status = "started";
+          current_date = dayjs().format('YYYY-MM-DD');
+        }
+        if(approved === false || approved === "rejected") {
+          new_status = "rejected";
+        }
+        if(approved === "changes_requested") {
+          new_status = "changes_requested";
+        }
+        updateStatusStartRequest(new_status, req_id);
+
+        if(new_status === 'started'){
+          updateDateStartRequest(current_date, req_id)
+        }
       }
 
       return res.status(200).json({ message: "Request updated successfully" });
@@ -780,14 +811,17 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
       return res.status(500).json({ message: "Internal server error" });
     }
     let requests;
-    if (user.role === "secretary_clerk") {
+    requests = getRequest();
+  /*  if (user.role === "secretary_clerk") {
       requests = getRequestForClerk();
     } else if (user.role === "teacher") {
-      // requests = getRequestForTeacher();
+      requests = getRequestForTeacher();
     } else if (user.role === "student") {
+      //getRequestForClerk ritorna tutte le request, lo studente non dovrebbe vederle tutte?
+      requests = getRequestForClerk();
     } else {
       return res.status(500).json({ message: "Internal server error" });
-    }
+    }*/
     requests.map((request) => {
       request.supervisor = getTeacher(request.supervisor).email;
       if (!request.co_supervisors) {
@@ -801,11 +835,80 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
       }
       return request;
     });
-    return res.status(200).json(requests);
+    let filteredRequest
+    if(user.role === 'teacher'){
+      filteredRequest = requests.filter(request => request.supervisor === user.email || request.co_supervisors.includes(user.email));
+    }
+    if(user.role === 'student'){
+      filteredRequest = requests.filter(request => request.student_id === user.id);
+    }
+    if(user.role === 'secretary_clerk'){
+      filteredRequest = requests
+    }
+    
+    return res.status(200).json(filteredRequest);
   } catch (err) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
+router.put(
+  "/api/start-requests/:thesisRequestId",
+  isLoggedIn,
+  check("id").isInt(),
+  check("title").isString(),
+  check("description").isString(),
+  check("supervisor").isString(),
+  check("co_supervisors.*").isEmail(),
+  check("student_id").isString(),
+  check("status").isString(),
+  (req, res) => {
+    try {
+      if (!validationResult(req).isEmpty()) {
+        return res.status(400).json({ message: "Invalid content" });
+      }
+
+      const user = getUser(req.user);
+      if (
+        !user ||
+        (user.role !== "student")
+      ) {
+        return res.status(401).json({
+          message: "Only a student can change a thesis request",
+        });
+      }
+
+      const req_id = req.params.thesisRequestId;
+      
+      const {
+        title,
+        description,
+        supervisor,
+        co_supervisors,
+        approval_date,
+        student_id,
+        status
+      } = req.body;
+
+      status = "changed"
+    
+      updateStartRequest({
+        id: req_id,
+        title: title,
+        description: description,
+        supervisor: supervisor,
+        co_supervisors: co_supervisors.join(", "),
+        approval_date: dayjs(approval_date).format("YYYY-MM-DD"),
+        student_id: student_id,
+        status: status
+      });
+      return res.status(200).json({ message: "Proposal updated successfully" });
+
+    } catch (e) {
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
 
 // ==================================================
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS
