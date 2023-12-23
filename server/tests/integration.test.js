@@ -1347,7 +1347,8 @@ describe("Story 28: the professor evaluates student request", () => {
     expect(response.body).toHaveLength(1);
     expect(response.body[0]).toHaveProperty("status", "changed");
 
-    response = await approveRequest(thesis_request_id);
+    await approveRequest(thesis_request_id);
+    response = await getRequests();
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
     expect(response.body[0]).toHaveProperty("status", "started");

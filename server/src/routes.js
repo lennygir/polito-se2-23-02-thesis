@@ -22,6 +22,7 @@ const {
   updateStatusStartRequest,
   updateDateStartRequest,
   getStatusStartRequest,
+  getSupervisorStartRequest,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   deleteProposal,
@@ -311,6 +312,15 @@ router.patch(
         }
         updateStatusStartRequest(new_status, req_id);
       } else {
+
+        const supervisor = getSupervisorStartRequest(req_id).supervisor
+
+        if(user.id != supervisor){
+          return res.status(401).json({
+            message: "Your not a supervisor of this thesis request",
+          });
+        }
+
         if (old_status.status === "changes_requested" ) {
           return res.status(401).json({
             message: "The thesis request is still waiting to be changed by the student",
@@ -861,13 +871,10 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
 router.put(
   "/api/start-requests/:thesisRequestId",
   isLoggedIn,
-  check("id").isInt(),
   check("title").isString(),
   check("description").isString(),
   check("supervisor").isString(),
   check("co_supervisors.*").isEmail(),
-  check("student_id").isString(),
-  check("status").isString(),
   (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
@@ -891,24 +898,42 @@ router.put(
         description,
         supervisor,
         co_supervisors,
-        approval_date,
-        student_id,
-        status
       } = req.body;
 
-      status = "changed"
-    
+      let status = "changed"
+      let student_id = user.id
+      
       updateStartRequest({
         id: req_id,
         title: title,
         description: description,
         supervisor: supervisor,
         co_supervisors: co_supervisors.join(", "),
-        approval_date: dayjs(approval_date).format("YYYY-MM-DD"),
         student_id: student_id,
         status: status
       });
-      return res.status(200).json({ message: "Proposal updated successfully" });
+
+      let new_req = {
+        id: parseInt(req_id),
+        title: title,
+        description: description,
+        supervisor: supervisor,
+        co_supervisors: co_supervisors.join(", "),
+        student_id: student_id,
+        status: status
+      }
+
+      new_req.supervisor = getTeacher(new_req.supervisor).email;
+      if (!new_req.co_supervisors) {
+        delete new_req.co_supervisors;
+      } else {
+        new_req.co_supervisors = new_req.co_supervisors.split(", ");
+      }
+      const { approval_date } = new_req;
+      if (approval_date === null) {
+        delete new_req.approval_date;
+      }
+      return res.status(200).json(new_req);
 
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });

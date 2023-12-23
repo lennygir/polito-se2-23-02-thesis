@@ -112,6 +112,10 @@ exports.getStatusStartRequest = (id) => {
   return db.prepare("SELECT status FROM START_REQUESTS WHERE id = ?").get(id);
 };
 
+exports.getSupervisorStartRequest = (id) => {
+  return db.prepare("SELECT supervisor FROM START_REQUESTS WHERE id = ?").get(id);
+};
+
 exports.getApplicationById = (id) => {
   return db.prepare("select * from APPLICATIONS where id = ?").get(id);
 };
@@ -494,20 +498,18 @@ exports.updateStartRequest = (proposal) => {
     description,
     supervisor,
     co_supervisors,
-    approval_date,
     student_id,
     status
   } = proposal;
   return db
     .prepare(
-      "UPDATE PROPOSALS SET title = ?, description = ? ,supervisor = ?, co_supervisors = ?, approval_date = ?,  student_id = ?, status = ? WHERE id = ?",
+      "UPDATE START_REQUESTS SET title = ?, description = ? ,supervisor = ?, co_supervisors = ?, approval_date = NULL,  student_id = ?, status = ? WHERE id = ?",
     )
     .run(
       title,
       description,
       supervisor,
-      co_supervisors,
-      approval_date, 
+      co_supervisors, 
       student_id,
       status,
       id,
