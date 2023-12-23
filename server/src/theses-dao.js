@@ -128,6 +128,14 @@ exports.getProposalsBySupervisor = (id) => {
   return db.prepare("select * from PROPOSALS where supervisor = ? and deleted = 0").all(id);
 };
 
+exports.getProposalsByCoSupervisor = (email) => {
+  const query = "SELECT * FROM PROPOSALS WHERE co_supervisors LIKE ?";
+  const param = `%${email}%`;
+  return db.prepare(query).all(param);
+};
+
+
+
 exports.getTeacher = (id) => {
   return db.prepare("select * from TEACHER where id = ?").get(id);
 };
