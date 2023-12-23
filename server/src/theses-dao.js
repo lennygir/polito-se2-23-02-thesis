@@ -102,6 +102,12 @@ exports.updateStatusStartRequest = (new_status, request_id) => {
     .run(new_status, request_id);
 };
 
+exports.updateDateStartRequest = (new_date, request_id) => {
+  return db
+    .prepare("update START_REQUESTS set approval_date = ? where id = ?")
+    .run(new_date, request_id);
+};
+
 exports.getStatusStartRequest = (id) => {
   return db.prepare("SELECT status FROM START_REQUESTS WHERE id = ?").get(id);
 };
@@ -473,6 +479,40 @@ exports.updateProposal = (proposal) => {
     );
 };
 
-exports.getRequestForClerk = () => {
+exports.updateStartRequest = (proposal) => {
+  const {
+    id,
+    title,
+    description,
+    supervisor,
+    co_supervisors,
+    approval_date,
+    student_id,
+    status
+  } = proposal;
+  return db
+    .prepare(
+      "UPDATE PROPOSALS SET title = ?, description = ? ,supervisor = ?, co_supervisors = ?, approval_date = ?,  student_id = ?, status = ? WHERE id = ?",
+    )
+    .run(
+      title,
+      description,
+      supervisor,
+      co_supervisors,
+      approval_date, 
+      student_id,
+      status,
+      id,
+    );
+};
+
+exports.getRequest = () => {
   return db.prepare("select * from START_REQUESTS").all();
 };
+
+/*exports.getRequestForTeacher = () => {
+  return db.prepare("select * from START_REQUESTS WHERE status = 'secretary_accepted' OR status = 'rejected' OR status = 'started' OR status = 'changes_requested' OR status = 'changed'").all();
+};*/
+
+
+
