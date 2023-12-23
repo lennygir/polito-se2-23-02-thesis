@@ -12,7 +12,9 @@ const {
   getDegrees,
   insertProposal,
   getProposalsBySupervisor,
+  getProposalsByCoSupervisor,
   getProposalsByDegree,
+  getProposals,
   updateApplication,
   getProposal,
   insertApplication,
@@ -388,6 +390,10 @@ router.get(
         proposals = getProposalsByDegree(user.cod_degree);
       } else if (user.role === "teacher") {
         proposals = getProposalsBySupervisor(user.id);
+        
+      } else if (user.role === "co_supervisor") {
+        let all_proposal = getProposals();
+        proposals = all_proposal.filter(request.co_supervisors.includes(user.email))
       } else {
         return res.status(500).json({ message: "Internal server error" });
       }
