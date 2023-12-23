@@ -250,7 +250,8 @@ exports.approveRequest = async function (request_id) {
  * Calls PATCH "/api/start-requests/request_id"
  * @param request_id the request to be rejected
  * @returns {Promise<Response>} the response of the request
- exports.rejectRequest = async function (request_id) {
+ */
+exports.rejectRequest = async function (request_id) {
   const response = await request(app)
     .patch(`/api/start-requests/${request_id}`)
     .set("Content-Type", "application/json")

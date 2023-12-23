@@ -1324,10 +1324,8 @@ describe("Story 28: the professor evaluates student request", () => {
       ...start_request,
       title: "Modified title",
       description: "Modified_description",
-      co_supervisors: start_request.co_supervisors.push(
-        "giovanni.malnati@teacher.it",
-      ),
     };
+    modified_request.co_supervisors.push("giovanni.malnati@teacher.it");
     response = await modifyRequest(thesis_request_id, modified_request);
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
