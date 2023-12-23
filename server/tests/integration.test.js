@@ -1244,13 +1244,13 @@ describe("Story 28: the professor evaluates student request", () => {
     let response = await getRequests();
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(thesis_requests[0]).toHaveProperty("status", "secretary_accepted");
+    expect(response.body[0]).toHaveProperty("status", "secretary_accepted");
 
     await approveRequest(thesis_request_id);
     response = await getRequests();
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(thesis_requests[0]).toHaveProperty("status", "started");
+    expect(response.body[0]).toHaveProperty("status", "started");
   });
   it("The professor rejects", async () => {
     start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
@@ -1275,13 +1275,13 @@ describe("Story 28: the professor evaluates student request", () => {
     let response = await getRequests();
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(thesis_requests[0]).toHaveProperty("status", "secretary_accepted");
+    expect(response.body[0]).toHaveProperty("status", "secretary_accepted");
 
     await rejectRequest(thesis_request_id);
     response = await getRequests();
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(thesis_requests[0]).toHaveProperty("status", "rejected");
+    expect(response.body[0]).toHaveProperty("status", "rejected");
   });
   it("The professor requests for changes, the student changes the request, the professor accepts", async () => {
     start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
@@ -1306,19 +1306,19 @@ describe("Story 28: the professor evaluates student request", () => {
     let response = await getRequests();
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(thesis_requests[0]).toHaveProperty("status", "secretary_accepted");
+    expect(response.body[0]).toHaveProperty("status", "secretary_accepted");
 
     await requestChangesForRequest(thesis_request_id);
     response = await getRequests();
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(thesis_requests[0]).toHaveProperty("status", "changes_requested");
+    expect(response.body[0]).toHaveProperty("status", "changes_requested");
 
     logIn("s309618@studenti.polito.it");
     response = await getRequests();
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(thesis_requests[0]).toHaveProperty("status", "changes_requested");
+    expect(response.body[0]).toHaveProperty("status", "changes_requested");
 
     const modified_request = {
       ...start_request,
@@ -1341,24 +1341,24 @@ describe("Story 28: the professor evaluates student request", () => {
     response = await getRequests();
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(thesis_requests[0]).toHaveProperty("status", "changed");
+    expect(response.body[0]).toHaveProperty("status", "changed");
 
     logIn("marco.torchiano@teacher.it");
     response = await getRequests();
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(thesis_requests[0]).toHaveProperty("status", "changed");
+    expect(response.body[0]).toHaveProperty("status", "changed");
 
     response = await approveRequest(thesis_request_id);
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(thesis_requests[0]).toHaveProperty("status", "started");
+    expect(response.body[0]).toHaveProperty("status", "started");
 
     logIn("s309618@studenti.polito.it");
     response = await getRequests();
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(thesis_requests[0]).toHaveProperty("status", "started");
+    expect(response.body[0]).toHaveProperty("status", "started");
   });
   it("The professor can view only the thesis requests for which he is a supervisor or a co-supervisor", async () => {
     const first_request = {
