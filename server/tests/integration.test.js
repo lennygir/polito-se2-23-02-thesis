@@ -1075,6 +1075,38 @@ describe("Secretary clerk story", () => {
       status: "requested",
     });
   });
+  it("The thesis request should exist", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+
+    logIn("s309618@studenti.polito.it");
+    const response = await startRequest(start_request);
+    const thesisRequestId = response.body;
+
+    const notExistentRequestId = thesisRequestId + 1;
+    logIn("laura.ferrari@example.com");
+
+    // try to approve the thesis request
+    const { status } = await approveRequest(notExistentRequestId);
+    expect(status).toBe(404);
+
+    // try to reject the thesis request
+    const { status: status2 } = await rejectRequest(notExistentRequestId);
+    expect(status2).toBe(404);
+
+    logIn("marco.torchiano@teacher.it");
+
+    // try to approve the thesis request
+    const { status3 } = await approveRequest(notExistentRequestId);
+    expect(status3).toBe(404);
+
+    // try to reject the thesis request
+    const { status: status4 } = await rejectRequest(notExistentRequestId);
+    expect(status4).toBe(404);
+
+    // try to request changes for the request
+    const response2 = await requestChangesForRequest(notExistentRequestId);
+    expect(response2.status).toBe(404);
+  });
   /*it("A student can view only his thesis requests, whereas the secretary clerk can view all the requests", async () => {
     logIn("s309618@studenti.polito.it");
 
@@ -1533,8 +1565,12 @@ describe("Story 28: the professor evaluates student request", () => {
     const thesis_request_id = (await startRequest(start_request)).body;
 
     logIn("marco.torchiano@teacher.it");
-    let status = (await requestChangesForRequest(thesis_request_id)).status;
+    let response = await requestChangesForRequest(thesis_request_id);
+    let status = response.status;
     expect(status).toBe(401);
+    expect(response.body).toEqual({
+      message: "The request has not been evaluated by the secretary yet.",
+    });
 
     status = (await approveRequest(thesis_request_id)).status;
     expect(status).toBe(401);
@@ -1586,5 +1622,98 @@ describe("Story 28: the professor evaluates student request", () => {
       student_id: "s309618",
       status: "changes_requested",
     });
+  });
+  it("A professor cannot evaluate a request already accepted or rejected", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+    logIn("s309618@studenti.polito.it");
+    const thesis_request_id = (await startRequest(start_request)).body;
+
+    logIn("laura.ferrari@example.com");
+    await approveRequest(thesis_request_id);
+
+    logIn("marco.torchiano@teacher.it");
+    let status = (await approveRequest(thesis_request_id)).status;
+    expect(status).toBe(200);
+
+    let response = await rejectRequest(thesis_request_id);
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({
+      message: "The request has been already approved / rejected",
+    });
+  });
+  it("If the virtual clock is set, the starting date should be set accordingly", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+    logIn("s309618@studenti.polito.it");
+    const thesis_request_id = (await startRequest(start_request)).body;
+
+    logIn("laura.ferrari@example.com");
+    await approveRequest(thesis_request_id);
+
+    // set the virtual clock to the future
+    await setClock(7);
+
+    logIn("marco.torchiano@teacher.it");
+    let status = (await approveRequest(thesis_request_id)).status;
+    expect(status).toBe(200);
+
+    let requests = (await getRequests()).body;
+    expect(requests).toContainEqual({
+      id: thesis_request_id,
+      title: start_request.title,
+      description: start_request.description,
+      supervisor: "marco.torchiano@teacher.it",
+      co_supervisors: start_request.co_supervisors,
+      status: "started",
+      start_date: dayjs().add(7, "day").format("YYYY-MM-DD"),
+    });
+  });
+  it("When changes are requested, there should be a description of the changes linked to it", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+    logIn("s309618@studenti.polito.it");
+    const thesis_request_id = (await startRequest(start_request)).body;
+
+    logIn("laura.ferrari@example.com");
+    await approveRequest(thesis_request_id);
+
+    logIn("marco.torchiano@teacher.it");
+    let status = (await requestChangesForRequest(thesis_request_id)).status;
+    expect(status).toBe(200);
+
+    let requests = (await getRequests()).body;
+    expect(requests).toContainEqual({
+      id: thesis_request_id,
+      title: start_request.title,
+      description: start_request.description,
+      supervisor: "marco.torchiano@teacher.it",
+      co_supervisors: start_request.co_supervisors,
+      status: "changes_requested",
+      changes_requested: "You have to change this, that, whatever I want",
+    });
+  });
+});
+
+describe("The professor should now see also the proposals for which he is a co-supervisor", () => {
+  it("Multiple cases", async () => {
+    logIn("marco.torchiano@teacher.it");
+
+    proposal.co_supervisors = [
+      "luigi.derussis@teacher.it",
+      "maurizio.morisio@teacher.it",
+    ];
+    await insertProposal(proposal);
+    let response = await getProposals();
+    expect(response.body).toHaveLength(1); // there should be one proposal, for which he is a supervisor
+
+    logIn("luigi.derussis@teacher.it");
+    proposal.groups = ["ELITE", "SOFTENG"];
+    proposal.co_supervisors = ["maurizio.morisio@teacher.it"];
+    await insertProposal(proposal);
+
+    response = await getProposals();
+    expect(response.body).toHaveLength(2); // there should be one proposal as supervisor, one as co_supervisor
+
+    logIn("maurizio.morisio@teacher.it");
+    response = await getProposals();
+    expect(response.body).toHaveLength(2); // there should be two proposals as co_supervisor
   });
 });
