@@ -1621,6 +1621,7 @@ describe("Story 28: the professor evaluates student request", () => {
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",
       status: "changes_requested",
+      changes_requested: "You have to change this, that, whatever I want",
     });
   });
   it("A professor cannot evaluate a request already accepted or rejected", async () => {
@@ -1664,7 +1665,7 @@ describe("Story 28: the professor evaluates student request", () => {
       supervisor: "marco.torchiano@teacher.it",
       co_supervisors: start_request.co_supervisors,
       status: "started",
-      start_date: dayjs().add(7, "day").format("YYYY-MM-DD"),
+      approval_date: dayjs().add(7, "day").format("YYYY-MM-DD"),
     });
   });
   it("When changes are requested, there should be a description of the changes linked to it", async () => {
@@ -1710,6 +1711,20 @@ describe("Story 28: the professor evaluates student request", () => {
       title: "Modified title",
     });
     expect(response.status).toBe(404);
+  });
+  it("The secretary tries to change requests", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+
+    logIn("s309618@studenti.polito.it");
+    let thesis_request_id = (await startRequest(start_request)).body;
+
+    logIn("laura.ferrari@example.com");
+    let response = await requestChangesForRequest(thesis_request_id);
+    expect(response.status).toBe(404);
+
+    let requests = await getRequests();
+    // the request shouldn't be modified by that previous call
+    expect(requests.body[0]).toHaveProperty("status", "requested");
   });
 });
 
