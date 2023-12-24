@@ -43,6 +43,7 @@ const {
   updateArchivedStateProposal,
   getNotRejectedStartRequest,
   getRequest,
+  getRequestById,
  // getRequestForTeacher,
   getTeacher,
   getAcceptedApplicationsOfStudent,
@@ -295,7 +296,7 @@ router.patch(
       }
       const approved = req.body.decision;
       const req_id = req.params.thesisRequestId;
-      let new_status;
+      let new_status ;
       const old_status = getStatusStartRequest(req_id);
       let current_date = undefined;
 
@@ -307,8 +308,12 @@ router.patch(
         }
         if (approved === true || approved == "approved") {
           new_status = "secretary_accepted";
-        } else {
+        } else if(approved === false || approved == "rejected"){
           new_status = "rejected";
+        }else{
+          return res.status(404).json({
+            message: "The secretary clerk have not the permission to perform this operation",
+          });
         }
         updateStatusStartRequest(new_status, req_id);
       } else {
@@ -326,6 +331,13 @@ router.patch(
             message: "The thesis request is still waiting to be changed by the student",
           });
         }
+
+        if (old_status.status === "request") {
+          return res.status(401).json({
+            message: "The request has yet to be approve by secretary clerk",
+          });
+        }
+
         if (old_status.status !== "secretary_accepted" && old_status.status !== "changed") {
           return res.status(401).json({
             message: "The request has been already approved / rejected",
@@ -334,7 +346,7 @@ router.patch(
 
         if (approved === true || approved === "approved") {
           new_status = "started";
-          current_date = dayjs().format('YYYY-MM-DD');
+          current_date = getDate();
         }
         if(approved === false || approved === "rejected") {
           new_status = "rejected";
@@ -399,8 +411,8 @@ router.get(
       if (user.role === "student") {
         proposals = getProposalsByDegree(user.cod_degree);
       } else if (user.role === "teacher") {
-        proposals = getProposalsBySupervisor(user.id);
-        
+        let all_proposal = getProposals();
+        proposals = all_proposal.filter(request => request.supervisor === user.email || request.co_supervisors.includes(user.email))        
       } else if (user.role === "co_supervisor") {
         let all_proposal = getProposals();
         proposals = all_proposal.filter(request.co_supervisors.includes(user.email))
@@ -892,6 +904,14 @@ router.put(
       }
 
       const req_id = req.params.thesisRequestId;
+
+      //controllo che esiste
+      const is_req_exist = getRequestById(req_id)
+      if(is_req_exist == undefined){
+        return res.status(404).json({
+          message: "The request doesn't exist",
+        });
+      }
       
       const {
         title,
