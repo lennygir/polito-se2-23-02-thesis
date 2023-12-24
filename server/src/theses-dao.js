@@ -520,6 +520,14 @@ exports.getRequest = () => {
   return db.prepare("select * from START_REQUESTS").all();
 };
 
+exports.getRequestById = (id) => {
+  return db
+    .prepare(
+      "SELECT * FROM START_REQUESTS WHERE id=?",
+    )
+    .all(id);
+};
+
 /*exports.getRequestForTeacher = () => {
   return db.prepare("select * from START_REQUESTS WHERE status = 'secretary_accepted' OR status = 'rejected' OR status = 'started' OR status = 'changes_requested' OR status = 'changed'").all();
 };*/
