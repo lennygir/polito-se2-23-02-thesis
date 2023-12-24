@@ -1690,6 +1690,27 @@ describe("Story 28: the professor evaluates student request", () => {
       changes_requested: "You have to change this, that, whatever I want",
     });
   });
+  it("When modifying a request, the request should exist", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+
+    logIn("s309618@studenti.polito.it");
+    let thesis_request_id = (await startRequest(start_request)).body;
+
+    logIn("laura.ferrari@example.com");
+    await approveRequest(thesis_request_id);
+
+    logIn("marco.torchiano@teacher.it");
+    await requestChangesForRequest(thesis_request_id);
+
+    logIn("s309618@studenti.polito.it");
+    let wrongId = thesis_request_id + 1;
+
+    let response = await modifyRequest(wrongId, {
+      ...start_request,
+      title: "Modified title",
+    });
+    expect(response.status).toBe(404);
+  });
 });
 
 describe("The professor should now see also the proposals for which he is a co-supervisor", () => {
