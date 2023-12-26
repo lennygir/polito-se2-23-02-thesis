@@ -128,6 +128,7 @@ CREATE TABLE START_REQUESTS (
   approval_date DATETIME,
   student_id TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'requested',
+  changes_requested TEXT,
   FOREIGN KEY (supervisor) REFERENCES TEACHER (id),
   FOREIGN KEY (student_id) REFERENCES STUDENT (id)
 );

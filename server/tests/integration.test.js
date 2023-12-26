@@ -1366,6 +1366,8 @@ describe("Story 28: the professor evaluates student request", () => {
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",
       status: "changed",
+      //THIS row below
+      "changes_requested": null,
     });
 
     response = await getRequests();
@@ -1557,6 +1559,8 @@ describe("Story 28: the professor evaluates student request", () => {
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",
       status: "secretary_accepted",
+      //THIS row below
+      changes_requested: null
     });
   });
   it("Can a professor evaluate a request which is not evaluated by the secretary yet?", async () => {
@@ -1608,6 +1612,8 @@ describe("Story 28: the professor evaluates student request", () => {
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",
       status: "changed",
+      //THIS row below
+      changes_requested: null,
     });
     let status = (await requestChangesForRequest(thesis_request_id)).status;
     expect(status).toBe(200);
@@ -1666,6 +1672,9 @@ describe("Story 28: the professor evaluates student request", () => {
       co_supervisors: start_request.co_supervisors,
       status: "started",
       approval_date: dayjs().add(7, "day").format("YYYY-MM-DD"),
+      //THIS row below
+      student_id: "s309618",
+      changes_requested: null,
     });
   });
   it("When changes are requested, there should be a description of the changes linked to it", async () => {
@@ -1689,6 +1698,7 @@ describe("Story 28: the professor evaluates student request", () => {
       co_supervisors: start_request.co_supervisors,
       status: "changes_requested",
       changes_requested: "You have to change this, that, whatever I want",
+      student_id: "s309618"
     });
   });
   it("When modifying a request, the request should exist", async () => {

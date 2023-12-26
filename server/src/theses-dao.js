@@ -102,6 +102,12 @@ exports.updateStatusStartRequest = (new_status, request_id) => {
     .run(new_status, request_id);
 };
 
+exports.updateChangeRequestedStart = (new_changes, request_id) => {
+  return db
+    .prepare("update START_REQUESTS set changes_requested = ? where id = ?")
+    .run(new_changes, request_id);
+};
+
 exports.updateDateStartRequest = (new_date, request_id) => {
   return db
     .prepare("update START_REQUESTS set approval_date = ? where id = ?")
@@ -499,11 +505,12 @@ exports.updateStartRequest = (proposal) => {
     supervisor,
     co_supervisors,
     student_id,
-    status
+    status,
+    changes_requested
   } = proposal;
   return db
     .prepare(
-      "UPDATE START_REQUESTS SET title = ?, description = ? ,supervisor = ?, co_supervisors = ?, approval_date = NULL,  student_id = ?, status = ? WHERE id = ?",
+      "UPDATE START_REQUESTS SET title = ?, description = ? ,supervisor = ?, co_supervisors = ?, approval_date = NULL,  student_id = ?, status = ?, changes_requested = ? WHERE id = ?",
     )
     .run(
       title,
@@ -512,6 +519,7 @@ exports.updateStartRequest = (proposal) => {
       co_supervisors, 
       student_id,
       status,
+      changes_requested,
       id,
     );
 };

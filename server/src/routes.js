@@ -20,6 +20,7 @@ const {
   insertApplication,
   insertStartRequest,
   updateStatusStartRequest,
+  updateChangeRequestedStart, 
   updateDateStartRequest,
   getStatusStartRequest,
   getSupervisorStartRequest,
@@ -299,6 +300,13 @@ router.patch(
       let new_status ;
       const old_status = getStatusStartRequest(req_id);
       let current_date = undefined;
+      const is_req_exist = getRequestById(req_id)
+      
+      if(is_req_exist == undefined || is_req_exist.length === 0){
+        return res.status(404).json({
+          message: "The request doesn't exist",
+        });
+      }
 
       if (user.role === "secretary_clerk") {
         if (old_status.status !== "requested") {
@@ -332,9 +340,9 @@ router.patch(
           });
         }
 
-        if (old_status.status === "request") {
+        if (old_status.status === "requested") {
           return res.status(401).json({
-            message: "The request has yet to be approve by secretary clerk",
+            message: "The request has not been evaluated by the secretary yet.",
           });
         }
 
@@ -353,6 +361,8 @@ router.patch(
         }
         if(approved === "changes_requested") {
           new_status = "changes_requested";
+          let changes = req.body.message;
+          updateChangeRequestedStart(changes, req_id)
         }
         updateStatusStartRequest(new_status, req_id);
 
@@ -413,9 +423,6 @@ router.get(
       } else if (user.role === "teacher") {
         let all_proposal = getProposals();
         proposals = all_proposal.filter(request => request.supervisor === user.email || request.co_supervisors.includes(user.email))
-      } else if (user.role === "co_supervisor") {
-        let all_proposal = getProposals();
-        proposals = all_proposal.filter(request.co_supervisors.includes(user.email))
       } else {
         return res.status(500).json({ message: "Internal server error" });
       }
@@ -907,7 +914,7 @@ router.put(
 
       //controllo che esiste
       const is_req_exist = getRequestById(req_id)
-      if(is_req_exist == undefined){
+      if(is_req_exist == undefined || is_req_exist.length === 0){
         return res.status(404).json({
           message: "The request doesn't exist",
         });
@@ -930,7 +937,8 @@ router.put(
         supervisor: supervisor,
         co_supervisors: co_supervisors.join(", "),
         student_id: student_id,
-        status: status
+        status: status,
+        changes_requested: null
       });
 
       let new_req = {
@@ -940,7 +948,8 @@ router.put(
         supervisor: supervisor,
         co_supervisors: co_supervisors.join(", "),
         student_id: student_id,
-        status: status
+        status: status,
+        changes_requested: null
       }
 
       new_req.supervisor = getTeacher(new_req.supervisor).email;
