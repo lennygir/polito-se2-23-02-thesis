@@ -864,10 +864,14 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
       } else {
         request.co_supervisors = request.co_supervisors.split(", ");
       }
-      const { approval_date } = request;
+      const { approval_date, changes_requested } = request;
       if (approval_date === null) {
         delete request["approval_date"];
       }
+      if (changes_requested === null) {
+        delete request["changes_requested"];
+      }
+      
       return request;
     });
     let filteredRequest
@@ -958,9 +962,12 @@ router.put(
       } else {
         new_req.co_supervisors = new_req.co_supervisors.split(", ");
       }
-      const { approval_date } = new_req;
+      const { approval_date, changes_requested } = new_req;
       if (approval_date === null) {
         delete new_req.approval_date;
+      }
+      if (changes_requested === null) {
+        delete new_req.changes_requested;
       }
       return res.status(200).json(new_req);
 
