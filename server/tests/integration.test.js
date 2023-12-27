@@ -1096,7 +1096,7 @@ describe("Secretary clerk story", () => {
     logIn("marco.torchiano@teacher.it");
 
     // try to approve the thesis request
-    const { status3 } = await approveRequest(notExistentRequestId);
+    const { status: status3 } = await approveRequest(notExistentRequestId);
     expect(status3).toBe(404);
 
     // try to reject the thesis request

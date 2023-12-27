@@ -420,12 +420,30 @@ router.get(
       let proposals;
       if (user.role === "student") {
         proposals = getProposalsByDegree(user.cod_degree);
+        proposals.map((proposal) => {
+          proposal.supervisor = getTeacher(proposal.supervisor).email;
+          return proposal;
+        });
       } else if (user.role === "teacher") {
         let all_proposal = getProposals();
-        proposals = all_proposal.filter(request => request.supervisor === user.email || request.co_supervisors.includes(user.email))
+        all_proposal.map((proposal) => {
+          proposal.supervisor = getTeacher(proposal.supervisor).email;
+          return proposal;
+        });
+        proposals = all_proposal.filter(proposal => proposal.supervisor === user.email || proposal.co_supervisors.includes(user.email))
+        proposals.map((proposal) => {
+          proposal.supervisor = user.id;
+          return proposal;
+        });
       } else {
         return res.status(500).json({ message: "Internal server error" });
       }
+      proposals = proposals.filter(proposal => {
+        if(proposal.deleted == 0){
+          return proposal
+        }
+      })
+
       proposals.map((proposal) => {
         proposal.archived = isArchived(proposal);
         delete proposal.manually_archived;
@@ -847,16 +865,7 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
     }
     let requests;
     requests = getRequest();
-  /*  if (user.role === "secretary_clerk") {
-      requests = getRequestForClerk();
-    } else if (user.role === "teacher") {
-      requests = getRequestForTeacher();
-    } else if (user.role === "student") {
-      //getRequestForClerk ritorna tutte le request, lo studente non dovrebbe vederle tutte?
-      requests = getRequestForClerk();
-    } else {
-      return res.status(500).json({ message: "Internal server error" });
-    }*/
+ 
     requests.map((request) => {
       request.supervisor = getTeacher(request.supervisor).email;
       if (!request.co_supervisors) {

@@ -24,7 +24,7 @@ const {
   getApplicationsOfStudent,
   getExamsOfStudent,
   getNotRejectedStartRequest,
-  getRequestForClerk,
+  getRequest,
   getPendingApplicationsOfStudent,
   getAcceptedApplicationsOfStudent,
 } = require("../src/theses-dao");
@@ -919,7 +919,7 @@ describe("GET /api/start-requests", () => {
         status: "requested",
       },
     ];
-    getRequestForClerk.mockReturnValue(expectedRequests);
+    getRequest.mockReturnValue(expectedRequests);
     const requests = (
       await request(app)
         .get("/api/start-requests")
@@ -935,7 +935,7 @@ describe("GET /api/start-requests", () => {
       };
       next();
     });
-    getRequestForClerk.mockReturnValue([]);
+    getRequest.mockReturnValue([]);
     await request(app)
       .get("/api/start-requests")
       .set("Content-Type", "application/json")
