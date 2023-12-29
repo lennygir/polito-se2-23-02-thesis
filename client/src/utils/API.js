@@ -17,16 +17,16 @@ function getJson(httpResponsePromise) {
           response
             .json()
             .then((json) => resolve(json))
-            .catch((err) => reject({ error: "Cannot parse server response" }));
+            .catch((err) => reject(new Error("Cannot parse server response")));
         } else {
           // analyzing the cause of error
           response
             .json()
             .then((obj) => reject(obj)) // error msg in the response body
-            .catch((err) => reject({ error: "Cannot parse server response" })); // something else
+            .catch((err) => reject(new Error("Cannot parse server response"))); // something else
         }
       })
-      .catch((err) => reject({ error: "Cannot communicate" })); // connection error
+      .catch((err) => reject(new Error("Cannot communicate"))); // connection error
   });
 }
 
