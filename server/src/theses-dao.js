@@ -349,9 +349,10 @@ exports.notifyNewStartRequest = async (requestId) => {
     name: requestJoined.surname + " " + requestJoined.name,
     student: requestJoined.student_id,
   });
+  const teacher = this.getTeacherEmailById(requestJoined.supervisor);
   try {
     await nodemailer.sendMail({
-      to: requestJoined.email,
+      to: teacher.email,
       subject: "New start request",
       text: mailBody.text,
       html: mailBody.html,
