@@ -366,28 +366,30 @@ exports.notifyNewStartRequest = async (requestId) => {
   ).run(requestJoined.supervisor, "New start request", mailBody.text);
 
   // Send email to the co-supervisors
-  const coSupervisors = requestJoined.co_supervisors.split(", ");
-  for (const coSupervisorEmail of coSupervisors) {
-    const coSupervisor = this.getTeacherByEmail(coSupervisorEmail);
-    mailBody = cosupervisorStartRequestTemplate({
-      name: coSupervisor.surname + " " + coSupervisor.name,
-      student: requestJoined.student_id,
-    });
-    try {
-      await nodemailer.sendMail({
-        to: coSupervisorEmail,
-        subject: "New start request",
-        text: mailBody.text,
-        html: mailBody.html,
+  if(requestJoined.co_supervisors) {
+    const coSupervisors = requestJoined.co_supervisors.split(", ");
+    for (const coSupervisorEmail of coSupervisors) {
+      const coSupervisor = this.getTeacherByEmail(coSupervisorEmail);
+      mailBody = cosupervisorStartRequestTemplate({
+        name: coSupervisor.surname + " " + coSupervisor.name,
+        student: requestJoined.student_id,
       });
-    } catch (e) {
-      console.log("[mail service]", e);
-    }
+      try {
+        await nodemailer.sendMail({
+          to: coSupervisorEmail,
+          subject: "New start request",
+          text: mailBody.text,
+          html: mailBody.html,
+        });
+      } catch (e) {
+        console.log("[mail service]", e);
+      }
 
-    // Save email in DB
-    db.prepare(
-      "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
-    ).run(coSupervisor.id, "New start request", mailBody.text);
+      // Save email in DB
+      db.prepare(
+        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+      ).run(coSupervisor.id, "New start request", mailBody.text);
+    }
   }
 };
 
