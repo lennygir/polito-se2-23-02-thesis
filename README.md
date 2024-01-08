@@ -75,6 +75,10 @@ Once the docker container is running you can access the application using [local
 
 ## Client Components
 
+### ProposalDetails
+This component serves as an interface for users to view proposal details and take necessary actions related to applications based on their role and the status of existing applications. The component is designed to present comprehensive details of a proposal, including its title, supervisor, co-supervisors, type, keywords, groups, description, expiration date, level, CDS, and additional notes. It also handles actions related to submitting applications for proposals.
+
+
 ### ProposalRow
 This component renders a single row in a table displaying information about a proposal. 
 It encapsulates the rendering logic for a single proposal row in a table, providing options for different actions like editing, archiving, and deleting proposals based on user roles and proposal state.
@@ -103,41 +107,47 @@ It is used for creating or editing proposals. This component is designed to hand
 
 This component is responsible for rendering a single row within a the application table, displaying application-related data based on the user's role.
 
-Context Usage:
--   It uses the `useContext` hook from React to access the `UserContext`, extracting `application` and `user` from the provided `props`.
-
 If the user that has been signed in is a teacher, the data shown are student ID of who has applied for the proposal, the proposal title which she/he has applied for, and the status of the request, which could be in four ways: 1. Pending: if the application has neither been accepted or rejected by the teacher yet. 2. Accepted: If the application has been accepted by the teacher. 3. Rejected: If the application has been denied by the teacher. 4: Canceled: if the application has been accepted by the teacher for another student. The last content is view application, by clicking on it, the teachers can see the details of the application.
 
 On the other hand, if the user is a student, the displayed data are the name and last name of the teacher who has been proposed the thesis, the proposal title which she/he has applied for, the status of the request, which could be in four ways: 1. Pending: if the application has neither been accepted nor rejected by the teacher yet. 2. Accepted: If the application has been accepted by the teacher. 3. Rejected: If the application has been denied by the teacher. 4: Canceled: if the application has been accepted by the teacher for another student. The last content is view application, by clicking on it, the students can see the details of their application.
-
-Export:
--   Exports the `ApplicationRow` component as the default export, enabling its usage in other parts of the application to render individual rows within a table, presenting application-related information based on the user's role.
 
 ### ApplicationTable
 
 This component renders a table based on the provided data (`applications`) and the user's role fetched from the `UserContext`.
 
-Context Usage:
--   The component uses the `useContext` hook from React to access the `UserContext`, extracting `applications` and `user` from the provided `props`.
-
 If the user's role is teacher, the rendered table headers will be "Student", "Proposal", "Status", "Open". 
 On the contrary, if the user's role is student, the rendered table headers will be "Teacher", "Proposal", "Status", "Open"
-
-Export:
--   Exports the `ApplicationTable` component as the default export, enabling its usage in other parts of the application to render a table based on the user's role and provided data (`applications`).
 
 ### ApplicationDetails
 
 This component is responsible for rendering details of a specific application, presenting student information, thesis proposal details, and handling actions such as accepting or rejecting an application (if the user's role is teacher).
 
-Context Usage:
--   Utilizes `useContext` hook from React to access the `UserContext` and `ErrorContext`, extracting `user` information and an `error handling` function.
-
 If the user that has been signed in is a teacher, he/she can decide about accepting or rejecting an application (by using the buttons "accept" or "reject") on this page.
 If the user is a student, he/she can view the message regarding his/her application. "application pending", "application rejected", "application accepted",  and "application canceled".
- 
- Export:
--   Exports the `ApplicationDetails` component as the default export.
+
+### RequestDetails
+
+This RequestDetails component manages the display of detailed information about a student's request, especially concerning thesis supervision.
+
+The component's main purpose is to present comprehensive details of a student's request for thesis supervision, including student information, supervisor details, and the request status. It also manages actions related to evaluating and responding to these requests.
+
+### RequestForm
+
+This component provides a form interface allowing users to input a thesis title, description, select a supervisor, and choose co-supervisors. It enables the creation of a request once the form is correctly filled and submitted. In addition, facilitates the selection of supervisors and co-supervisors from a predefined list of emails through Autocomplete components.
+
+Overall, this component encapsulates a form for creating thesis-related requests with proper validation and data handling mechanisms.
+
+### RequestRow
+
+This component serves as a representation of a single row in a table displaying thesis-related requests. It showcases various details about the request, including its status, supervisor, title, and provides a convenient way to view the request details through the IconButton.
+
+It focuses on presenting request-related data in a table format with navigational capabilities to view the details of a particular request.
+
+### RequestTable
+
+This component's primary purpose is to present a table displaying various details of requests related to thesis submissions, it arranges the information in a structured manner with columns for student details, supervisors, titles, request status, and an option to view the request details.
+The "Status" column includes a tooltip legend for better understanding of the different statuses associated with requests.
+By using the RequestRow component, it iterates through each request object to render rows in the table according to the defined headers.
 
 
 ## API Server
