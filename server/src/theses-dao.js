@@ -6,6 +6,7 @@ const { db } = require("./db");
 const { nodemailer } = require("./smtp");
 const { applicationDecisionTemplate } = require("./mail/application-decision");
 const { newApplicationTemplate } = require("./mail/new-application");
+const { supervisorStartRequestTemplate } = require("./mail/supervisor-start-request");
 
 exports.insertApplication = (proposal, student, state) => {
   const result = db
@@ -299,6 +300,37 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
     "New decision on your thesis application",
     mailBody.text,
   );
+};
+
+exports.notifyNewStartRequest = async (requestId) => {
+  // Send email to the supervisor
+  const requestJoined = db
+    .prepare(
+      `SELECT S.student_id, S.supervisor, T.name, T.surname
+      FROM START_REQUESTS S
+      JOIN TEACHER T ON T.id = S.supervisor
+      WHERE S.id = ?`,
+    ).get(requestId);
+  console.log(requestJoined);
+  const mailBody = supervisorStartRequestTemplate({
+    name: requestJoined.surname + " " + requestJoined.name,
+    student: requestJoined.student_id,
+  });
+  try {
+    await nodemailer.sendMail({
+      to: requestJoined.email,
+      subject: "New start request",
+      text: mailBody.text,
+      html: mailBody.html,
+    });
+  } catch (e) {
+    console.log("[mail service]", e);
+  }
+
+  // Save email in DB
+  db.prepare(
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+  ).run(requestJoined.supervisor, "New start request", mailBody.text);
 };
 
 exports.notifyNewApplication = async (proposalId) => {
