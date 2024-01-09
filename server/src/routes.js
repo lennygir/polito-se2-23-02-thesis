@@ -39,11 +39,13 @@ const {
   insertPDFInApplication,
   updateArchivedStateProposal,
   getNotRejectedStartRequest,
-  getRequests,
   getRequestById,
   getTeacher,
   getAcceptedApplicationsOfStudent,
   getPendingApplicationsOfStudent,
+  getRequestsForTeacher,
+  getRequestsForClerk,
+  getRequestsForStudent,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 
@@ -833,8 +835,15 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
       return res.status(500).json({ message: "Internal server error" });
     }
     let requests;
-    requests = getRequests();
-
+    if (user.role === "secretary_clerk") {
+      requests = getRequestsForClerk();
+    } else if (user.role === "teacher") {
+      requests = getRequestsForTeacher(user.id, user.email);
+    } else if (user.role === "student") {
+      requests = getRequestsForStudent(user.id);
+    } else {
+      return res.status(500).json({ message: "Internal server error" });
+    }
     requests.map((request) => {
       request.supervisor = getTeacher(request.supervisor).email;
       if (!request.co_supervisors) {
@@ -849,27 +858,9 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
       if (changes_requested === null) {
         delete request["changes_requested"];
       }
-
       return request;
     });
-    let filteredRequest;
-    if (user.role === "teacher") {
-      filteredRequest = requests.filter(
-        (request) =>
-          request.supervisor === user.email ||
-          request.co_supervisors.includes(user.email),
-      );
-    }
-    if (user.role === "student") {
-      filteredRequest = requests.filter(
-        (request) => request.student_id === user.id,
-      );
-    }
-    if (user.role === "secretary_clerk") {
-      filteredRequest = requests;
-    }
-
-    return res.status(200).json(filteredRequest);
+    return res.status(200).json(requests);
   } catch (err) {
     return res.status(500).json({ message: "Internal Server Error" });
   }

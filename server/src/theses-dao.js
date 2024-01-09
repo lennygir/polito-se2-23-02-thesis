@@ -144,13 +144,6 @@ exports.getProposalsForTeacher = (id, email) => {
     .all(id, email);
 };
 
-// todo: delete this
-exports.getProposalsByCoSupervisor = (email) => {
-  const query = "SELECT * FROM PROPOSALS WHERE co_supervisors LIKE ?";
-  const param = `%${email}%`;
-  return db.prepare(query).all(param);
-};
-
 exports.getTeacher = (id) => {
   return db.prepare("select * from TEACHER where id = ?").get(id);
 };
@@ -537,6 +530,20 @@ exports.getRequestById = (id) => {
   return db.prepare("SELECT * FROM START_REQUESTS WHERE id=?").get(id);
 };
 
-/*exports.getRequestForTeacher = () => {
-  return db.prepare("select * from START_REQUESTS WHERE status = 'secretary_accepted' OR status = 'rejected' OR status = 'started' OR status = 'changes_requested' OR status = 'changed'").all();
-};*/
+exports.getRequestsForTeacher = (id, email) => {
+  return db
+    .prepare(
+      "select * from START_REQUESTS where supervisor = ? or co_supervisors LIKE '%' || ? || '%'",
+    )
+    .all(id, email);
+};
+
+exports.getRequestsForClerk = () => {
+  return db.prepare("select * from main.START_REQUESTS").all();
+};
+
+exports.getRequestsForStudent = (id) => {
+  return db
+    .prepare("select * from main.START_REQUESTS where student_id = ?")
+    .all(id);
+};
