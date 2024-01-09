@@ -1690,7 +1690,7 @@ describe("Story 28: the professor evaluates student request", () => {
       co_supervisors: start_request.co_supervisors,
       status: "changes_requested",
       changes_requested: "You have to change this, that, whatever I want",
-      student_id: "s309618"
+      student_id: "s309618",
     });
   });
   it("When modifying a request, the request should exist", async () => {
@@ -1722,7 +1722,7 @@ describe("Story 28: the professor evaluates student request", () => {
 
     logIn("laura.ferrari@example.com");
     let response = await requestChangesForRequest(thesis_request_id);
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(401);
 
     let requests = await getRequests();
     // the request shouldn't be modified by that previous call

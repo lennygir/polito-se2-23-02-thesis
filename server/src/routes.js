@@ -11,19 +11,15 @@ const {
   getGroups,
   getDegrees,
   insertProposal,
-  getProposalsBySupervisor,
-  getProposalsByCoSupervisor,
   getProposalsByDegree,
-  getProposals,
+  getProposalsForTeacher,
   updateApplication,
   getProposal,
   insertApplication,
   insertStartRequest,
-  updateStatusStartRequest,
-  updateChangeRequestedStart, 
-  updateDateStartRequest,
-  getStatusStartRequest,
-  getSupervisorStartRequest,
+  updateStatusOfStartRequest,
+  setChangesRequestedOfStartRequest,
+  setApprovalDateOfRequest,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   deleteProposal,
@@ -43,9 +39,8 @@ const {
   insertPDFInApplication,
   updateArchivedStateProposal,
   getNotRejectedStartRequest,
-  getRequest,
+  getRequests,
   getRequestById,
- // getRequestForTeacher,
   getTeacher,
   getAcceptedApplicationsOfStudent,
   getPendingApplicationsOfStudent,
@@ -277,106 +272,98 @@ router.post(
   },
 );
 
-router.patch(
-  "/api/start-requests/:thesisRequestId",
-  isLoggedIn,
-  (req, res) => {
-    try {
-      if (!validationResult(req).isEmpty()) {
-        return res.status(400).json({ message: "Invalid content" });
-      }
+function check_errors(start_request, user, old_status) {
+  if (user.id !== start_request.supervisor) {
+    throw new Error("You are not the supervisor of this thesis request");
+  }
 
-      const user = getUser(req.user);
-      if (
-        !user ||
-        (user.role !== "secretary_clerk" && user.role !== "teacher")
-      ) {
-        return res.status(401).json({
-          message: "Only a teacher or a secretary can approve a thesis request",
-        });
-      }
-      const approved = req.body.decision;
-      const req_id = req.params.thesisRequestId;
-      let new_status ;
-      const old_status = getStatusStartRequest(req_id);
-      let current_date = undefined;
-      const is_req_exist = getRequestById(req_id)
-      
-      if(is_req_exist == undefined || is_req_exist.length === 0){
-        return res.status(404).json({
-          message: "The request doesn't exist",
-        });
-      }
+  if (old_status === "changes_requested") {
+    throw new Error(
+      "The thesis request is still waiting to be changed by the student",
+    );
+  }
 
-      if (user.role === "secretary_clerk") {
-        if (old_status.status !== "requested") {
-          return res.status(401).json({
-            message: "The request has been already approved / rejected",
-          });
-        }
-        if (approved === true || approved == "approved") {
-          new_status = "secretary_accepted";
-        } else if(approved === false || approved == "rejected"){
-          new_status = "rejected";
-        }else{
-          return res.status(404).json({
-            message: "The secretary clerk have not the permission to perform this operation",
-          });
-        }
-        updateStatusStartRequest(new_status, req_id);
-      } else {
+  if (old_status === "requested") {
+    throw new Error("The request has not been evaluated by the secretary yet.");
+  }
 
-        const supervisor = getSupervisorStartRequest(req_id).supervisor
+  if (old_status === "rejected" || old_status === "started") {
+    throw new Error("The request has been already approved / rejected");
+  }
+}
 
-        if(user.id != supervisor){
-          return res.status(401).json({
-            message: "Your not a supervisor of this thesis request",
-          });
-        }
+function determineNewStatus(start_request, user, decision) {
+  const old_status = start_request.status;
+  let new_status;
 
-        if (old_status.status === "changes_requested" ) {
-          return res.status(401).json({
-            message: "The thesis request is still waiting to be changed by the student",
-          });
-        }
-
-        if (old_status.status === "requested") {
-          return res.status(401).json({
-            message: "The request has not been evaluated by the secretary yet.",
-          });
-        }
-
-        if (old_status.status !== "secretary_accepted" && old_status.status !== "changed") {
-          return res.status(401).json({
-            message: "The request has been already approved / rejected",
-          });
-        }
-
-        if (approved === true || approved === "approved") {
-          new_status = "started";
-          current_date = getDate();
-        }
-        if(approved === false || approved === "rejected") {
-          new_status = "rejected";
-        }
-        if(approved === "changes_requested") {
-          new_status = "changes_requested";
-          let changes = req.body.message;
-          updateChangeRequestedStart(changes, req_id)
-        }
-        updateStatusStartRequest(new_status, req_id);
-
-        if(new_status === 'started'){
-          updateDateStartRequest(current_date, req_id)
-        }
-      }
-
-      return res.status(200).json({ message: "Request updated successfully" });
-    } catch (e) {
-      return res.status(500).json({ message: "Internal server error" });
+  if (user.role === "secretary_clerk") {
+    if (old_status !== "requested") {
+      throw new Error("The request has been already approved / rejected");
     }
-  },
-);
+    if (decision === "approved") {
+      new_status = "secretary_accepted";
+    } else if (decision === "rejected") {
+      new_status = "rejected";
+    } else {
+      throw new Error(
+        "The secretary clerk has not the permission to perform this operation",
+      );
+    }
+  } else if (user.role === "teacher") {
+    check_errors(start_request, user, old_status);
+
+    if (decision === "approved") {
+      new_status = "started";
+    } else if (decision === "rejected") {
+      new_status = "rejected";
+    } else if (decision === "changes_requested") {
+      new_status = "changes_requested";
+    }
+  }
+  return new_status;
+}
+
+router.patch("/api/start-requests/:thesisRequestId", isLoggedIn, (req, res) => {
+  try {
+    if (!validationResult(req).isEmpty()) {
+      return res.status(400).json({ message: "Invalid content" });
+    }
+
+    const user = getUser(req.user);
+    if (!user || (user.role !== "secretary_clerk" && user.role !== "teacher")) {
+      return res.status(401).json({
+        message: "Only a teacher or a secretary can approve a thesis request",
+      });
+    }
+    const { decision, message } = req.body;
+    const { thesisRequestId } = req.params;
+    const request = getRequestById(thesisRequestId);
+
+    if (request === undefined) {
+      return res.status(404).json({
+        message: "The request doesn't exist",
+      });
+    }
+
+    let new_status;
+    try {
+      new_status = determineNewStatus(request, user, decision);
+    } catch (error) {
+      return res.status(401).json({ message: error.message });
+    }
+
+    if (new_status === "started") {
+      setApprovalDateOfRequest(getDate(), request.id);
+    } else if (new_status === "changes_requested") {
+      setChangesRequestedOfStartRequest(message, request.id);
+    }
+
+    updateStatusOfStartRequest(new_status, thesisRequestId);
+    return res.status(200).json({ message: "Request updated successfully" });
+  } catch (e) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
 // endpoint to get all teachers {id, surname, name, email}
 router.get("/api/teachers", isLoggedIn, (req, res) => {
   try {
@@ -420,29 +407,11 @@ router.get(
       let proposals;
       if (user.role === "student") {
         proposals = getProposalsByDegree(user.cod_degree);
-        proposals.map((proposal) => {
-          proposal.supervisor = getTeacher(proposal.supervisor).email;
-          return proposal;
-        });
       } else if (user.role === "teacher") {
-        let all_proposal = getProposals();
-        all_proposal.map((proposal) => {
-          proposal.supervisor = getTeacher(proposal.supervisor).email;
-          return proposal;
-        });
-        proposals = all_proposal.filter(proposal => proposal.supervisor === user.email || proposal.co_supervisors.includes(user.email))
-        proposals.map((proposal) => {
-          proposal.supervisor = user.id;
-          return proposal;
-        });
+        proposals = getProposalsForTeacher(user.id, user.email);
       } else {
         return res.status(500).json({ message: "Internal server error" });
       }
-      proposals = proposals.filter(proposal => {
-        if(proposal.deleted == 0){
-          return proposal
-        }
-      })
 
       proposals.map((proposal) => {
         proposal.archived = isArchived(proposal);
@@ -864,8 +833,8 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
       return res.status(500).json({ message: "Internal server error" });
     }
     let requests;
-    requests = getRequest();
- 
+    requests = getRequests();
+
     requests.map((request) => {
       request.supervisor = getTeacher(request.supervisor).email;
       if (!request.co_supervisors) {
@@ -880,20 +849,26 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
       if (changes_requested === null) {
         delete request["changes_requested"];
       }
-      
+
       return request;
     });
-    let filteredRequest
-    if(user.role === 'teacher'){
-      filteredRequest = requests.filter(request => request.supervisor === user.email || request.co_supervisors.includes(user.email));
+    let filteredRequest;
+    if (user.role === "teacher") {
+      filteredRequest = requests.filter(
+        (request) =>
+          request.supervisor === user.email ||
+          request.co_supervisors.includes(user.email),
+      );
     }
-    if(user.role === 'student'){
-      filteredRequest = requests.filter(request => request.student_id === user.id);
+    if (user.role === "student") {
+      filteredRequest = requests.filter(
+        (request) => request.student_id === user.id,
+      );
     }
-    if(user.role === 'secretary_clerk'){
-      filteredRequest = requests
+    if (user.role === "secretary_clerk") {
+      filteredRequest = requests;
     }
-    
+
     return res.status(200).json(filteredRequest);
   } catch (err) {
     return res.status(500).json({ message: "Internal Server Error" });
@@ -914,10 +889,7 @@ router.put(
       }
 
       const user = getUser(req.user);
-      if (
-        !user ||
-        (user.role !== "student")
-      ) {
+      if (!user || user.role !== "student") {
         return res.status(401).json({
           message: "Only a student can change a thesis request",
         });
@@ -926,23 +898,18 @@ router.put(
       const req_id = req.params.thesisRequestId;
 
       //controllo che esiste
-      const is_req_exist = getRequestById(req_id)
-      if(is_req_exist == undefined || is_req_exist.length === 0){
+      const is_req_exist = getRequestById(req_id);
+      if (is_req_exist == undefined || is_req_exist.length === 0) {
         return res.status(404).json({
           message: "The request doesn't exist",
         });
       }
 
-      const {
-        title,
-        description,
-        supervisor,
-        co_supervisors,
-      } = req.body;
+      const { title, description, supervisor, co_supervisors } = req.body;
 
-      let status = "changed"
-      let student_id = user.id
-      
+      let status = "changed";
+      let student_id = user.id;
+
       updateStartRequest({
         id: req_id,
         title: title,
@@ -951,7 +918,7 @@ router.put(
         co_supervisors: co_supervisors.join(", "),
         student_id: student_id,
         status: status,
-        changes_requested: null
+        changes_requested: null,
       });
 
       let new_req = {
@@ -962,8 +929,8 @@ router.put(
         co_supervisors: co_supervisors.join(", "),
         student_id: student_id,
         status: status,
-        changes_requested: null
-      }
+        changes_requested: null,
+      };
 
       new_req.supervisor = getTeacher(new_req.supervisor).email;
       if (!new_req.co_supervisors) {
@@ -979,7 +946,6 @@ router.put(
         delete new_req.changes_requested;
       }
       return res.status(200).json(new_req);
-
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
     }

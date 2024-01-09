@@ -96,19 +96,19 @@ exports.getNotRejectedStartRequest = (userId) => {
     .all(userId);
 };
 
-exports.updateStatusStartRequest = (new_status, request_id) => {
+exports.updateStatusOfStartRequest = (new_status, request_id) => {
   return db
     .prepare("update START_REQUESTS set status = ? where id = ?")
     .run(new_status, request_id);
 };
 
-exports.updateChangeRequestedStart = (new_changes, request_id) => {
+exports.setChangesRequestedOfStartRequest = (new_changes, request_id) => {
   return db
     .prepare("update START_REQUESTS set changes_requested = ? where id = ?")
     .run(new_changes, request_id);
 };
 
-exports.updateDateStartRequest = (new_date, request_id) => {
+exports.setApprovalDateOfRequest = (new_date, request_id) => {
   return db
     .prepare("update START_REQUESTS set approval_date = ? where id = ?")
     .run(new_date, request_id);
@@ -119,7 +119,9 @@ exports.getStatusStartRequest = (id) => {
 };
 
 exports.getSupervisorStartRequest = (id) => {
-  return db.prepare("SELECT supervisor FROM START_REQUESTS WHERE id = ?").get(id);
+  return db
+    .prepare("SELECT supervisor FROM START_REQUESTS WHERE id = ?")
+    .get(id);
 };
 
 exports.getApplicationById = (id) => {
@@ -134,17 +136,20 @@ exports.getApplication = (student_id, proposal_id) => {
     .get(student_id, proposal_id);
 };
 
-exports.getProposalsBySupervisor = (id) => {
-  return db.prepare("select * from PROPOSALS where supervisor = ? and deleted = 0").all(id);
+exports.getProposalsForTeacher = (id, email) => {
+  return db
+    .prepare(
+      "select * from PROPOSALS where (supervisor = ? or co_supervisors like '%' || ? || '%') and deleted = 0",
+    )
+    .all(id, email);
 };
 
+// todo: delete this
 exports.getProposalsByCoSupervisor = (email) => {
   const query = "SELECT * FROM PROPOSALS WHERE co_supervisors LIKE ?";
   const param = `%${email}%`;
   return db.prepare(query).all(param);
 };
-
-
 
 exports.getTeacher = (id) => {
   return db.prepare("select * from TEACHER where id = ?").get(id);
@@ -506,7 +511,7 @@ exports.updateStartRequest = (proposal) => {
     co_supervisors,
     student_id,
     status,
-    changes_requested
+    changes_requested,
   } = proposal;
   return db
     .prepare(
@@ -516,7 +521,7 @@ exports.updateStartRequest = (proposal) => {
       title,
       description,
       supervisor,
-      co_supervisors, 
+      co_supervisors,
       student_id,
       status,
       changes_requested,
@@ -524,21 +529,14 @@ exports.updateStartRequest = (proposal) => {
     );
 };
 
-exports.getRequest = () => {
+exports.getRequests = () => {
   return db.prepare("select * from START_REQUESTS").all();
 };
 
 exports.getRequestById = (id) => {
-  return db
-    .prepare(
-      "SELECT * FROM START_REQUESTS WHERE id=?",
-    )
-    .all(id);
+  return db.prepare("SELECT * FROM START_REQUESTS WHERE id=?").get(id);
 };
 
 /*exports.getRequestForTeacher = () => {
   return db.prepare("select * from START_REQUESTS WHERE status = 'secretary_accepted' OR status = 'rejected' OR status = 'started' OR status = 'changes_requested' OR status = 'changed'").all();
 };*/
-
-
-
