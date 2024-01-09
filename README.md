@@ -75,33 +75,17 @@ Once the docker container is running you can access the application using [local
 
 ## Client Components
 
-### ProposalDetails
-This component serves as an interface for users to view proposal details and take necessary actions related to applications based on their role and the status of existing applications. The component is designed to present comprehensive details of a proposal, including its title, supervisor, co-supervisors, type, keywords, groups, description, expiration date, level, CDS, and additional notes. It also handles actions related to submitting applications for proposals.
+### AccountPopover
 
+This component, when rendered within a UI, would display a Chip containing the user's avatar, name, and role.
+It pulls user information from a UserContext, and provides user details across the application.
 
-### ProposalRow
-This component renders a single row in a table displaying information about a proposal. 
-It encapsulates the rendering logic for a single proposal row in a table, providing options for different actions like editing, archiving, and deleting proposals based on user roles and proposal state.
+### ApplicationDetails
 
-### ProposalTable
-This component is responsible for rendering a table displaying proposals. It accepts various props to manage data rendering and actions related to proposals.
-This functional React component takes in several props that include headers, proposal data, functions to delete or archive a proposal, functions to fetch teacher details, filters, application data, and the current date.
-It dynamically populates the table headers based on the user's role and the provided headers, and it renders each proposal using the `ProposalRow` component while passing necessary data and functions as props.
+This component is responsible for rendering details of a specific application, presenting student information, thesis proposal details, and handling actions such as accepting or rejecting an application (if the user's role is teacher).
 
-### ProposalFilters
-
-This component is responsible for rendering a set of filters within a Material-UI `Drawer`. It provides options to filter proposal data based on various criteria.
-The  drawer content consists of filter fields like types, groups, and date range.
-
-Noteworthy Features:
--   **Autocomplete**: Users can search and select multiple options for types and groups.
--   **DatePicker**: Utilizes the `DatePicker` component to choose date ranges.
--   **Clear Filters Button**: Enables users to reset all filter selections with a single click.
-
-### ProposalForm
-
-It is used for creating or editing proposals. This component is designed to handle the creation and editing of proposals. It includes various input fields, validations, and logic to manage the proposal creation/update process. It also provides clear validation messages and prevents invalid submissions.
-
+If the user that has been signed in is a teacher, he/she can decide about accepting or rejecting an application (by using the buttons "accept" or "reject") on this page.
+If the user is a student, he/she can view the message regarding his/her application. "application pending", "application rejected", "application accepted",  and "application canceled".
 
 ### ApplicationRow
 
@@ -118,12 +102,43 @@ This component renders a table based on the provided data (`applications`) and t
 If the user's role is teacher, the rendered table headers will be "Student", "Proposal", "Status", "Open". 
 On the contrary, if the user's role is student, the rendered table headers will be "Teacher", "Proposal", "Status", "Open"
 
-### ApplicationDetails
+### NotificationRow
 
-This component is responsible for rendering details of a specific application, presenting student information, thesis proposal details, and handling actions such as accepting or rejecting an application (if the user's role is teacher).
+This component is designed to generate individual rows for a table representing notifications or messages.
+It receives a notification object as a prop containing specific information about each notification, such as its ID, object, content, and date.
+For each notification passed into this component, it renders a row with three cells containing the object, content, and formatted date of the notification.
 
-If the user that has been signed in is a teacher, he/she can decide about accepting or rejecting an application (by using the buttons "accept" or "reject") on this page.
-If the user is a student, he/she can view the message regarding his/her application. "application pending", "application rejected", "application accepted",  and "application canceled".
+### NotificationTable
+
+The NotificationTable component is designed to display a table of notifications.
+It takes in an array of notification objects (data prop), each containing details like the notification's ID, object, message, and date.
+For each notification in the data array, it generates a NotificationRow component to represent each notification in a row within the table.
+The table includes headers for "Object", "Message", and "Date" to categorize the content.
+
+### ProposalDetails
+
+This component serves as an interface for users to view proposal details and take necessary actions related to applications based on their role and the status of existing applications. The component is designed to present comprehensive details of a proposal, including its title, supervisor, co-supervisors, type, keywords, groups, description, expiration date, level, CDS, and additional notes. It also handles actions related to submitting applications for proposals.
+
+### ProposalFilters
+
+This component is responsible for rendering a set of filters within a Material-UI `Drawer`. It provides options to filter proposal data based on various criteria.
+The  drawer content consists of filter fields like types, groups, and date range.
+
+### ProposalForm
+
+It is used for creating or editing proposals. This component is designed to handle the creation and editing of proposals. It includes various input fields, validations, and logic to manage the proposal creation/update process. It also provides clear validation messages and prevents invalid submissions.
+
+### ProposalRow
+
+This component renders a single row in a table displaying information about a proposal. 
+It encapsulates the rendering logic for a single proposal row in a table, providing options for different actions like editing, archiving, and deleting proposals based on user roles and proposal state.
+
+### ProposalTable
+
+This component is responsible for rendering a table displaying proposals. It accepts various props to manage data rendering and actions related to proposals.
+This functional React component takes in several props that include headers, proposal data, functions to delete or archive a proposal, functions to fetch teacher details, filters, application data, and the current date.
+It dynamically populates the table headers based on the user's role and the provided headers, and it renders each proposal using the `ProposalRow` component while passing necessary data and functions as props.
+
 
 ### RequestDetails
 
@@ -148,6 +163,17 @@ It focuses on presenting request-related data in a table format with navigationa
 This component's primary purpose is to present a table displaying various details of requests related to thesis submissions, it arranges the information in a structured manner with columns for student details, supervisors, titles, request status, and an option to view the request details.
 The "Status" column includes a tooltip legend for better understanding of the different statuses associated with requests.
 By using the RequestRow component, it iterates through each request object to render rows in the table according to the defined headers.
+
+### StudentCareerRow
+
+StudentCareerRow component generates a row in a table, each row representing a specific course taken by a student.
+It populates the cells of the row with data related to the course, such as the course code, title, grade, credits (CFU - Crediti Formativi Universitari), and the date of the course using the dayjs library for formatting the date.
+
+### StudentCareerTable
+
+This component generates a table displaying a student's academic career, with each row representing a course and each column displaying specific details about that course.
+The table headers define what information is shown in each column (course code, exam name, grade, credits, and date).
+For each course in the career array, the StudentCareerRow component is utilized to create a row in the table, populating it with course-related data.
 
 
 ## API Server
