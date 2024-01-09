@@ -495,31 +495,19 @@ exports.updateProposal = (proposal) => {
     );
 };
 
-exports.updateStartRequest = (proposal) => {
-  const {
-    id,
-    title,
-    description,
-    supervisor,
-    co_supervisors,
-    student_id,
-    status,
-    changes_requested,
-  } = proposal;
+/**
+ * NOTE: Sets also the status of the request to `changed` and the field `changes_requested` to `NULL`
+ * @param id
+ * @param new_fields
+ * @returns {Database.RunResult}
+ */
+exports.updateStartRequest = (id, new_fields) => {
+  const { title, description, supervisor, co_supervisors } = new_fields;
   return db
     .prepare(
-      "UPDATE START_REQUESTS SET title = ?, description = ? ,supervisor = ?, co_supervisors = ?, approval_date = NULL,  student_id = ?, status = ?, changes_requested = ? WHERE id = ?",
+      "UPDATE START_REQUESTS SET title = ?, description = ?, supervisor = ?, co_supervisors = ?, status = 'changed', changes_requested = NULL WHERE id = ?",
     )
-    .run(
-      title,
-      description,
-      supervisor,
-      co_supervisors,
-      student_id,
-      status,
-      changes_requested,
-      id,
-    );
+    .run(title, description, supervisor, co_supervisors, id);
 };
 
 exports.getRequests = () => {

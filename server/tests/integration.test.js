@@ -1593,17 +1593,20 @@ describe("Story 28: the professor evaluates student request", () => {
     await requestChangesForRequest(thesis_request_id);
 
     logIn("s309618@studenti.polito.it");
-    let response = await modifyRequest(thesis_request_id, {
+
+    let modified_request = {
       ...start_request,
       description: "New description",
-    });
+    };
+    delete modified_request["co_supervisors"];
+
+    let response = await modifyRequest(thesis_request_id, modified_request);
     expect(response.status).toBe(200);
 
     logIn("marco.torchiano@teacher.it");
     let requests = (await getRequests()).body;
     expect(requests).toContainEqual({
-      ...start_request,
-      description: "New description",
+      ...modified_request,
       id: thesis_request_id,
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",
@@ -1615,8 +1618,7 @@ describe("Story 28: the professor evaluates student request", () => {
     logIn("s309618@studenti.polito.it");
     requests = (await getRequests()).body;
     expect(requests).toContainEqual({
-      ...start_request,
-      description: "New description",
+      ...modified_request,
       id: thesis_request_id,
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",

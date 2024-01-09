@@ -872,7 +872,8 @@ router.put(
   check("title").isString(),
   check("description").isString(),
   check("supervisor").isString(),
-  check("co_supervisors.*").isEmail(),
+  check("co_supervisors").isArray().optional({ values: "falsy" }),
+  check("co_supervisors.*").isEmail().optional({ values: "falsy" }),
   (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
@@ -886,11 +887,11 @@ router.put(
         });
       }
 
-      const req_id = req.params.thesisRequestId;
+      const { thesisRequestId } = req.params;
 
-      //controllo che esiste
-      const is_req_exist = getRequestById(req_id);
-      if (is_req_exist == undefined || is_req_exist.length === 0) {
+      //controllo che esista
+      const request = getRequestById(thesisRequestId);
+      if (request === undefined) {
         return res.status(404).json({
           message: "The request doesn't exist",
         });
@@ -898,45 +899,27 @@ router.put(
 
       const { title, description, supervisor, co_supervisors } = req.body;
 
-      let status = "changed";
-      let student_id = user.id;
-
-      updateStartRequest({
-        id: req_id,
+      updateStartRequest(thesisRequestId, {
         title: title,
         description: description,
         supervisor: supervisor,
-        co_supervisors: co_supervisors.join(", "),
-        student_id: student_id,
-        status: status,
-        changes_requested: null,
+        co_supervisors: co_supervisors?.join(", "),
       });
 
-      let new_req = {
-        id: parseInt(req_id),
+      let return_req = {
+        id: parseInt(thesisRequestId),
         title: title,
         description: description,
-        supervisor: supervisor,
-        co_supervisors: co_supervisors.join(", "),
-        student_id: student_id,
-        status: status,
-        changes_requested: null,
+        supervisor: getTeacher(supervisor).email,
+        co_supervisors: co_supervisors,
+        student_id: user.id,
+        status: "changed",
       };
 
-      new_req.supervisor = getTeacher(new_req.supervisor).email;
-      if (!new_req.co_supervisors) {
-        delete new_req.co_supervisors;
-      } else {
-        new_req.co_supervisors = new_req.co_supervisors.split(", ");
+      if (!return_req.co_supervisors) {
+        delete return_req.co_supervisors;
       }
-      const { approval_date, changes_requested } = new_req;
-      if (approval_date === null) {
-        delete new_req.approval_date;
-      }
-      if (changes_requested === null) {
-        delete new_req.changes_requested;
-      }
-      return res.status(200).json(new_req);
+      return res.status(200).json(return_req);
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
     }
