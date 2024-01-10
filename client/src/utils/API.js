@@ -204,8 +204,8 @@ const getNotifications = async () => {
 };
 
 /**
- * Update a proposal by sending a PATCH request to the server's proposals endpoint with only fields to change.
- * @param {Object} proposal - An object containing the proposal_id and the fields that need to be updated for the proposal.
+ * Update a proposal by sending a PUT request to the server's proposals endpoint.
+ * @param {Object} proposal - An object containing the proposal to update with all of his fields.
  * @returns {Promise} A promise that resolves to the parsed JSON content of the updated proposal response.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
@@ -326,8 +326,8 @@ const getCareerOfStudent = async (studentId) => {
 };
 
 /**
- * Evaluates a request by sending a PATCH request to the server's thesis requests endpoint with a boolean (true for acceptance, false for rejection).
- * @param {Object} request - An object containing the request ID and a boolean.
+ * Evaluates a request by sending a PATCH request to the server's thesis requests endpoint with the decision and a optional message.
+ * @param {Object} request - An object containing the request ID, the decision on it and an optional message in case of request of changes.
  * @returns {Promise} A promise that resolves to the parsed JSON content of the correct evaluation message.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
  */
@@ -339,7 +339,7 @@ const evaluateRequest = async (request) => {
         "Content-Type": "application/json"
       },
       credentials: "include",
-      body: JSON.stringify({ approved: request.decision })
+      body: JSON.stringify(request)
     })
   );
 };
@@ -354,6 +354,25 @@ const createRequest = async (request) => {
   return getJson(
     fetch(SERVER_URL + "/start-requests", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify(request)
+    })
+  );
+};
+
+/**
+ * Update a request by sending a PUT request to the server's requests endpoint.
+ * @param {Object} request - An object containing the request to update with all of his fields.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the updated request response.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
+const updateRequest = async (request) => {
+  return getJson(
+    fetch(SERVER_URL + "/start-requests/" + request.id, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json"
       },
@@ -384,7 +403,8 @@ const API = {
   deleteProposal,
   getCareerOfStudent,
   getRequests,
-  evaluateRequest
+  evaluateRequest,
+  updateRequest,
 };
 
 export default API;

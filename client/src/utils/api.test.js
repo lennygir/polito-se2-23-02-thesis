@@ -349,14 +349,15 @@ test("getRequests - should return correct data", async () => {
   expect(result).toEqual(mockApiResponse);
 });
 
-test("evaluateApplication - should return correct update message", async () => {
+test("evaluateRequest - should return correct update message", async () => {
   fetch.mockResolvedValue({
     ok: true,
     json: () => Promise.resolve({ message: "correct evaluation" })
   });
   const request = {
     id: 4,
-    approved: true
+    decision: "",
+    message:""
   };
   const result = await API.evaluateRequest(request);
   expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/start-requests/${request.id}`, {
@@ -364,7 +365,7 @@ test("evaluateApplication - should return correct update message", async () => {
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ approved: request.state }),
+    body: JSON.stringify(request),
     credentials: "include"
   });
 
@@ -543,4 +544,22 @@ test("getCareerOfStudent - should return correct data", async () => {
     credentials: "include"
   });
   expect(result).toEqual(mockApiResponse);
+});
+
+it("updateRequest - should update the request successfully and return the request", async () => {
+  const requestToUpdate = { id: 12345, title: "Updated Title", description: "Updated Description" };
+  fetch.mockResolvedValueOnce({
+    ok: true,
+    json: jest.fn().mockResolvedValueOnce(requestToUpdate)
+  });
+  const result = await API.updateRequest(requestToUpdate);
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/start-requests/${requestToUpdate.id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(requestToUpdate),
+    credentials: "include"
+  });
+  expect(result).toEqual(requestToUpdate);
 });
