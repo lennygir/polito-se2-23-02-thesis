@@ -1,5 +1,44 @@
 # Theses Management System
 
+## Contents 
+- [Project Description](#project-description)
+- [Use Case Diagram](#use-case-diagram)
+- [Run in Production](#run-in-production)
+   - [Prerequisites](#prerequisites)
+   - [Run](#run)
+     - [Using Scripts](#using-scripts)
+     - [Using docker commands](#using-docker-commands)
+- [React Client Application Routes](#react-client-application-routes)
+- [Client Components](#client-components)
+   - [AccountPopover](#accountpopover)
+   - [ApplicationDetails](#applicationdetails)
+   - [ApplicationRow](#applicationrow)
+   - [ApplicationTable](#applicationtable)
+   - [NotificationRow](#notificationrow)
+   - [NotificationTable](#notificationtable)
+   - [ProposalDetails](#proposaldetails)
+   - [ProposalFilters](#proposalfilters)
+   - [ProposalForm](#proposalform)
+   - [ProposalRow](#proposalrow)
+   - [ProposalTable](#proposaltable)
+   - [RequestDetails](#requestdetails)
+   - [RequestForm](#requestform)
+   - [RequestRow](#requestrow)
+   - [RequestTable](#requesttable)
+   - [StudentCareerRow](#studentcareerrow)
+   - [StudentCareerTable](#studentcareertable)
+- [API Server](#api-server)
+- [Users](#users)
+   - [Users Credentials](#users-credentials)
+
+
+## Project Description
+Thesis Management is a specialized web platform created exclusively for the Polytechnic University of Turin to effectively oversee thesis-related processes. Within this application, students have the capability to explore available theses and submit their applications. Additionally, professors can contribute thesis proposals and review and decide on student applications. As of now, the system encompasses three primary user roles: professors, students, and secretary clerks. Each user is empowered to undertake various tasks aligned with their specific roles and permissions.
+
+## Use Case Diagram
+<img width="559" alt="Screenshot 2024-01-10 at 2 33 12 PM" src="https://github.com/lennygir/polito-se2-23-02-thesis/assets/97409881/408c2fe6-b7f7-4757-b9aa-3fbbedcb9c43">
+
+
 ## Run in production
 
 ### Prerequisites
@@ -760,14 +799,18 @@ For each course in the career array, the StudentCareerRow component is utilized 
 
 ## Users
 
+Currently, the implemented user roles are:
+- Professor
+- Secretary
+- Student
 
 
 ### Users Credentials
 | Role | Name |Email | Password |
 |----------|----------|----------|----------|
-| Teacher  |Marco Torchiano| marco.torchiano@teacher.it  | s123456  |
-| Teacher  |Luigi De Russis| luigi.derussis@teacher.it  | s345678  |
-| Teacher  |Maurizio Morisio| maurizio.morisio@teacher.it  | s234567  |
+| Professor  |Marco Torchiano| marco.torchiano@teacher.it  | s123456  |
+| Professor  |Luigi De Russis| luigi.derussis@teacher.it  | s345678  |
+| professor  |Maurizio Morisio| maurizio.morisio@teacher.it  | s234567  |
 | Secretary  |Laura Ferrari| laura.ferrari@example.com  | d123456  |
 | Student  |Lorenzo Bertetto| s309618@studenti.polito.it  | s309618  |
 | Student  |Carlos Valeriano| s308747@studenti.polito.it  | s308747  |
