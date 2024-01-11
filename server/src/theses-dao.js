@@ -6,6 +6,7 @@ const { db } = require("./db");
 const { nodemailer } = require("./smtp");
 const { applicationDecisionTemplate } = require("./mail/application-decision");
 const { newApplicationTemplate } = require("./mail/new-application");
+const { supervisorStartRequestTemplate } = require("./mail/supervisor-start-request");
 
 exports.insertApplication = (proposal, student, state) => {
   const result = db
@@ -96,14 +97,32 @@ exports.getNotRejectedStartRequest = (userId) => {
     .all(userId);
 };
 
-exports.updateStatusStartRequest = (new_status, request_id) => {
+exports.updateStatusOfStartRequest = (new_status, request_id) => {
   return db
     .prepare("update START_REQUESTS set status = ? where id = ?")
     .run(new_status, request_id);
 };
 
+exports.setChangesRequestedOfStartRequest = (new_changes, request_id) => {
+  return db
+    .prepare("update START_REQUESTS set changes_requested = ? where id = ?")
+    .run(new_changes, request_id);
+};
+
+exports.setApprovalDateOfRequest = (new_date, request_id) => {
+  return db
+    .prepare("update START_REQUESTS set approval_date = ? where id = ?")
+    .run(new_date, request_id);
+};
+
 exports.getStatusStartRequest = (id) => {
   return db.prepare("SELECT status FROM START_REQUESTS WHERE id = ?").get(id);
+};
+
+exports.getSupervisorStartRequest = (id) => {
+  return db
+    .prepare("SELECT supervisor FROM START_REQUESTS WHERE id = ?")
+    .get(id);
 };
 
 exports.getApplicationById = (id) => {
@@ -118,8 +137,12 @@ exports.getApplication = (student_id, proposal_id) => {
     .get(student_id, proposal_id);
 };
 
-exports.getProposalsBySupervisor = (id) => {
-  return db.prepare("select * from PROPOSALS where supervisor = ? and deleted = 0").all(id);
+exports.getProposalsForTeacher = (id, email) => {
+  return db
+    .prepare(
+      "select * from PROPOSALS where (supervisor = ? or co_supervisors like '%' || ? || '%') and deleted = 0",
+    )
+    .all(id, email);
 };
 
 exports.getTeacher = (id) => {
@@ -277,6 +300,37 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
     "New decision on your thesis application",
     mailBody.text,
   );
+};
+
+exports.notifyNewStartRequest = async (requestId) => {
+  // Send email to the supervisor
+  const requestJoined = db
+    .prepare(
+      `SELECT S.student_id, S.supervisor, T.name, T.surname
+      FROM START_REQUESTS S
+      JOIN TEACHER T ON T.id = S.supervisor
+      WHERE S.id = ?`,
+    ).get(requestId);
+  console.log(requestJoined);
+  const mailBody = supervisorStartRequestTemplate({
+    name: requestJoined.surname + " " + requestJoined.name,
+    student: requestJoined.student_id,
+  });
+  try {
+    await nodemailer.sendMail({
+      to: requestJoined.email,
+      subject: "New start request",
+      text: mailBody.text,
+      html: mailBody.html,
+    });
+  } catch (e) {
+    console.log("[mail service]", e);
+  }
+
+  // Save email in DB
+  db.prepare(
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+  ).run(requestJoined.supervisor, "New start request", mailBody.text);
 };
 
 exports.notifyNewApplication = async (proposalId) => {
@@ -473,6 +527,43 @@ exports.updateProposal = (proposal) => {
     );
 };
 
-exports.getRequestForClerk = () => {
+/**
+ * NOTE: Sets also the status of the request to `changed` and the field `changes_requested` to `NULL`
+ * @param id
+ * @param new_fields
+ * @returns {Database.RunResult}
+ */
+exports.updateStartRequest = (id, new_fields) => {
+  const { title, description, supervisor, co_supervisors } = new_fields;
+  return db
+    .prepare(
+      "UPDATE START_REQUESTS SET title = ?, description = ?, supervisor = ?, co_supervisors = ?, status = 'changed', changes_requested = NULL WHERE id = ?",
+    )
+    .run(title, description, supervisor, co_supervisors, id);
+};
+
+exports.getRequests = () => {
   return db.prepare("select * from START_REQUESTS").all();
+};
+
+exports.getRequestById = (id) => {
+  return db.prepare("SELECT * FROM START_REQUESTS WHERE id=?").get(id);
+};
+
+exports.getRequestsForTeacher = (id, email) => {
+  return db
+    .prepare(
+      "select * from START_REQUESTS where supervisor = ? or co_supervisors LIKE '%' || ? || '%'",
+    )
+    .all(id, email);
+};
+
+exports.getRequestsForClerk = () => {
+  return db.prepare("select * from main.START_REQUESTS").all();
+};
+
+exports.getRequestsForStudent = (id) => {
+  return db
+    .prepare("select * from main.START_REQUESTS where student_id = ?")
+    .all(id);
 };

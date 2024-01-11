@@ -11,18 +11,20 @@ const {
   getGroups,
   getDegrees,
   insertProposal,
-  getProposalsBySupervisor,
   getProposalsByDegree,
+  getProposalsForTeacher,
   updateApplication,
   getProposal,
   insertApplication,
   insertStartRequest,
-  updateStatusStartRequest,
-  getStatusStartRequest,
+  updateStatusOfStartRequest,
+  setChangesRequestedOfStartRequest,
+  setApprovalDateOfRequest,
   getApplicationsOfTeacher,
   getApplicationsOfStudent,
   deleteProposal,
   updateProposal,
+  updateStartRequest,
   getApplicationById,
   getTeacherByEmail,
   cancelPendingApplications,
@@ -37,10 +39,14 @@ const {
   insertPDFInApplication,
   updateArchivedStateProposal,
   getNotRejectedStartRequest,
-  getRequestForClerk,
+  getRequestById,
   getTeacher,
   getAcceptedApplicationsOfStudent,
   getPendingApplicationsOfStudent,
+  notifyNewStartRequest,
+  getRequestsForTeacher,
+  getRequestsForClerk,
+  getRequestsForStudent,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 
@@ -262,6 +268,7 @@ router.post(
       newStartRequest.approvalDate = null;
       newStartRequest.studentId = user.id;
       const startRequest = insertStartRequest(newStartRequest);
+      notifyNewStartRequest(startRequest);
       return res.status(200).json(startRequest);
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
@@ -269,49 +276,98 @@ router.post(
   },
 );
 
-router.patch(
-  "/api/start-requests/:thesisRequestId",
-  isLoggedIn,
-  check("approved").isBoolean(),
-  (req, res) => {
-    try {
-      if (!validationResult(req).isEmpty()) {
-        return res.status(400).json({ message: "Invalid content" });
-      }
-      const user = getUser(req.user);
-      if (
-        !user ||
-        (user.role !== "secretary_clerk" && user.role !== "teacher")
-      ) {
-        return res.status(401).json({
-          message: "Only a teacher or a secretary can approve a thesis request",
-        });
-      }
+function check_errors(start_request, user, old_status) {
+  if (user.id !== start_request.supervisor) {
+    throw new Error("You are not the supervisor of this thesis request");
+  }
 
-      const approved = req.body.approved;
-      const req_id = req.params.thesisRequestId;
-      let new_status;
-      const old_status = getStatusStartRequest(req_id);
-      if (user.role === "secretary_clerk") {
-        if (old_status.status !== "requested") {
-          return res.status(401).json({
-            message: "The request has been already approved / rejected",
-          });
-        }
-        if (approved === true) {
-          new_status = "secretary_accepted";
-        } else {
-          new_status = "rejected";
-        }
-        updateStatusStartRequest(new_status, req_id);
-      }
+  if (old_status === "changes_requested") {
+    throw new Error(
+      "The thesis request is still waiting to be changed by the student",
+    );
+  }
 
-      return res.status(200).json({ message: "Request updated successfully" });
-    } catch (e) {
-      return res.status(500).json({ message: "Internal server error" });
+  if (old_status === "requested") {
+    throw new Error("The request has not been evaluated by the secretary yet.");
+  }
+
+  if (old_status === "rejected" || old_status === "started") {
+    throw new Error("The request has been already approved / rejected");
+  }
+}
+
+function determineNewStatus(start_request, user, decision) {
+  const old_status = start_request.status;
+  let new_status;
+
+  if (user.role === "secretary_clerk") {
+    if (old_status !== "requested") {
+      throw new Error("The request has been already approved / rejected");
     }
-  },
-);
+    if (decision === "approved") {
+      new_status = "secretary_accepted";
+    } else if (decision === "rejected") {
+      new_status = "rejected";
+    } else {
+      throw new Error(
+        "The secretary clerk has not the permission to perform this operation",
+      );
+    }
+  } else if (user.role === "teacher") {
+    check_errors(start_request, user, old_status);
+
+    if (decision === "approved") {
+      new_status = "started";
+    } else if (decision === "rejected") {
+      new_status = "rejected";
+    } else if (decision === "changes_requested") {
+      new_status = "changes_requested";
+    }
+  }
+  return new_status;
+}
+
+router.patch("/api/start-requests/:thesisRequestId", isLoggedIn, (req, res) => {
+  try {
+    if (!validationResult(req).isEmpty()) {
+      return res.status(400).json({ message: "Invalid content" });
+    }
+
+    const user = getUser(req.user);
+    if (!user || (user.role !== "secretary_clerk" && user.role !== "teacher")) {
+      return res.status(401).json({
+        message: "Only a teacher or a secretary can approve a thesis request",
+      });
+    }
+    const { decision, message } = req.body;
+    const { thesisRequestId } = req.params;
+    const request = getRequestById(thesisRequestId);
+
+    if (request === undefined) {
+      return res.status(404).json({
+        message: "The request doesn't exist",
+      });
+    }
+
+    let new_status;
+    try {
+      new_status = determineNewStatus(request, user, decision);
+    } catch (error) {
+      return res.status(401).json({ message: error.message });
+    }
+
+    if (new_status === "started") {
+      setApprovalDateOfRequest(getDate(), request.id);
+    } else if (new_status === "changes_requested") {
+      setChangesRequestedOfStartRequest(message, request.id);
+    }
+
+    updateStatusOfStartRequest(new_status, thesisRequestId);
+    return res.status(200).json({ message: "Request updated successfully" });
+  } catch (e) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
 // endpoint to get all teachers {id, surname, name, email}
 router.get("/api/teachers", isLoggedIn, (req, res) => {
   try {
@@ -356,10 +412,11 @@ router.get(
       if (user.role === "student") {
         proposals = getProposalsByDegree(user.cod_degree);
       } else if (user.role === "teacher") {
-        proposals = getProposalsBySupervisor(user.id);
+        proposals = getProposalsForTeacher(user.id, user.email);
       } else {
         return res.status(500).json({ message: "Internal server error" });
       }
+
       proposals.map((proposal) => {
         proposal.archived = isArchived(proposal);
         delete proposal.manually_archived;
@@ -781,10 +838,11 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
     }
     let requests;
     if (user.role === "secretary_clerk") {
-      requests = getRequestForClerk();
+      requests = getRequestsForClerk();
     } else if (user.role === "teacher") {
-      // requests = getRequestForTeacher();
+      requests = getRequestsForTeacher(user.id, user.email);
     } else if (user.role === "student") {
+      requests = getRequestsForStudent(user.id);
     } else {
       return res.status(500).json({ message: "Internal server error" });
     }
@@ -795,9 +853,12 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
       } else {
         request.co_supervisors = request.co_supervisors.split(", ");
       }
-      const { approval_date } = request;
+      const { approval_date, changes_requested } = request;
       if (approval_date === null) {
         delete request["approval_date"];
+      }
+      if (changes_requested === null) {
+        delete request["changes_requested"];
       }
       return request;
     });
@@ -806,6 +867,66 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
+router.put(
+  "/api/start-requests/:thesisRequestId",
+  isLoggedIn,
+  check("title").isString(),
+  check("description").isString(),
+  check("supervisor").isString(),
+  check("co_supervisors").isArray().optional({ values: "falsy" }),
+  check("co_supervisors.*").isEmail().optional({ values: "falsy" }),
+  (req, res) => {
+    try {
+      if (!validationResult(req).isEmpty()) {
+        return res.status(400).json({ message: "Invalid content" });
+      }
+
+      const user = getUser(req.user);
+      if (!user || user.role !== "student") {
+        return res.status(401).json({
+          message: "Only a student can change a thesis request",
+        });
+      }
+
+      const { thesisRequestId } = req.params;
+
+      //controllo che esista
+      const request = getRequestById(thesisRequestId);
+      if (request === undefined) {
+        return res.status(404).json({
+          message: "The request doesn't exist",
+        });
+      }
+
+      const { title, description, supervisor, co_supervisors } = req.body;
+
+      updateStartRequest(thesisRequestId, {
+        title: title,
+        description: description,
+        supervisor: supervisor,
+        co_supervisors: co_supervisors?.join(", "),
+      });
+
+      let return_req = {
+        id: parseInt(thesisRequestId),
+        title: title,
+        description: description,
+        supervisor: getTeacher(supervisor).email,
+        co_supervisors: co_supervisors,
+        student_id: user.id,
+        status: "changed",
+      };
+
+      if (!return_req.co_supervisors) {
+        delete return_req.co_supervisors;
+      }
+      return res.status(200).json(return_req);
+    } catch (e) {
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
 
 // ==================================================
 // Handle 404 not found - DO NOT ADD ENDPOINTS AFTER THIS

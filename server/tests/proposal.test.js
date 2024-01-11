@@ -24,9 +24,9 @@ const {
   getApplicationsOfStudent,
   getExamsOfStudent,
   getNotRejectedStartRequest,
-  getRequestForClerk,
   getPendingApplicationsOfStudent,
   getAcceptedApplicationsOfStudent,
+  getRequestsForClerk,
 } = require("../src/theses-dao");
 
 const dayjs = require("dayjs");
@@ -919,7 +919,7 @@ describe("GET /api/start-requests", () => {
         status: "requested",
       },
     ];
-    getRequestForClerk.mockReturnValue(expectedRequests);
+    getRequestsForClerk.mockReturnValue(expectedRequests);
     const requests = (
       await request(app)
         .get("/api/start-requests")
@@ -935,7 +935,7 @@ describe("GET /api/start-requests", () => {
       };
       next();
     });
-    getRequestForClerk.mockReturnValue([]);
+    getRequestsForClerk.mockReturnValue([]);
     await request(app)
       .get("/api/start-requests")
       .set("Content-Type", "application/json")
