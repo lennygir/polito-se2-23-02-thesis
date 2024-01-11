@@ -49,11 +49,8 @@ function RequestDetails(props) {
 
   const handleDecisionSubmit = () => {
     setOpenDialog(false);
-    if (decision === "approved") {
-      request.decision = true;
-    } else if (decision === "rejected") {
-      request.decision = false;
-    }
+    request.decision = decision;
+    request.message = null;
     evaluateRequest(request);
   };
 
@@ -90,7 +87,7 @@ function RequestDetails(props) {
                 fullWidth
                 sx={{ mt: 3, mb: 2 }}
                 onClick={() => {
-                  setDecision("started");
+                  setDecision("approved");
                   handleOpenDialog();
                 }}
               >

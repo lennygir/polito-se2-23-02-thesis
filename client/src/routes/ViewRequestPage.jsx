@@ -27,14 +27,18 @@ function ViewRequestPage(props) {
 
   const request = location.state?.request;
 
-  const evaluateRequest = (request) => {
-    API.evaluateRequest(request)
+  const evaluateRequest = (req) => {
+    API.evaluateRequest(req)
       .then(() => {
         setAlert({
-          message: "Request evaluated successfully",
+          message:
+            req.decision === "changes_requested" ? "Changes requested successfully" : "Request evaluated successfully",
           severity: "success"
         });
         fetchRequests();
+        // if (req.decision === "changes_requested") {
+        //   request = requests.find(req)
+        // }
       })
       .catch((err) => handleErrors(err));
   };
@@ -44,16 +48,17 @@ function ViewRequestPage(props) {
     setChangesError("");
   };
 
-  const handleSubmit = () => {
+  const handleSubmitChangeRequest = () => {
     if (changesMessage.trim() === "") {
       setChangesError("Message cannot be empty");
       return;
     }
+    request.decision = "changes_requested";
+    request.message = changesMessage;
+
+    // evaluateRequest(request);
+    // request.status = "changes_requested";
     handleCloseDialog();
-
-    // TODO: Call API to submit message
-    console.log(changesMessage);
-
     setChangesMessage("");
   };
 
@@ -66,7 +71,7 @@ function ViewRequestPage(props) {
         setChangesError={setChangesError}
         open={openChangesDialog}
         handleClose={handleCloseDialog}
-        handleSubmit={handleSubmit}
+        handleSubmit={handleSubmitChangeRequest}
       />
       <Stack
         paddingTop={4}
@@ -84,21 +89,23 @@ function ViewRequestPage(props) {
         >
           Back
         </Button>
-        {user.role === "teacher" && request.status === "secretary_accepted" && (
-          <Button
-            variant="contained"
-            startIcon={<EditIcon />}
-            sx={{ mr: { md: 4, xs: 0 } }}
-            onClick={() => setOpenChangesDialog(true)}
-          >
-            Request changes
-          </Button>
-        )}
+        {user.role === "teacher" &&
+          (request.status === "secretary_accepted" || request.status === "changes_requested") && (
+            <Button
+              disabled={request.status === "changes_requested"}
+              variant="contained"
+              startIcon={<EditIcon />}
+              sx={{ mr: { md: 4, xs: 0 } }}
+              onClick={() => setOpenChangesDialog(true)}
+            >
+              Request changes
+            </Button>
+          )}
       </Stack>
       <Typography variant="h4" sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}>
         Request Details
       </Typography>
-      {changesMessage !== "" && (
+      {request.status === "changes_requested" && (
         <Paper elevation={1} sx={{ mb: 3, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
           <Stack
             paddingX={5}
@@ -110,7 +117,7 @@ function ViewRequestPage(props) {
           >
             <Typography variant="body1">
               <span style={{ fontWeight: "bold" }}>Changes requested: </span>
-              {changesMessage}
+              {request.message}
             </Typography>
             <Chip label="WAITING FOR CHANGES" size="small" color="info" />
           </Stack>
