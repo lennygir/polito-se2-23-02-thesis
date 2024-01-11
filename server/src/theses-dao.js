@@ -6,7 +6,9 @@ const { db } = require("./db");
 const { nodemailer } = require("./smtp");
 const { applicationDecisionTemplate } = require("./mail/application-decision");
 const { newApplicationTemplate } = require("./mail/new-application");
-const { supervisorStartRequestTemplate } = require("./mail/supervisor-start-request");
+const {
+  supervisorStartRequestTemplate,
+} = require("./mail/supervisor-start-request");
 
 exports.insertApplication = (proposal, student, state) => {
   const result = db
@@ -92,7 +94,7 @@ exports.insertStartRequest = (startRequest) => {
 exports.getNotRejectedStartRequest = (userId) => {
   return db
     .prepare(
-      "SELECT * FROM START_REQUESTS WHERE student_id = ? AND status != 'rejected'",
+      "SELECT * FROM START_REQUESTS WHERE student_id = ? AND status != 'secretary_rejected' and status != 'teacher_rejected'",
     )
     .all(userId);
 };
@@ -310,7 +312,8 @@ exports.notifyNewStartRequest = async (requestId) => {
       FROM START_REQUESTS S
       JOIN TEACHER T ON T.id = S.supervisor
       WHERE S.id = ?`,
-    ).get(requestId);
+    )
+    .get(requestId);
   console.log(requestJoined);
   const mailBody = supervisorStartRequestTemplate({
     name: requestJoined.surname + " " + requestJoined.name,
@@ -553,7 +556,10 @@ exports.getRequestById = (id) => {
 exports.getRequestsForTeacher = (id, email) => {
   return db
     .prepare(
-      "select * from START_REQUESTS where supervisor = ? or co_supervisors LIKE '%' || ? || '%'",
+      `select * from START_REQUESTS 
+      where (supervisor = ? or co_supervisors LIKE '%' || ? || '%') 
+        and status != 'secretary_rejected' 
+        and status != 'requested'`,
     )
     .all(id, email);
 };

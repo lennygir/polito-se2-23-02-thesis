@@ -62,6 +62,65 @@ function isArchived(proposal) {
   );
 }
 
+function check_errors(start_request, user, old_status) {
+  if (user.id !== start_request.supervisor) {
+    throw new Error("You are not the supervisor of this thesis request");
+  }
+
+  if (old_status === "changes_requested") {
+    throw new Error(
+      "The thesis request is still waiting to be changed by the student",
+    );
+  }
+
+  if (old_status === "requested") {
+    throw new Error("The request has not been evaluated by the secretary yet.");
+  }
+
+  if (
+    old_status === "teacher_rejected" ||
+    old_status === "secretary_rejected" ||
+    old_status === "started"
+  ) {
+    throw new Error("The request has been already approved / rejected");
+  }
+}
+
+function determineNewStatus(start_request, user, decision) {
+  const old_status = start_request.status;
+  let new_status;
+
+  if (user.role === "secretary_clerk") {
+    if (old_status !== "requested") {
+      throw new Error("The request has been already approved / rejected");
+    }
+    if (decision === "approved") {
+      new_status = "secretary_accepted";
+    } else if (decision === "rejected") {
+      new_status = "secretary_rejected";
+    } else {
+      throw new Error(
+        "The secretary clerk has not the permission to perform this operation",
+      );
+    }
+  } else if (user.role === "teacher") {
+    check_errors(start_request, user, old_status);
+
+    if (decision === "approved") {
+      new_status = "started";
+    } else if (decision === "rejected") {
+      new_status = "teacher_rejected";
+    } else if (decision === "changes_requested") {
+      new_status = "changes_requested";
+    } else {
+      throw new Error(
+        "The teacher has not the permission to perform this operation",
+      );
+    }
+  }
+  return new_status;
+}
+
 function validateProposal(res, proposal, user) {
   const { co_supervisors, groups, level } = proposal;
   for (const group of groups) {
@@ -233,7 +292,7 @@ router.post(
   check("co_supervisors.*").isEmail(),
   check("description").isString(),
   check("supervisor").isString(),
-  (req, res) => {
+  async (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
         return res
@@ -268,64 +327,13 @@ router.post(
       newStartRequest.approvalDate = null;
       newStartRequest.studentId = user.id;
       const startRequest = insertStartRequest(newStartRequest);
-      notifyNewStartRequest(startRequest);
+      await notifyNewStartRequest(startRequest);
       return res.status(200).json(startRequest);
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
     }
   },
 );
-
-function check_errors(start_request, user, old_status) {
-  if (user.id !== start_request.supervisor) {
-    throw new Error("You are not the supervisor of this thesis request");
-  }
-
-  if (old_status === "changes_requested") {
-    throw new Error(
-      "The thesis request is still waiting to be changed by the student",
-    );
-  }
-
-  if (old_status === "requested") {
-    throw new Error("The request has not been evaluated by the secretary yet.");
-  }
-
-  if (old_status === "rejected" || old_status === "started") {
-    throw new Error("The request has been already approved / rejected");
-  }
-}
-
-function determineNewStatus(start_request, user, decision) {
-  const old_status = start_request.status;
-  let new_status;
-
-  if (user.role === "secretary_clerk") {
-    if (old_status !== "requested") {
-      throw new Error("The request has been already approved / rejected");
-    }
-    if (decision === "approved") {
-      new_status = "secretary_accepted";
-    } else if (decision === "rejected") {
-      new_status = "rejected";
-    } else {
-      throw new Error(
-        "The secretary clerk has not the permission to perform this operation",
-      );
-    }
-  } else if (user.role === "teacher") {
-    check_errors(start_request, user, old_status);
-
-    if (decision === "approved") {
-      new_status = "started";
-    } else if (decision === "rejected") {
-      new_status = "rejected";
-    } else if (decision === "changes_requested") {
-      new_status = "changes_requested";
-    }
-  }
-  return new_status;
-}
 
 router.patch("/api/start-requests/:thesisRequestId", isLoggedIn, (req, res) => {
   try {
@@ -336,7 +344,7 @@ router.patch("/api/start-requests/:thesisRequestId", isLoggedIn, (req, res) => {
     const user = getUser(req.user);
     if (!user || (user.role !== "secretary_clerk" && user.role !== "teacher")) {
       return res.status(401).json({
-        message: "Only a teacher or a secretary can approve a thesis request",
+        message: "Only a teacher or a secretary can evaluate a thesis request",
       });
     }
     const { decision, message } = req.body;
@@ -368,7 +376,8 @@ router.patch("/api/start-requests/:thesisRequestId", isLoggedIn, (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-// endpoint to get all teachers {id, surname, name, email}
+
+// endpoint to get all the teachers {id, surname, name, email}
 router.get("/api/teachers", isLoggedIn, (req, res) => {
   try {
     return res.status(200).json(getTeachers());
@@ -377,7 +386,7 @@ router.get("/api/teachers", isLoggedIn, (req, res) => {
   }
 });
 
-// endpoint to get all groups {cod_group}
+// endpoint to get all the groups {cod_group}
 router.get("/api/groups", isLoggedIn, (req, res) => {
   try {
     return res.status(200).json(getGroups());
@@ -386,7 +395,7 @@ router.get("/api/groups", isLoggedIn, (req, res) => {
   }
 });
 
-// endpoint to get all degrees {cod_degree, title_degree}
+// endpoint to get all the degrees {cod_degree, title_degree}
 router.get("/api/degrees", isLoggedIn, (req, res) => {
   try {
     return res.status(200).json(getDegrees());
@@ -853,12 +862,15 @@ router.get("/api/start-requests", isLoggedIn, async (req, res) => {
       } else {
         request.co_supervisors = request.co_supervisors.split(", ");
       }
-      const { approval_date, changes_requested } = request;
+      const { approval_date, changes_requested, status } = request;
       if (approval_date === null) {
         delete request["approval_date"];
       }
       if (changes_requested === null) {
         delete request["changes_requested"];
+      }
+      if (status.endsWith("rejected")) {
+        request.status = "rejected";
       }
       return request;
     });
