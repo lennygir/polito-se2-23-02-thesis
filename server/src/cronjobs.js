@@ -11,7 +11,7 @@ const initCronjobs = () => {
     cronjobs[cronjobNames.THESIS_EXPIRED] = new CronJob("0 0 * * *" , () => {
         const proposals = getProposalsThatExpireInXDays(7);
         if(proposals) {
-            proposals.forEach(async (proposal) => {
+            proposals.forEach((proposal) => {
                 notifyProposalExpiration(proposal);
             });
         }
