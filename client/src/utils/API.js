@@ -339,7 +339,7 @@ const evaluateRequest = async (request) => {
         "Content-Type": "application/json"
       },
       credentials: "include",
-      body: JSON.stringify({ approved: request.decision })
+      body: JSON.stringify({ decision: request.decision, message: request.message })
     })
   );
 };
