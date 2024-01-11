@@ -10,9 +10,11 @@ const cronjobs = {};
 const initCronjobs = () => {
     cronjobs[cronjobNames.THESIS_EXPIRED] = new CronJob("0 0 * * *" , () => {
         const proposals = getProposalsThatExpireInXDays(7);
-        proposals.forEach(async (proposal) => {
-            notifyProposalExpiration(proposal);
-        });
+        if(proposals) {
+            proposals.forEach(async (proposal) => {
+                notifyProposalExpiration(proposal);
+            });
+        }
     }, undefined, true, "Europe/Rome", undefined, true);
 };
 
