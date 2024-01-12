@@ -24,6 +24,8 @@ function RequestRow(props) {
         return <Chip label="REJECTED" size="small" color="error" />;
       case "started":
         return <Chip label="STARTED" size="small" color="success" />;
+      case "changes_requested":
+        return <Chip label="CHANGES" size="small" color="warning" />;
       default:
         break;
     }

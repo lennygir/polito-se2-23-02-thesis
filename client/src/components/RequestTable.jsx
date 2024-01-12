@@ -20,10 +20,11 @@ const HEADERS = ["Student", "Supervisor", "Title", "Status", "Open"];
 const LEGEND_SECRETARY = `• REQUESTED: the request has been issued by a student
                           • APPROVED: the request has been approved by a secretary clerk
                           • STARTED: the request has been accepted by a teacher
-                          • REJECTED: the request has been rejected by a secretary clerk or a teacher`;
+                          • REJECTED: the request has been rejected by a secretary clerk or a teacher
+                          • CHANGES: the request has pending changes requested by a teacher`;
 
 const LEGEND_TEACHER = `• PENDING: the request is waiting for a teacher evaluation
-                        • CHANGES REQUESTED: the request is waiting for student changes
+                        • CHANGES: the request is waiting for student changes
                         • STARTED: the request has been accepted by a teacher
                         • REJECTED: the request has been rejected by a secretary clerk or a teacher`;
 
