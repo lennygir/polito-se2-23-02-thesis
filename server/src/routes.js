@@ -327,7 +327,7 @@ router.post(
       newStartRequest.approvalDate = null;
       newStartRequest.studentId = user.id;
       const startRequest = insertStartRequest(newStartRequest);
-      await notifyNewStartRequest(startRequest);
+      notifyNewStartRequest(startRequest);
       return res.status(200).json(startRequest);
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
