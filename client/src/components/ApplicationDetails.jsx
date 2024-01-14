@@ -177,8 +177,10 @@ function ApplicationDetails(props) {
     <>
       {user?.role === "teacher" && (
         <ConfirmationDialog
-          mode="submit"
+          title="Confirm Decision"
           message={dialogMessage}
+          primaryButtonLabel="Submit"
+          secondaryButtonLabel="Cancel"
           open={openDialog}
           handleClose={handleCloseDialog}
           handleSubmit={handleDecisionSubmit}

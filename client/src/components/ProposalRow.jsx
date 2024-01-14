@@ -101,7 +101,10 @@ function ProposalRow(props) {
   return (
     <>
       <ConfirmationDialog
+        title="Confirm Action"
         message={dialogMessage}
+        primaryButtonLabel="Yes"
+        secondaryButtonLabel="No"
         open={openDialog}
         handleClose={handleCloseDialog}
         handleSubmit={handleSubmit}
@@ -110,7 +113,7 @@ function ProposalRow(props) {
         {user.role === "student" && teacher && <TableCell>{`${teacher.name.charAt(0)}. ${teacher.surname}`}</TableCell>}
         <TableCell
           sx={{
-            maxWidth: "500px",
+            maxWidth: "30vw",
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis"
