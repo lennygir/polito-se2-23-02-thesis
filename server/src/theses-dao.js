@@ -493,6 +493,18 @@ exports.setDelta = (delta) => {
     .run(delta);
 };
 
+exports.isAccepted = (proposal_id, student_id) => {
+  const accepted_proposal = db
+    .prepare(
+      `select * from main.APPLICATIONS 
+      where APPLICATIONS.proposal_id = ?
+        and APPLICATIONS.student_id = ?
+        and APPLICATIONS.state = 'accepted'`,
+    )
+    .get(proposal_id, student_id);
+  return accepted_proposal !== undefined;
+};
+
 exports.updateProposal = (proposal) => {
   const {
     proposal_id,
