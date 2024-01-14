@@ -1404,10 +1404,13 @@ describe("Story 28: the professor evaluates student request", () => {
     };
 
     logIn("s309618@studenti.polito.it");
-    await startRequest(first_request);
+    const request1 = (await startRequest(first_request)).body;
     logIn("s308747@studenti.polito.it");
-    await startRequest(second_request);
+    const request2 = (await startRequest(second_request)).body;
 
+    logIn("laura.ferrari@example.com");
+    await approveRequest(request1);
+    await approveRequest(request2);
     logIn("marco.torchiano@teacher.it"); // he has one request as supervisor
     let response = await getRequests();
     expect(response.status).toBe(200);
@@ -1578,6 +1581,7 @@ describe("Story 28: the professor evaluates student request", () => {
     status = (await rejectRequest(thesis_request_id)).status;
     expect(status).toBe(401);
 
+    logIn("laura.ferrari@example.com");
     let requests = (await getRequests()).body;
     expect(requests[0]).toHaveProperty("status", "requested");
   });
