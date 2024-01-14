@@ -1,11 +1,49 @@
 import API from "./API";
 import { SERVER_URL } from "./constants";
+import 'isomorphic-fetch'
 
 globalThis.fetch = jest.fn();
 
 beforeEach(() => {
   jest.clearAllMocks();
   fetch.mockClear();
+});
+
+describe("Test getJson function", () => {
+  test("promise.ok==true ==> promise rejection", async () => {
+    try {
+      const expectedResponse = { status: "success" };
+      fetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.reject(expectedResponse)
+      });
+      await API.createProposal();
+    }catch (error){
+      expect(error).toEqual(new Error("Cannot parse server response"));
+    }
+  })
+
+  test("promise.ok==false ==> promise rejection", async () => {
+    try {
+      const expectedResponse = { status: "insuccess" };
+      fetch.mockResolvedValue({
+        ok: false,
+        json: () => Promise.reject(expectedResponse)
+      });
+      await API.createProposal();
+    }catch (error){
+      expect(error).toEqual(new Error("Cannot parse server response"));
+    }
+  })
+
+  test("the server always returns a JSON, even empty {}. Never null or non json, otherwise the method will fail", async () => {
+    try {
+      fetch.mockResolvedValue("error");
+      await API.createProposal();
+    }catch (error){
+      expect(error).toEqual(new Error("Cannot communicate"));
+    }
+  })  
 });
 
 describe("Test the insert of a proposal", () => {
@@ -311,14 +349,15 @@ test("getRequests - should return correct data", async () => {
   expect(result).toEqual(mockApiResponse);
 });
 
-test("evaluateApplication - should return correct update message", async () => {
+test("evaluateRequest - should return correct update message", async () => {
   fetch.mockResolvedValue({
     ok: true,
     json: () => Promise.resolve({ message: "correct evaluation" })
   });
   const request = {
     id: 4,
-    approved: true
+    decision: "",
+    message:""
   };
   const result = await API.evaluateRequest(request);
   expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/start-requests/${request.id}`, {
@@ -326,7 +365,7 @@ test("evaluateApplication - should return correct update message", async () => {
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ approved: request.state }),
+    body: JSON.stringify(request),
     credentials: "include"
   });
 
@@ -419,4 +458,108 @@ describe("Test the send of a request", () => {
       expect(error).toEqual({ error: "error on sending the request" });
     }
   });
+});
+
+describe("Test the get and the post of the file attached to the application", () => {
+  test("attachFileToApplication - should return correct attach message", async () => {
+    fetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ message: "success attach" })
+    });
+    const application = {
+      id: 4,
+      file: {}
+    };
+    const result = await API.attachFileToApplication(application.id,application.file);
+    expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications/${application.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/pdf"
+      },
+      body: application.file,
+      credentials: "include"
+    });
+    expect(result).toEqual({ message: "success attach" });
+  });
+
+  test("getApplicationFile - should return attached file", async () => {
+    const sampleBlob = new Blob(['sample file content'], { type: 'text/plain' });
+    const response = new Response(sampleBlob,{
+      ok: true,
+      status: 200,
+    });
+    const expectedResponse = new Response(sampleBlob,{
+      ok: true,
+      status: 200,
+    });
+    fetch.mockResolvedValue(response);
+    const applicationId = 4;
+    const result = await API.getApplicationFile(applicationId);
+    expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications/${applicationId}/attached-file`, {
+      credentials: "include"
+    });
+    const expectedBlob = await expectedResponse.blob();
+    expect(result).toEqual(expectedBlob);
+  });
+
+  test("getApplicationFile - should return an error if response was rejected", async () => {
+    const spyConsoleLog = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const response = new Response(new Blob(),{
+      ok: false,
+      status: 400,
+    });
+    fetch.mockResolvedValue(response);
+    const applicationId = 4;
+    await API.getApplicationFile(applicationId);
+    expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/applications/${applicationId}/attached-file`, {
+      credentials: "include"
+    });
+    const error = new Error(`Failed to fetch file. Status: ${response.status}`);
+    expect(spyConsoleLog).toHaveBeenCalledWith("Error fetching file:", error); 
+    spyConsoleLog.mockRestore();
+  });
+});
+
+test("getUserInfo - should return correct data", async () => {
+  fetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve(mockApiResponse)
+  });
+  const result = await API.getUserInfo();
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/sessions/current`, {
+    credentials: "include"
+  });
+  expect(result).toEqual(mockApiResponse);
+});
+
+test("getCareerOfStudent - should return correct data", async () => {
+  const applicationId = 4;
+  fetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve(mockApiResponse)
+  });
+  const result = await API.getCareerOfStudent(applicationId);
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/students/${applicationId}/exams`, {
+    method: "GET",
+    credentials: "include"
+  });
+  expect(result).toEqual(mockApiResponse);
+});
+
+it("updateRequest - should update the request successfully and return the request", async () => {
+  const requestToUpdate = { id: 12345, title: "Updated Title", description: "Updated Description" };
+  fetch.mockResolvedValueOnce({
+    ok: true,
+    json: jest.fn().mockResolvedValueOnce(requestToUpdate)
+  });
+  const result = await API.updateRequest(requestToUpdate);
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/start-requests/${requestToUpdate.id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(requestToUpdate),
+    credentials: "include"
+  });
+  expect(result).toEqual(requestToUpdate);
 });
