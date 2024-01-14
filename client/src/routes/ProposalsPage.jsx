@@ -129,7 +129,7 @@ function ProposalsPage(props) {
             startIcon={requestSent ? <ScheduleSendIcon /> : <AddIcon />}
             disabled={requestSent}
           >
-            {requestSent ? "Request sent" : "New Request"}
+            {requestSent ? "Request sent" : "Start Request"}
           </Button>
         </Hidden>
       </Stack>
