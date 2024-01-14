@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
@@ -24,24 +24,28 @@ function ViewRequestPage(props) {
   const [changesMessage, setChangesMessage] = useState("");
   const [changesError, setChangesError] = useState("");
   const [openChangesDialog, setOpenChangesDialog] = useState(false);
+  const [request, setRequest] = useState(location.state?.request);
 
-  const request = location.state?.request;
-
-  const evaluateRequest = (req) => {
-    API.evaluateRequest(req)
-      .then(() => {
-        setAlert({
-          message:
-            req.decision === "changes_requested" ? "Changes requested successfully" : "Request evaluated successfully",
-          severity: "success"
-        });
-        fetchRequests();
-        // if (req.decision === "changes_requested") {
-        //   request = requests.find(req)
-        // }
-      })
-      .catch((err) => handleErrors(err));
+  const evaluateRequest = async (req) => {
+    try {
+      await API.evaluateRequest(req);
+      setAlert({
+        message:
+          req.decision === "changes_requested" ? "Changes requested successfully" : "Request evaluated successfully",
+        severity: "success"
+      });
+      await fetchRequests();
+    } catch (err) {
+      handleErrors(err);
+    }
   };
+
+  useEffect(() => {
+    const updatedRequest = requests.find((r) => r.id === request.id);
+    if (updatedRequest) {
+      setRequest(updatedRequest);
+    }
+  }, [requests]);
 
   const handleCloseDialog = () => {
     setOpenChangesDialog(false);
@@ -56,8 +60,7 @@ function ViewRequestPage(props) {
     request.decision = "changes_requested";
     request.message = changesMessage;
 
-    // evaluateRequest(request);
-    // request.status = "changes_requested";
+    evaluateRequest(request);
     handleCloseDialog();
     setChangesMessage("");
   };
@@ -117,7 +120,7 @@ function ViewRequestPage(props) {
           >
             <Typography variant="body1">
               <span style={{ fontWeight: "bold" }}>Changes requested: </span>
-              {request.message}
+              {request.changes_requested}
             </Typography>
             <Chip label="WAITING FOR CHANGES" size="small" color="info" />
           </Stack>
