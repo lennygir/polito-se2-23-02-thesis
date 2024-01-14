@@ -6,9 +6,8 @@ const { db } = require("./db");
 const { nodemailer } = require("./smtp");
 const { applicationDecisionTemplate } = require("./mail/application-decision");
 const { newApplicationTemplate } = require("./mail/new-application");
-const {
-  supervisorStartRequestTemplate,
-} = require("./mail/supervisor-start-request");
+const { supervisorStartRequestTemplate } = require("./mail/supervisor-start-request");
+const { cosupervisorApplicationDecisionTemplate } = require("./mail/cosupervisor-application-decision");
 
 exports.insertApplication = (proposal, student, state) => {
   const result = db
@@ -268,17 +267,20 @@ exports.findRejectedApplication = (proposal_id, student_id) => {
 };
 
 exports.notifyApplicationDecision = async (applicationId, decision) => {
-  // Send email to a student
+  // Retrieve the data
   const applicationJoined = db
     .prepare(
-      `SELECT S.id, P.title, S.email, S.surname, S.name
-    FROM APPLICATIONS A
-    JOIN PROPOSALS P ON P.id = A.proposal_id
-    JOIN STUDENT S ON S.id = A.student_id
-    WHERE A.id = ?`,
+      "SELECT S.id, P.title, P.co_supervisors, S.email, S.surname, S.name \
+    FROM APPLICATIONS A \
+    JOIN PROPOSALS P ON P.id = A.proposal_id \
+    JOIN STUDENT S ON S.id = A.student_id \
+    WHERE A.id = ?",
     )
     .get(applicationId);
-  const mailBody = applicationDecisionTemplate({
+  let mailBody;
+  // Notify the student
+  // -- Email
+  mailBody = applicationDecisionTemplate({
     name: applicationJoined.surname + " " + applicationJoined.name,
     thesis: applicationJoined.title,
     decision: decision,
@@ -293,8 +295,7 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
   } catch (e) {
     console.log("[mail service]", e);
   }
-
-  // Save email in DB
+  // -- Website notification
   db.prepare(
     "INSERT INTO NOTIFICATIONS(student_id, object, content) VALUES(?,?,?)",
   ).run(
@@ -302,6 +303,36 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
     "New decision on your thesis application",
     mailBody.text,
   );
+  // Notify the co-supervisors
+  if(applicationJoined.co_supervisors) {
+    for(const cosupervisor of applicationJoined.co_supervisors.split(', ')) {
+      const fullCosupervisor = this.getTeacherByEmail(cosupervisor);
+      // -- Email
+      mailBody = cosupervisorApplicationDecisionTemplate({
+        name: fullCosupervisor.surname + " " + fullCosupervisor.name,
+        thesis: applicationJoined.title,
+        decision: decision,
+      });
+      try {
+        await nodemailer.sendMail({
+          to: cosupervisor,
+          subject: "New decision for a thesis you co-supervise",
+          text: mailBody.text,
+          html: mailBody.html,
+        });
+      } catch (e) {
+        console.log("[mail service]", e);
+      }
+      // -- Website notification
+      db.prepare(
+        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+      ).run(
+        fullCosupervisor.id,
+        "New decision for a thesis you co-supervise",
+        mailBody.text,
+      );
+    }
+  }
 };
 
 exports.notifyNewStartRequest = async (requestId) => {

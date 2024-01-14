@@ -36,7 +36,7 @@ let proposal, start_request;
 beforeEach(() => {
   proposal = {
     title: "Test title",
-    co_supervisors: ["test_mail@email.com", "test_mail2@email.com"],
+    co_supervisors: ["maurizio.morisio@teacher.it", "luigi.derussis@teacher.it"],
     groups: ["SOFTENG"],
     keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
     types: ["EXPERIMENTAL", "RESEARCH"],
