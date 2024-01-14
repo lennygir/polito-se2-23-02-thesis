@@ -228,15 +228,19 @@ function ApplicationDetails(props) {
       <Divider variant="middle" />
       <Typography variant="body1" gutterBottom paddingTop={2}>
         <span style={{ fontWeight: "bold" }}>Title: </span>
-        <Link
-          color="primary"
-          underline="always"
-          component={NavLink}
-          to={`/proposals/${proposal.id}`}
-          state={{ proposal: proposal }}
-        >
-          {application.title}
-        </Link>
+        {isApplicationAccepted() ? (
+          <Link
+            color="primary"
+            underline="always"
+            component={NavLink}
+            to={`/proposals/${proposal?.id}`}
+            state={{ proposal: proposal }}
+          >
+            {application.title}
+          </Link>
+        ) : (
+          application.title
+        )}
       </Typography>
       <Box paddingTop={4} sx={{ display: "flex", justifyContent: "center" }}>
         {renderActionButton()}

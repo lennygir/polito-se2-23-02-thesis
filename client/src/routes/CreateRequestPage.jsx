@@ -12,7 +12,7 @@ import ErrorContext from "../contexts/ErrorContext";
 import API from "../utils/API";
 
 function CreateRequestPage(props) {
-  const { teachers, getTeacherById, setAlert, setRequestSent } = props;
+  const { teachers, getTeacherById, setAlert } = props;
   const handleErrors = useContext(ErrorContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,7 +26,6 @@ function CreateRequestPage(props) {
           message: "Request submitted successfully",
           severity: "success"
         });
-        setRequestSent(true);
         navigate("/proposals");
       })
       .catch((err) => handleErrors(err));
@@ -71,8 +70,7 @@ function CreateRequestPage(props) {
 CreateRequestPage.propTypes = {
   teachers: PropTypes.array,
   getTeacherById: PropTypes.func,
-  setAlert: PropTypes.func,
-  setRequestSent: PropTypes.func
+  setAlert: PropTypes.func
 };
 
 export default CreateRequestPage;

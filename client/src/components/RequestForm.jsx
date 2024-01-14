@@ -17,7 +17,7 @@ function RequestForm(props) {
   const [formData, setFormData] = useState({
     title: proposal ? proposal.title : "",
     description: proposal ? proposal.description : "",
-    supervisor: supervisor.email,
+    supervisor: supervisor ? supervisor.email : null,
     coSupervisors: proposal ? proposal.co_supervisors.split(", ") : []
   });
 

@@ -461,31 +461,7 @@ router.get(
       if (!user) {
         return res.status(500).json({ message: "Internal server error" });
       }
-      let proposals;
-      if (user.role === "student") {
-        proposals = getProposalsByDegree(user.cod_degree);
-      } else if (user.role === "teacher") {
-        proposals = getProposalsForTeacher(user.id, user.email);
-      } else {
-        return res.status(500).json({ message: "Internal server error" });
-      }
-
-      proposals.map((proposal) => {
-        proposal.archived = isArchived(proposal);
-        delete proposal.manually_archived;
-        delete proposal.deleted;
-        return proposal;
-      });
-
-      if (user.role === "student") {
-        proposals = proposals.filter(
-          (proposal) => !proposal.archived || isAccepted(proposal.id, user.id),
-        );
-      }
-
-      const proposal = proposals.find(
-        (proposal) => proposal.id === req.params.id,
-      );
+      const proposal = getProposal(req.params.id);
       if (proposal) {
         return res.status(200).json(proposal);
       } else {

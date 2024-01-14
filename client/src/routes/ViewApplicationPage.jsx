@@ -13,24 +13,6 @@ import ErrorContext from "../contexts/ErrorContext";
 import UserContext from "../contexts/UserContext";
 import API from "../utils/API";
 
-const fakeProposal = {
-  id: 1,
-  title: "Analisi empirica dei difetti in R Markdown",
-  supervisor: "s123456",
-  co_supervisors: "angelo.bonfitto@teacher.it, marcello.romano@teacher.it",
-  keywords: "MARKDOWN, DEVELOP",
-  type: "RESEARCH",
-  groups: "SOFTENG",
-  description:
-    "I file R Markdown sono adottati ampiamente per lo sviluppo iterativo di workflow di analisi e visualizzazione dei dati. Laffidabilità dei risultati e la possibilità di riutilizzare le analisi dipendono pesantemente dalla correttezza dei file Rmd. Obiettivo della tesi è quello di analizzare file Rmd disponibili in repository pubblici e identificare e classificare i difetti.",
-  required_knowledge: "Linguaggio R, Ambiente R Studio",
-  notes: null,
-  expiration_date: "2024-12-28",
-  level: "MSC",
-  cds: "LM-32-D",
-  archived: false
-};
-
 function ViewApplicationPage(props) {
   const location = useLocation();
   const { fetchApplications, fetchNotifications, setAlert, applications } = props;
@@ -38,7 +20,7 @@ function ViewApplicationPage(props) {
   const handleErrors = useContext(ErrorContext);
 
   const application = location.state?.application;
-  const [proposal, setProposal] = useState(fakeProposal);
+  const [proposal, setProposal] = useState(null);
 
   const evaluateApplication = (application) => {
     API.evaluateApplication(application)
@@ -54,11 +36,12 @@ function ViewApplicationPage(props) {
   };
 
   useEffect(() => {
-    // API.getProposalById(application.proposal_id)
-    //   .then((proposal) => setProposal(proposal))
-    //   .catch((err) => handleErrors(err));
-    setProposal(fakeProposal);
-  }, [application]);
+    if (application.state === "accepted") {
+      API.getProposalById(application.proposal_id)
+        .then((proposal) => setProposal(proposal))
+        .catch((err) => handleErrors(err));
+    }
+  }, []);
 
   return (
     <div id="view-application-page">
