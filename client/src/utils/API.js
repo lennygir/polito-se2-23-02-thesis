@@ -17,16 +17,16 @@ function getJson(httpResponsePromise) {
           response
             .json()
             .then((json) => resolve(json))
-            .catch((err) => reject(new Error("Cannot parse server response")));
+            .catch((_err) => reject(new Error("Cannot parse server response")));
         } else {
           // analyzing the cause of error
           response
             .json()
             .then((obj) => reject(obj)) // error msg in the response body
-            .catch((err) => reject(new Error("Cannot parse server response"))); // something else
+            .catch((_err) => reject(new Error("Cannot parse server response"))); // something else
         }
       })
-      .catch((err) => reject(new Error("Cannot communicate"))); // connection error
+      .catch((_err) => reject(new Error("Cannot communicate"))); // connection error
   });
 }
 
@@ -404,7 +404,7 @@ const API = {
   getCareerOfStudent,
   getRequests,
   evaluateRequest,
-  updateRequest,
+  updateRequest
 };
 
 export default API;
