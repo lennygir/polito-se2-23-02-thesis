@@ -48,6 +48,7 @@ const {
   getRequestsForClerk,
   getRequestsForStudent,
   isAccepted,
+  getAcceptedProposal,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 
@@ -464,6 +465,10 @@ router.get(
       let proposals;
       if (user.role === "student") {
         proposals = getProposalsByDegree(user.cod_degree);
+        const accepted_proposal = getAcceptedProposal(user.id);
+        if (accepted_proposal) {
+          proposals = [...proposals, accepted_proposal];
+        }
       } else if (user.role === "teacher") {
         proposals = getProposalsForTeacher(user.id, user.email);
       } else {
@@ -484,7 +489,7 @@ router.get(
       }
 
       const proposal = proposals.find(
-        (proposal) => proposal.id === req.params.id,
+        (proposal) => proposal.id === parseInt(req.params.id, 10),
       );
       if (proposal) {
         return res.status(200).json(proposal);
