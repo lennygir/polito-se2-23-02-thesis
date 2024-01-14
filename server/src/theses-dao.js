@@ -304,32 +304,34 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
     mailBody.text,
   );
   // Notify the co-supervisors
-  for(const cosupervisor of applicationJoined.co_supervisors.split(', ')) {
-    const fullCosupervisor = this.getTeacherByEmail(cosupervisor);
-    // -- Email
-    mailBody = cosupervisorApplicationDecisionTemplate({
-      name: fullCosupervisor.surname + " " + fullCosupervisor.name,
-      thesis: applicationJoined.title,
-      decision: decision,
-    });
-    try {
-      await nodemailer.sendMail({
-        to: cosupervisor,
-        subject: "New decision for a thesis you co-supervise",
-        text: mailBody.text,
-        html: mailBody.html,
+  if(applicationJoined.co_supervisors) {
+    for(const cosupervisor of applicationJoined.co_supervisors.split(', ')) {
+      const fullCosupervisor = this.getTeacherByEmail(cosupervisor);
+      // -- Email
+      mailBody = cosupervisorApplicationDecisionTemplate({
+        name: fullCosupervisor.surname + " " + fullCosupervisor.name,
+        thesis: applicationJoined.title,
+        decision: decision,
       });
-    } catch (e) {
-      console.log("[mail service]", e);
+      try {
+        await nodemailer.sendMail({
+          to: cosupervisor,
+          subject: "New decision for a thesis you co-supervise",
+          text: mailBody.text,
+          html: mailBody.html,
+        });
+      } catch (e) {
+        console.log("[mail service]", e);
+      }
+      // -- Website notification
+      db.prepare(
+        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+      ).run(
+        fullCosupervisor.id,
+        "New decision for a thesis you co-supervise",
+        mailBody.text,
+      );
     }
-    // -- Website notification
-    db.prepare(
-      "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
-    ).run(
-      fullCosupervisor.id,
-      "New decision for a thesis you co-supervise",
-      mailBody.text,
-    );
   }
 };
 
