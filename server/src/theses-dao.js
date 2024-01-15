@@ -8,6 +8,7 @@ const { applicationDecisionTemplate } = require("./mail/application-decision");
 const { newApplicationTemplate } = require("./mail/new-application");
 const { supervisorStartRequestTemplate } = require("./mail/supervisor-start-request");
 const { cosupervisorApplicationDecisionTemplate } = require("./mail/cosupervisor-application-decision");
+const { cosupervisorStartRequestTemplate } = require("./mail/cosupervisor-start-request");
 
 exports.insertApplication = (proposal, student, state) => {
   const result = db
@@ -336,23 +337,22 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
 };
 
 exports.notifyNewStartRequest = async (requestId) => {
-  // Send email to the supervisor
   const requestJoined = db
     .prepare(
-      `SELECT S.student_id, S.supervisor, T.name, T.surname
+      `SELECT S.student_id, S.supervisor, S.co_supervisors, T.name, T.surname
       FROM START_REQUESTS S
       JOIN TEACHER T ON T.id = S.supervisor
       WHERE S.id = ?`,
-    )
-    .get(requestId);
-  console.log(requestJoined);
-  const mailBody = supervisorStartRequestTemplate({
+    ).get(requestId);
+  // Send email to the supervisor
+  let mailBody = supervisorStartRequestTemplate({
     name: requestJoined.surname + " " + requestJoined.name,
     student: requestJoined.student_id,
   });
+  const teacher = this.getTeacherEmailById(requestJoined.supervisor);
   try {
     await nodemailer.sendMail({
-      to: requestJoined.email,
+      to: teacher.email,
       subject: "New start request",
       text: mailBody.text,
       html: mailBody.html,
@@ -365,6 +365,33 @@ exports.notifyNewStartRequest = async (requestId) => {
   db.prepare(
     "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
   ).run(requestJoined.supervisor, "New start request", mailBody.text);
+
+  // Send email to the co-supervisors
+  if(requestJoined.co_supervisors) {
+    const coSupervisors = requestJoined.co_supervisors.split(", ");
+    for (const coSupervisorEmail of coSupervisors) {
+      const coSupervisor = this.getTeacherByEmail(coSupervisorEmail);
+      mailBody = cosupervisorStartRequestTemplate({
+        name: coSupervisor.surname + " " + coSupervisor.name,
+        student: requestJoined.student_id,
+      });
+      try {
+        await nodemailer.sendMail({
+          to: coSupervisorEmail,
+          subject: "New start request",
+          text: mailBody.text,
+          html: mailBody.html,
+        });
+      } catch (e) {
+        console.log("[mail service]", e);
+      }
+
+      // Save email in DB
+      db.prepare(
+        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+      ).run(coSupervisor.id, "New start request", mailBody.text);
+    }
+  }
 };
 
 exports.notifyNewApplication = async (proposalId) => {
