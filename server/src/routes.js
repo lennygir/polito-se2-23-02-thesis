@@ -51,6 +51,7 @@ const {
   getAcceptedProposal,
   getStartedThesisRequest,
   cancelPendingApplicationsOfStudent,
+  notifyRemovedCosupervisors,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 const { runCronjob, cronjobNames } = require("./cronjobs");
@@ -824,7 +825,7 @@ router.put(
           message: e.message,
         });
       }
-      updateProposal({
+      const newProposal = {
         proposal_id: proposal_id,
         title: title,
         supervisor: user.id,
@@ -838,7 +839,9 @@ router.put(
         expiration_date: dayjs(expiration_date).format("YYYY-MM-DD"),
         level: level,
         cds: cds,
-      });
+      };
+      notifyRemovedCosupervisors(proposal, newProposal);
+      updateProposal(newProposal);
       return res.status(200).json({ message: "Proposal updated successfully" });
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
