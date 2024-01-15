@@ -10,16 +10,30 @@ import TextField from "@mui/material/TextField";
 import CustomPaper from "./CustomPaper";
 
 function RequestForm(props) {
-  const { createRequest, teachers, getTeacherById, proposal } = props;
+  const { createRequest, editRequest, teachers, getTeacherById, proposal, request } = props;
 
-  const supervisor = proposal ? getTeacherById(proposal.supervisor) : null;
+  const initFormData = () => {
+    const form = {
+      title: "",
+      description: "",
+      supervisor: null,
+      coSupervisors: []
+    };
+    if (proposal) {
+      form.title = proposal.title;
+      form.description = proposal.description;
+      form.supervisor = getTeacherById(proposal.supervisor).email;
+      form.coSupervisors = proposal.co_supervisors.split(", ");
+    } else if (request) {
+      form.title = request.title;
+      form.description = request.description;
+      form.supervisor = request.supervisor;
+      form.coSupervisors = request.co_supervisors || [];
+    }
+    return form;
+  };
 
-  const [formData, setFormData] = useState({
-    title: proposal ? proposal.title : "",
-    description: proposal ? proposal.description : "",
-    supervisor: supervisor ? supervisor.email : null,
-    coSupervisors: proposal ? proposal.co_supervisors.split(", ") : []
-  });
+  const [formData, setFormData] = useState(initFormData());
 
   const [formErrors, setFormErrors] = useState({
     title: "",
@@ -90,7 +104,12 @@ function RequestForm(props) {
       supervisor: supervisor.id,
       co_supervisors: formData.coSupervisors
     };
-    createRequest(data);
+    if (!request) {
+      createRequest(data);
+    } else {
+      data.id = request.id;
+      editRequest(data);
+    }
   };
 
   const ChipProps = { sx: { height: 26 } };
@@ -144,6 +163,7 @@ function RequestForm(props) {
             value={formData.supervisor}
             onChange={(event, value) => handleFormInputChange("supervisor", value)}
             PaperComponent={CustomPaper}
+            disabled={!!proposal || !!request}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -185,7 +205,7 @@ function RequestForm(props) {
         </FormControl>
       </Stack>
       <Button fullWidth type="submit" variant="contained" sx={{ mt: 4, mb: 2 }}>
-        Create Request
+        {request ? "Edit Request" : "Create Request"}
       </Button>
     </Box>
   );
@@ -193,9 +213,16 @@ function RequestForm(props) {
 
 RequestForm.propTypes = {
   createRequest: PropTypes.func,
+  editRequest: PropTypes.func,
   teachers: PropTypes.array,
   getTeacherById: PropTypes.func,
-  proposal: PropTypes.object
+  proposal: PropTypes.object,
+  request: PropTypes.object
+};
+
+RequestForm.defaultProps = {
+  proposal: null,
+  request: null
 };
 
 export default RequestForm;

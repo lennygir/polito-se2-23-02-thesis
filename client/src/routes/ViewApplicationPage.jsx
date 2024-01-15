@@ -15,7 +15,7 @@ import API from "../utils/API";
 
 function ViewApplicationPage(props) {
   const location = useLocation();
-  const { fetchApplications, fetchNotifications, setAlert, applications } = props;
+  const { fetchApplications, fetchNotifications, setAlert, applications, requests } = props;
   const user = useContext(UserContext);
   const handleErrors = useContext(ErrorContext);
 
@@ -43,6 +43,11 @@ function ViewApplicationPage(props) {
     }
   }, []);
 
+  const isStartRequestButtonDisabled = () => {
+    const activeRequest = requests[requests.length - 1];
+    return activeRequest && activeRequest.status !== "rejected";
+  };
+
   return (
     <div id="view-application-page">
       <Stack
@@ -64,8 +69,9 @@ function ViewApplicationPage(props) {
         {user.role === "student" && application.state === "accepted" && (
           <Button
             component={Link}
-            to="/add-request"
+            to="/add-start-request"
             state={{ proposal: proposal }}
+            disabled={isStartRequestButtonDisabled()}
             variant="contained"
             startIcon={<AddIcon />}
             sx={{ mr: { md: 4, xs: 0 } }}
@@ -96,7 +102,8 @@ ViewApplicationPage.propTypes = {
   fetchApplications: PropTypes.func,
   fetchNotifications: PropTypes.func,
   setAlert: PropTypes.func,
-  applications: PropTypes.array
+  applications: PropTypes.array,
+  requests: PropTypes.array
 };
 
 export default ViewApplicationPage;

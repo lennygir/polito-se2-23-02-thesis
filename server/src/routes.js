@@ -982,6 +982,7 @@ router.put(
         supervisor: getTeacher(supervisor).email,
         co_supervisors: co_supervisors,
         student_id: user.id,
+        message: request.message,
         status: "changed",
       };
 
