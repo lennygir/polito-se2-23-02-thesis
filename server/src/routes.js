@@ -47,6 +47,8 @@ const {
   getRequestsForTeacher,
   getRequestsForClerk,
   getRequestsForStudent,
+  isAccepted,
+  getAcceptedProposal,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 
@@ -154,7 +156,7 @@ async function setStateToApplication(req, res, state) {
     });
   }
   updateApplication(application.id, state);
-  await notifyApplicationDecision(application.id, state);
+  notifyApplicationDecision(application.id, state);
   if (state === "accepted") {
     updateArchivedStateProposal(1, application.proposal_id);
     cancelPendingApplications(application.proposal_id);
@@ -447,6 +449,59 @@ router.get(
   },
 );
 
+router.get(
+  "/api/proposals/:id",
+  isLoggedIn,
+  check("id").isInt({ gt: 0 }),
+  (req, res) => {
+    try {
+      if (!validationResult(req).isEmpty()) {
+        return res.status(400).json({ message: "Invalid parameters" });
+      }
+      const user = getUser(req.user);
+      if (!user) {
+        return res.status(500).json({ message: "Internal server error" });
+      }
+      let proposals;
+      if (user.role === "student") {
+        proposals = getProposalsByDegree(user.cod_degree);
+        const accepted_proposal = getAcceptedProposal(user.id);
+        if (accepted_proposal) {
+          proposals = [...proposals, accepted_proposal];
+        }
+      } else if (user.role === "teacher") {
+        proposals = getProposalsForTeacher(user.id, user.email);
+      } else {
+        return res.status(500).json({ message: "Internal server error" });
+      }
+
+      proposals.map((proposal) => {
+        proposal.archived = isArchived(proposal);
+        delete proposal.manually_archived;
+        delete proposal.deleted;
+        return proposal;
+      });
+
+      if (user.role === "student") {
+        proposals = proposals.filter(
+          (proposal) => !proposal.archived || isAccepted(proposal.id, user.id),
+        );
+      }
+
+      const proposal = proposals.find(
+        (proposal) => proposal.id === parseInt(req.params.id, 10),
+      );
+      if (proposal) {
+        return res.status(200).json(proposal);
+      } else {
+        return res.status(404).json({ message: "Proposal not found" });
+      }
+    } catch (err) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+
 router.post(
   "/api/applications",
   isLoggedIn,
@@ -504,7 +559,7 @@ router.post(
         });
       }
       const application = insertApplication(proposal, user.id, "pending");
-      await notifyNewApplication(application?.proposal_id);
+      notifyNewApplication(application?.proposal_id);
       return res.status(200).json(application);
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });

@@ -93,7 +93,7 @@ export const getDesignTokens = (mode) => ({
       styleOverrides: {
         root: {
           paddingLeft: 8,
-          paddingRight: 8,
+          paddingRight: 4,
           marginBottom: 3
         }
       }

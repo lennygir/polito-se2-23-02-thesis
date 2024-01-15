@@ -225,6 +225,18 @@ exports.getProposalsByDegree = (cds) => {
     .all(cds);
 };
 
+exports.getAcceptedProposal = (student_id) => {
+  return db
+    .prepare(
+      `select PROPOSALS.id, PROPOSALS.title, PROPOSALS.supervisor, PROPOSALS.co_supervisors, PROPOSALS.keywords, PROPOSALS.type, PROPOSALS.groups, PROPOSALS.description, PROPOSALS.required_knowledge, PROPOSALS.notes, PROPOSALS.expiration_date, PROPOSALS.level, PROPOSALS.cds, PROPOSALS.manually_archived, PROPOSALS.deleted
+                     from main.PROPOSALS, main.APPLICATIONS 
+                     where APPLICATIONS.proposal_id = PROPOSALS.id and 
+                         APPLICATIONS.student_id = ? and 
+                         APPLICATIONS.state = 'accepted'`,
+    )
+    .get(student_id);
+};
+
 exports.cancelPendingApplications = (of_proposal) => {
   db.prepare(
     "update APPLICATIONS set state = 'canceled' where proposal_id = ? AND state = 'pending'",
@@ -549,6 +561,18 @@ exports.setDelta = (delta) => {
   return db
     .prepare("UPDATE VIRTUAL_CLOCK SET delta = ? WHERE id = 1")
     .run(delta);
+};
+
+exports.isAccepted = (proposal_id, student_id) => {
+  const accepted_proposal = db
+    .prepare(
+      `select * from main.APPLICATIONS 
+      where APPLICATIONS.proposal_id = ?
+        and APPLICATIONS.student_id = ?
+        and APPLICATIONS.state = 'accepted'`,
+    )
+    .get(proposal_id, student_id);
+  return accepted_proposal !== undefined;
 };
 
 exports.updateProposal = (proposal) => {

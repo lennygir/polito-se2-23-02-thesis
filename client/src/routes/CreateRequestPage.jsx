@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Box from "@mui/material/Box";
@@ -12,9 +12,12 @@ import ErrorContext from "../contexts/ErrorContext";
 import API from "../utils/API";
 
 function CreateRequestPage(props) {
-  const { teachers, setAlert, setRequestSent } = props;
+  const { fetchRequests, teachers, getTeacherById, setAlert } = props;
   const handleErrors = useContext(ErrorContext);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const proposal = location.state?.proposal;
 
   const createRequest = (request) => {
     API.createRequest(request)
@@ -23,8 +26,8 @@ function CreateRequestPage(props) {
           message: "Request submitted successfully",
           severity: "success"
         });
-        setRequestSent(true);
-        navigate("/proposals");
+        fetchRequests();
+        navigate(-1);
       })
       .catch((err) => handleErrors(err));
   };
@@ -39,8 +42,7 @@ function CreateRequestPage(props) {
         justifyContent="space-between"
       >
         <Button
-          component={Link}
-          to="/proposals"
+          onClick={() => navigate(-1)}
           variant="outlined"
           startIcon={<ArrowBackIcon />}
           sx={{ ml: { md: 4, xs: 0 } }}
@@ -49,11 +51,16 @@ function CreateRequestPage(props) {
         </Button>
       </Stack>
       <Typography variant="h4" sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}>
-        Request Start Proposal
+        Thesis Start Request
       </Typography>
       <Paper elevation={1} sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
-          <RequestForm createRequest={createRequest} teachers={teachers} />
+          <RequestForm
+            createRequest={createRequest}
+            teachers={teachers}
+            getTeacherById={getTeacherById}
+            proposal={proposal}
+          />
         </Box>
       </Paper>
       <Box height={3} />
@@ -62,9 +69,10 @@ function CreateRequestPage(props) {
 }
 
 CreateRequestPage.propTypes = {
+  fetchRequests: PropTypes.func,
   teachers: PropTypes.array,
-  setAlert: PropTypes.func,
-  setRequestSent: PropTypes.func
+  getTeacherById: PropTypes.func,
+  setAlert: PropTypes.func
 };
 
 export default CreateRequestPage;

@@ -12,7 +12,6 @@ import Fab from "@mui/material/Fab";
 import Hidden from "@mui/material/Hidden";
 import InputAdornment from "@mui/material/InputAdornment";
 import OutlinedInput from "@mui/material/OutlinedInput";
-import ScheduleSendIcon from "@mui/icons-material/ScheduleSend";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
@@ -24,8 +23,7 @@ import { TEACHER_PROPOSALS_FILTERS, TEACHER_HEADERS_ACTIVE, TEACHER_HEADERS_EXPI
 import API from "../utils/API";
 
 function ProposalsPage(props) {
-  const { requestSent, setAlert, setDirty, currentDate, proposals, applications, teachers, groups, getTeacherById } =
-    props;
+  const { setAlert, setDirty, currentDate, proposals, applications, teachers, groups, getTeacherById } = props;
   const user = useContext(UserContext);
   const handleErrors = useContext(ErrorContext);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -120,18 +118,6 @@ function ProposalsPage(props) {
         <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
           Theses Proposals
         </Typography>
-        <Hidden smDown>
-          <Button
-            component={Link}
-            to="/add-request"
-            variant="contained"
-            sx={{ mr: 4 }}
-            startIcon={requestSent ? <ScheduleSendIcon /> : <AddIcon />}
-            disabled={requestSent}
-          >
-            {requestSent ? "Request sent" : "New Request"}
-          </Button>
-        </Hidden>
       </Stack>
       <Toolbar
         sx={{
@@ -176,18 +162,6 @@ function ProposalsPage(props) {
       </Toolbar>
       <ProposalTable data={filteredStudentProposals} getTeacherById={getTeacherById} applications={applications} />
       <Box height={5} marginTop={3} />
-      <Hidden smUp>
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="flex-end"
-          sx={{ position: "fixed", bottom: 24, right: 24 }}
-        >
-          <Fab component={Link} to="/add-request" aria-label="Add" color="primary">
-            <AddIcon />
-          </Fab>
-        </Stack>
-      </Hidden>
     </>
   );
 
@@ -330,7 +304,6 @@ function ProposalsPage(props) {
 }
 
 ProposalsPage.propTypes = {
-  requestSent: PropTypes.bool,
   setAlert: PropTypes.func,
   setDirty: PropTypes.func,
   currentDate: PropTypes.string,

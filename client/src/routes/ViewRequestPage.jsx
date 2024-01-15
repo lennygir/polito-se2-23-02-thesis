@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -17,9 +17,10 @@ import API from "../utils/API";
 
 function ViewRequestPage(props) {
   const { fetchRequests, setAlert, requests } = props;
-  const user = useContext(UserContext);
-  const location = useLocation();
   const handleErrors = useContext(ErrorContext);
+  const user = useContext(UserContext);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [changesMessage, setChangesMessage] = useState("");
   const [changesError, setChangesError] = useState("");
@@ -84,8 +85,7 @@ function ViewRequestPage(props) {
         justifyContent="space-between"
       >
         <Button
-          component={Link}
-          to="/requests"
+          onClick={() => navigate(-1)}
           variant="outlined"
           startIcon={<ArrowBackIcon />}
           sx={{ ml: { md: 4, xs: 0 } }}

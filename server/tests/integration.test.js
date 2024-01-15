@@ -76,6 +76,19 @@ describe("Protected routes", () => {
   });
 });
 
+describe("Get single proposal", () => {
+  it("Correct behavior", async () => {
+    logIn("marco.torchiano@teacher.it");
+    const proposal_id = (await insertProposal(proposal)).body;
+    logIn("s309618@studenti.polito.it");
+    const application = (await applyForProposal(proposal_id)).body;
+    logIn("marco.torchiano@teacher.it");
+    await acceptApplication(application.application_id);
+    logIn("s309618@studenti.polito.it");
+    await request(app).get(`/api/proposals/${proposal_id}`).expect(200);
+  });
+});
+
 describe("Story 12: Archive Proposals", () => {
   const past_date = dayjs().subtract(7, "day").format("YYYY-MM-DD");
   it("If a proposal becomes archived, a student should not be able to apply for it", async () => {
@@ -443,6 +456,9 @@ it("CRUD on proposal", async () => {
   logIn("marco.torchiano@teacher.it");
   const proposalId = (await insertProposal(proposal)).body;
   const proposals = (await getProposals()).body;
+  const res_proposal = (
+    await request(app).get(`/api/proposals/${proposalId}`).expect(200)
+  ).body;
   let expectedProposal = {
     ...proposal,
     supervisor: "s123456", // marco.torchiano@teacher.it
@@ -458,6 +474,7 @@ it("CRUD on proposal", async () => {
   expect(proposals.find((proposal) => proposal.id === proposalId)).toEqual(
     expectedProposal,
   );
+  expect(res_proposal).toEqual(expectedProposal);
   const response = await modifyProposal(proposalId, {
     ...proposal,
     title: "Updated title",
@@ -467,19 +484,29 @@ it("CRUD on proposal", async () => {
   expect(updateMessage.message).toBe("Proposal updated successfully");
   expectedProposal.title = "Updated title";
   const response2 = await getProposals();
+  const res_modified_proposal = (
+    await request(app).get(`/api/proposals/${proposalId}`).expect(200)
+  ).body;
   expect(response2.status).toBe(200);
   const updatedProposals = response2.body;
   expect(
     updatedProposals.find((proposal) => proposal.id === proposalId),
   ).toEqual(expectedProposal);
+  expect(res_modified_proposal).toEqual(expectedProposal);
   const delete_response = await deleteProposal(proposalId);
   expect(delete_response.status).toBe(200);
   const response_after_delete = await getProposals();
+  const deleted_proposal = (
+    await request(app).get(`/api/proposals/${proposalId}`).expect(404)
+  ).body;
   expect(response_after_delete.status).toBe(200);
   const deletedProposals = response_after_delete.body;
   expect(deletedProposals.find((proposal) => proposal.id === proposalId)).toBe(
     undefined,
   );
+  expect(deleted_proposal).toEqual({
+    message: "Proposal not found",
+  });
 });
 
 describe("Proposal insertion tests", () => {

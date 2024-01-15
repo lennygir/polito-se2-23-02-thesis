@@ -10,13 +10,15 @@ import TextField from "@mui/material/TextField";
 import CustomPaper from "./CustomPaper";
 
 function RequestForm(props) {
-  const { createRequest, teachers } = props;
+  const { createRequest, teachers, getTeacherById, proposal } = props;
+
+  const supervisor = proposal ? getTeacherById(proposal.supervisor) : null;
 
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    supervisor: null,
-    coSupervisors: []
+    title: proposal ? proposal.title : "",
+    description: proposal ? proposal.description : "",
+    supervisor: supervisor ? supervisor.email : null,
+    coSupervisors: proposal ? proposal.co_supervisors.split(", ") : []
   });
 
   const [formErrors, setFormErrors] = useState({
@@ -191,7 +193,9 @@ function RequestForm(props) {
 
 RequestForm.propTypes = {
   createRequest: PropTypes.func,
-  teachers: PropTypes.array
+  teachers: PropTypes.array,
+  getTeacherById: PropTypes.func,
+  proposal: PropTypes.object
 };
 
 export default RequestForm;
