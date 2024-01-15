@@ -651,36 +651,38 @@ exports.isAccepted = (proposal_id, student_id) => {
 };
 
 exports.notifyRemovedCosupervisors = async (oldProposal, newProposal) => {
-  const oldCosupervisors = oldProposal.co_supervisors.split(", ");
-  const newCosupervisors = newProposal.co_supervisors.split(", ");
-  const removedCosupervisors = oldCosupervisors.filter((cosupervisor) => {
-    return !newCosupervisors.includes(cosupervisor);
-  });
-  for(let cosupervisorEmail of removedCosupervisors) {
-    const teacher = this.getTeacherByEmail(cosupervisorEmail);
-    // -- Email
-    const mailBody = removedCosupervisorTemplate({
-      name: teacher.surname + " " + teacher.name,
-      proposal: newProposal
+  const oldCosupervisors = oldProposal.co_supervisors?.split(", ");
+  const newCosupervisors = newProposal.co_supervisors?.split(", ");
+  if(oldCosupervisors && newCosupervisors) {
+    const removedCosupervisors = oldCosupervisors.filter((cosupervisor) => {
+      return !newCosupervisors.includes(cosupervisor);
     });
-    try {
-      await nodemailer.sendMail({
-        to: cosupervisorEmail,
-        subject: "You have been removed from a thesis proposal",
-        text: mailBody.text,
-        html: mailBody.html,
+    for(let cosupervisorEmail of removedCosupervisors) {
+      const teacher = this.getTeacherByEmail(cosupervisorEmail);
+      // -- Email
+      const mailBody = removedCosupervisorTemplate({
+        name: teacher.surname + " " + teacher.name,
+        proposal: newProposal
       });
-    } catch (e) {
-      console.log("[mail service]", e);
+      try {
+        await nodemailer.sendMail({
+          to: cosupervisorEmail,
+          subject: "You have been removed from a thesis proposal",
+          text: mailBody.text,
+          html: mailBody.html,
+        });
+      } catch (e) {
+        console.log("[mail service]", e);
+      }
+      // -- Website notification
+      db.prepare(
+        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+      ).run(
+        teacher.id,
+        "You have been removed from a thesis proposal",
+        mailBody.text,
+      );
     }
-    // -- Website notification
-    db.prepare(
-      "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
-    ).run(
-      teacher.id,
-      "You have been removed from a thesis proposal",
-      mailBody.text,
-    );
   }
 };
 

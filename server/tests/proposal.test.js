@@ -962,3 +962,48 @@ describe("Cronjobs", () => {
     await runCronjob(cronjobNames.THESIS_EXPIRED);
   });
 });
+
+describe("PATCH /api/proposals/:id", () => {
+  test("Remove a co supervisor", async () => {
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "maurizio.morisio@teacher.it",
+      };
+      next();
+    });
+
+    const proposal = {
+      id: 1,
+      title: "test",
+      description: "desc test",
+      supervisor: "s234567",
+      co_supervisors: [
+        "marco.torchiano@teacher.it"
+      ],
+      keywords: ["keyword1", "keyword2"],
+      groups: ["SOFTENG"],
+      types: ["EXPERIMENTAL"],
+      required_knowledge: "required knowledge",
+      notes: "notes",
+      expiration_date: "2021-01-01",
+      level: "MSC",
+      cds: "LM-32 (DM270)",
+      manually_archived: 0,
+      deleted: 0
+    };
+
+    getProposal.mockReturnValue(proposal);
+
+    const newProposal = { ...proposal };
+    newProposal.co_supervisors = [];
+
+    const requests = (
+      await request(app)
+        .put("/api/proposals/1")
+        .set("Content-Type", "application/json")
+        .send(newProposal)
+        .expect(200)
+    );
+    expect(requests.body).toEqual({ message: "Proposal updated successfully" });
+  });
+});
