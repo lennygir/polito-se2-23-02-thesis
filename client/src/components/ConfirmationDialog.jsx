@@ -7,10 +7,10 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 
 function ConfirmationDialog(props) {
-  const { mode, message, open, handleClose, handleSubmit } = props;
+  const { title, message, primaryButtonLabel, secondaryButtonLabel, open, handleClose, handleSubmit } = props;
   return (
     <Dialog maxWidth="xs" open={open} onClose={handleClose}>
-      <DialogTitle variant="h5">Confirm Decision</DialogTitle>
+      <DialogTitle variant="h5">{title}</DialogTitle>
       <DialogContent>
         <DialogContentText variant="body1">{message}</DialogContentText>
       </DialogContent>
@@ -23,10 +23,10 @@ function ConfirmationDialog(props) {
         }}
       >
         <Button fullWidth onClick={handleClose} variant="outlined" color="error">
-          {mode === "submit" ? "Cancel" : "No"}
+          {secondaryButtonLabel}
         </Button>
         <Button fullWidth onClick={handleSubmit} variant="contained">
-          {mode === "submit" ? "Submit" : "Yes"}
+          {primaryButtonLabel}
         </Button>
       </DialogActions>
     </Dialog>
@@ -34,8 +34,10 @@ function ConfirmationDialog(props) {
 }
 
 ConfirmationDialog.propTypes = {
-  mode: PropTypes.string,
+  title: PropTypes.string,
   message: PropTypes.string,
+  primaryButtonLabel: PropTypes.string,
+  secondaryButtonLabel: PropTypes.string,
   open: PropTypes.bool,
   handleClose: PropTypes.func,
   handleSubmit: PropTypes.func

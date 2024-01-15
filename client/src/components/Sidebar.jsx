@@ -19,7 +19,7 @@ import UserContext from "../contexts/UserContext";
 import { useThemeContext } from "../theme/ThemeContextProvider";
 import { LogoutButton } from "./Auth";
 
-const sidebarMainTabs = [
+const sidebarTabs = [
   {
     id: "proposals",
     label: "Proposals",
@@ -33,19 +33,16 @@ const sidebarMainTabs = [
     path: "/applications"
   },
   {
-    id: "notifications",
-    label: "Notifications",
-    icon: <EmailRoundedIcon color="primary" />,
-    path: "/notifications"
-  }
-];
-
-const sidebarSecretaryTabs = [
-  {
     id: "requests",
     label: "Requests",
     icon: <ApprovalIcon color="primary" />,
     path: "/requests"
+  },
+  {
+    id: "notifications",
+    label: "Notifications",
+    icon: <EmailRoundedIcon color="primary" />,
+    path: "/notifications"
   }
 ];
 
@@ -61,7 +58,24 @@ function Sidebar(props) {
   const { selectedTab, logoHeight, drawerWidth, mobileOpen, closeDrawer, handleDrawerToggle, handleTabSelection } =
     props;
   const user = useContext(UserContext);
-  const tabs = user?.role === "secretary_clerk" ? sidebarSecretaryTabs : sidebarMainTabs;
+
+  const renderTabs = () => {
+    let tabs = [];
+    switch (user.role) {
+      case "student":
+        tabs = sidebarTabs.filter((tab) => tab.id !== "requests");
+        break;
+      case "teacher":
+        tabs = sidebarTabs;
+        break;
+      case "secretary_clerk":
+        tabs = sidebarTabs.filter((tab) => tab.id === "requests");
+        break;
+      default:
+        break;
+    }
+    return tabs;
+  };
 
   const drawer = (
     <Box
@@ -83,7 +97,7 @@ function Sidebar(props) {
       </Box>
       <Divider />
       <List>
-        {tabs.map((tab) => (
+        {renderTabs().map((tab) => (
           <ListItem key={tab.id} disablePadding>
             <ListItemButton
               component={Link}
