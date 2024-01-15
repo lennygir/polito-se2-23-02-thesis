@@ -48,6 +48,7 @@ const {
   getRequestsForClerk,
   getRequestsForStudent,
   isAccepted,
+  getAcceptedProposal,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 
@@ -461,7 +462,35 @@ router.get(
       if (!user) {
         return res.status(500).json({ message: "Internal server error" });
       }
-      const proposal = getProposal(req.params.id);
+      let proposals;
+      if (user.role === "student") {
+        proposals = getProposalsByDegree(user.cod_degree);
+        const accepted_proposal = getAcceptedProposal(user.id);
+        if (accepted_proposal) {
+          proposals = [...proposals, accepted_proposal];
+        }
+      } else if (user.role === "teacher") {
+        proposals = getProposalsForTeacher(user.id, user.email);
+      } else {
+        return res.status(500).json({ message: "Internal server error" });
+      }
+
+      proposals.map((proposal) => {
+        proposal.archived = isArchived(proposal);
+        delete proposal.manually_archived;
+        delete proposal.deleted;
+        return proposal;
+      });
+
+      if (user.role === "student") {
+        proposals = proposals.filter(
+          (proposal) => !proposal.archived || isAccepted(proposal.id, user.id),
+        );
+      }
+
+      const proposal = proposals.find(
+        (proposal) => proposal.id === parseInt(req.params.id, 10),
+      );
       if (proposal) {
         return res.status(200).json(proposal);
       } else {

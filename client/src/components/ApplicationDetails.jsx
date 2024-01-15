@@ -228,7 +228,7 @@ function ApplicationDetails(props) {
       <Divider variant="middle" />
       <Typography variant="body1" gutterBottom paddingTop={2}>
         <span style={{ fontWeight: "bold" }}>Title: </span>
-        {isApplicationAccepted() ? (
+        {isApplicationAccepted() && user.role === "student" ? (
           <Link
             color="primary"
             underline="always"
