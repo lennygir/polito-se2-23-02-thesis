@@ -1,35 +1,37 @@
 # Theses Management System
 
 ## Contents 
-- [Project Description](#project-description)
-- [Use Case Diagram](#use-case-diagram)
-- [Run in Production](#run-in-production)
-   - [Prerequisites](#prerequisites)
-   - [Run](#run)
-     - [Using Scripts](#using-scripts)
-     - [Using docker commands](#using-docker-commands)
-- [React Client Application Routes](#react-client-application-routes)
-- [Client Components](#client-components)
-   - [AccountPopover](#accountpopover)
-   - [ApplicationDetails](#applicationdetails)
-   - [ApplicationRow](#applicationrow)
-   - [ApplicationTable](#applicationtable)
-   - [NotificationRow](#notificationrow)
-   - [NotificationTable](#notificationtable)
-   - [ProposalDetails](#proposaldetails)
-   - [ProposalFilters](#proposalfilters)
-   - [ProposalForm](#proposalform)
-   - [ProposalRow](#proposalrow)
-   - [ProposalTable](#proposaltable)
-   - [RequestDetails](#requestdetails)
-   - [RequestForm](#requestform)
-   - [RequestRow](#requestrow)
-   - [RequestTable](#requesttable)
-   - [StudentCareerRow](#studentcareerrow)
-   - [StudentCareerTable](#studentcareertable)
-- [API Server](#api-server)
-- [Users](#users)
-   - [Users Credentials](#users-credentials)
+- [Theses Management System](#theses-management-system)
+  - [Contents](#contents)
+  - [Project Description](#project-description)
+  - [Use Case Diagram](#use-case-diagram)
+  - [Run in production](#run-in-production)
+    - [Prerequisites](#prerequisites)
+    - [Run](#run)
+      - [Using scripts](#using-scripts)
+      - [Using docker commands](#using-docker-commands)
+  - [React Client Application Routes](#react-client-application-routes)
+  - [Client Components](#client-components)
+    - [AccountPopover](#accountpopover)
+    - [ApplicationDetails](#applicationdetails)
+    - [ApplicationRow](#applicationrow)
+    - [ApplicationTable](#applicationtable)
+    - [NotificationRow](#notificationrow)
+    - [NotificationTable](#notificationtable)
+    - [ProposalDetails](#proposaldetails)
+    - [ProposalFilters](#proposalfilters)
+    - [ProposalForm](#proposalform)
+    - [ProposalRow](#proposalrow)
+    - [ProposalTable](#proposaltable)
+    - [RequestDetails](#requestdetails)
+    - [RequestForm](#requestform)
+    - [RequestRow](#requestrow)
+    - [RequestTable](#requesttable)
+    - [StudentCareerRow](#studentcareerrow)
+    - [StudentCareerTable](#studentcareertable)
+  - [API Server](#api-server)
+  - [Users](#users)
+    - [Users Credentials](#users-credentials)
 
 
 ## Project Description
@@ -762,40 +764,54 @@ For each course in the career array, the StudentCareerRow component is utilized 
     - Error Handling
       - 400 Bad Request: Invalid date content (incorrect format or going back in the past)
       - 500 Internal Server Error: For internal server errors.
- - GET `/api/applications`
+
+- GET `/api/start-requests`
   - Description
-    - Retrieves start requests based on the user's role.
+    - This endpoint retrieves start requests based on the user's role. The returned data is formatted for display purposes, providing additional details and transforming certain fields for a user-friendly presentation.
   - Response
-    - 200 OK: Returns an array of start requests based on the user's role.
-  ```
+    - 200 OK: Returns an array of JSON objects representing thesis request based on the user.
+    ```
     [
       {
-        id: 5,
-        title: Game Desigh,
-        description: 'Lorem ipsum',
-        supervisor: 's123456',
-        co_supervisors: '[s024689][s193578]',
-        approval_date: 'YYYY-MM-DDTHH:mm:ssZ',
-        student_id: 's319823',
-        status: 'secretary_accepted'
-        
+        "id": 1,
+        "title": "Sample Request",
+        "description": "Request description",
+        "supervisor": "supervisor@example.com",
+        "co_supervisors": ["co1@example.com", "co2@example.com"],
+        "approval_date": "2024-01-15T12:00:00Z",
+        "student_id": "student123",
+        "status": "approved",
+        "changes_requested": "Revision needed"
       },
-      {
-        id: 5,
-        title: Game Emphaty,
-        description: 'Lorem ipsum',
-        supervisor: 's123456',
-        co_supervisors: '[s024689][s193578]',
-        approval_date: 'YYYY-MM-DDTHH:mm:ssZ',
-        student_id: 's319823',
-        status: 'secretary_accepted'
-      }
+      ...
     ]
-  ```
+    ```
   - Error Handling
-    - 400 Bad Request: If the request contains invalid application content.
-    - 404 Not Found: If no applications match the provided criteria.
     - 500 Internal Server Error: If there's an internal server error while processing the request.
+
+- PUT `/api/start-requests/:thesisRequestId`
+    - Description
+      - Updates an existing thesis request.
+    - Parameters
+      - thesisRequestId: Integer - ID of the thesis request to be updated.
+    - Request Body
+      - Expects a JSON object with the following field:
+        - title: String
+        - description: String
+        - supervisor: String (Teacher ID)
+        - co_supervisors: Array of email addresses (Optional)
+    - Response
+      - 200 OK:   Returns a success message upon updating the proposal.
+      ```
+        {
+          "message": "Proposal updated successfully"
+        }
+      ```
+    - Error Handling
+      - 400 Bad Request: Invalid start request content 
+      - 401 Unauthorized: Authentication failure (user not logged in)
+      - 404 Not Found: request not found.
+      - 500 Internal Server Error: For internal server errors.
 
 ## Users
 
