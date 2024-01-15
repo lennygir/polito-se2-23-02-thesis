@@ -36,7 +36,10 @@ let proposal, start_request;
 beforeEach(() => {
   proposal = {
     title: "Test title",
-    co_supervisors: ["maurizio.morisio@teacher.it", "luigi.derussis@teacher.it"],
+    co_supervisors: [
+      "maurizio.morisio@teacher.it",
+      "luigi.derussis@teacher.it",
+    ],
     groups: ["SOFTENG"],
     keywords: ["SOFTWARE ENGINEERING", "SOFTWARE DEVELOPMENT"],
     types: ["EXPERIMENTAL", "RESEARCH"],
@@ -149,6 +152,13 @@ describe("Story 12: Archive Proposals", () => {
 
     // get all the proposals
     const proposals = (await getProposals()).body;
+    const single_proposal = (
+      await request(app)
+        .get(`/api/proposals/${inserted_proposal_id}`)
+        .expect(200)
+    ).body;
+    expect(single_proposal).toHaveProperty("id", inserted_proposal_id);
+    expect(single_proposal).toHaveProperty("archived", true);
     expect(proposals[0]).toHaveProperty("id", inserted_proposal_id);
     expect(proposals[0]).toHaveProperty("archived", true);
   });
@@ -286,6 +296,12 @@ describe("Story 12: Archive Proposals", () => {
 
     // the proposal should not be archived
     let proposals = (await getProposals()).body;
+    let single_proposal = (
+      await request(app)
+        .get(`/api/proposals/${inserted_proposal_id}`)
+        .expect(200)
+    ).body;
+    expect(single_proposal).toHaveProperty("archived", false);
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toHaveProperty("archived", false);
@@ -295,6 +311,12 @@ describe("Story 12: Archive Proposals", () => {
 
     // now the proposal should be archived
     proposals = (await getProposals()).body;
+    single_proposal = (
+      await request(app)
+        .get(`/api/proposals/${inserted_proposal_id}`)
+        .expect(200)
+    ).body;
+    expect(single_proposal).toHaveProperty("archived", true);
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toHaveProperty("archived", true);

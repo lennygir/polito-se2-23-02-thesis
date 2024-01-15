@@ -6,9 +6,15 @@ const { db } = require("./db");
 const { nodemailer } = require("./smtp");
 const { applicationDecisionTemplate } = require("./mail/application-decision");
 const { newApplicationTemplate } = require("./mail/new-application");
-const { supervisorStartRequestTemplate } = require("./mail/supervisor-start-request");
-const { cosupervisorApplicationDecisionTemplate } = require("./mail/cosupervisor-application-decision");
-const { cosupervisorStartRequestTemplate } = require("./mail/cosupervisor-start-request");
+const {
+  supervisorStartRequestTemplate,
+} = require("./mail/supervisor-start-request");
+const {
+  cosupervisorApplicationDecisionTemplate,
+} = require("./mail/cosupervisor-application-decision");
+const {
+  cosupervisorStartRequestTemplate,
+} = require("./mail/cosupervisor-start-request");
 
 exports.insertApplication = (proposal, student, state) => {
   const result = db
@@ -243,6 +249,20 @@ exports.cancelPendingApplications = (of_proposal) => {
   ).run(of_proposal);
 };
 
+exports.cancelPendingApplicationsOfStudent = (student_id) => {
+  db.prepare(
+    "update APPLICATIONS set state = 'canceled' where main.APPLICATIONS.student_id = ? and state = 'pending'",
+  ).run(student_id);
+};
+
+exports.getStartedThesisRequest = (student_id) => {
+  return db
+    .prepare(
+      "select * from main.START_REQUESTS where student_id = ? and status = 'started'",
+    )
+    .get(student_id);
+};
+
 exports.updateApplication = (id, state) => {
   db.prepare("update APPLICATIONS set state = ? where id = ?").run(state, id);
 };
@@ -317,8 +337,8 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
     mailBody.text,
   );
   // Notify the co-supervisors
-  if(applicationJoined.co_supervisors) {
-    for(const cosupervisor of applicationJoined.co_supervisors.split(', ')) {
+  if (applicationJoined.co_supervisors) {
+    for (const cosupervisor of applicationJoined.co_supervisors.split(", ")) {
       const fullCosupervisor = this.getTeacherByEmail(cosupervisor);
       // -- Email
       mailBody = cosupervisorApplicationDecisionTemplate({
@@ -355,7 +375,8 @@ exports.notifyNewStartRequest = async (requestId) => {
       FROM START_REQUESTS S
       JOIN TEACHER T ON T.id = S.supervisor
       WHERE S.id = ?`,
-    ).get(requestId);
+    )
+    .get(requestId);
   // Send email to the supervisor
   let mailBody = supervisorStartRequestTemplate({
     name: requestJoined.surname + " " + requestJoined.name,
@@ -379,7 +400,7 @@ exports.notifyNewStartRequest = async (requestId) => {
   ).run(requestJoined.supervisor, "New start request", mailBody.text);
 
   // Send email to the co-supervisors
-  if(requestJoined.co_supervisors) {
+  if (requestJoined.co_supervisors) {
     const coSupervisors = requestJoined.co_supervisors.split(", ");
     for (const coSupervisorEmail of coSupervisors) {
       const coSupervisor = this.getTeacherByEmail(coSupervisorEmail);
