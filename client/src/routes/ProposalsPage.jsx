@@ -12,7 +12,6 @@ import Fab from "@mui/material/Fab";
 import Hidden from "@mui/material/Hidden";
 import InputAdornment from "@mui/material/InputAdornment";
 import OutlinedInput from "@mui/material/OutlinedInput";
-import ScheduleSendIcon from "@mui/icons-material/ScheduleSend";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
@@ -119,11 +118,6 @@ function ProposalsPage(props) {
         <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
           Theses Proposals
         </Typography>
-        <Hidden smDown>
-          <Button component={Link} to="/add-request" variant="contained" sx={{ mr: 4 }} startIcon={<AddIcon />}>
-            Start Request
-          </Button>
-        </Hidden>
       </Stack>
       <Toolbar
         sx={{
@@ -168,18 +162,6 @@ function ProposalsPage(props) {
       </Toolbar>
       <ProposalTable data={filteredStudentProposals} getTeacherById={getTeacherById} applications={applications} />
       <Box height={5} marginTop={3} />
-      <Hidden smUp>
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="flex-end"
-          sx={{ position: "fixed", bottom: 24, right: 24 }}
-        >
-          <Fab component={Link} to="/add-request" aria-label="Add" color="primary">
-            <AddIcon />
-          </Fab>
-        </Stack>
-      </Hidden>
     </>
   );
 

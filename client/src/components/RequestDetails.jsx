@@ -8,7 +8,10 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import EditNotificationsIcon from "@mui/icons-material/EditNotifications";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
+import ModeEditIcon from "@mui/icons-material/ModeEdit";
+import ScheduleSendIcon from "@mui/icons-material/ScheduleSend";
 import ConfirmationDialog from "./ConfirmationDialog";
 import UserContext from "../contexts/UserContext";
 import { useThemeContext } from "../theme/ThemeContextProvider";
@@ -62,7 +65,7 @@ function RequestDetails(props) {
           return (
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <AccessTimeIcon color="info" />
-              <Typography variant="h6" fontWeight={700} style={{ color: theme.palette.info.main }}>
+              <Typography variant="h6" textAlign="center" fontWeight={700} style={{ color: theme.palette.info.main }}>
                 REQUEST APPROVED
               </Typography>
             </Box>
@@ -95,42 +98,62 @@ function RequestDetails(props) {
               </Button>
             </Stack>
           );
+        } else if (user.role === "student") {
+          return (
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <ScheduleSendIcon color="info" />
+              <Typography variant="h6" textAlign="center" fontWeight={700} style={{ color: theme.palette.info.main }}>
+                WAITING FOR SUPERVISOR APPROVAL
+              </Typography>
+            </Box>
+          );
         }
         break;
       case "requested":
-        return (
-          <Stack direction="row" spacing={3} sx={{ width: "100%" }}>
-            <Button
-              variant="outlined"
-              color="error"
-              fullWidth
-              sx={{ mt: 3, mb: 2 }}
-              onClick={() => {
-                setDecision("rejected");
-                handleOpenDialog();
-              }}
-            >
-              Reject
-            </Button>
-            <Button
-              variant="contained"
-              fullWidth
-              sx={{ mt: 3, mb: 2 }}
-              onClick={() => {
-                setDecision("approved");
-                handleOpenDialog();
-              }}
-            >
-              Approve
-            </Button>
-          </Stack>
-        );
+        if (user.role === "student") {
+          return (
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <ScheduleSendIcon color="info" />
+              <Typography variant="h6" textAlign="center" fontWeight={700} style={{ color: theme.palette.info.main }}>
+                WAITING FOR SECRETARY APPROVAL
+              </Typography>
+            </Box>
+          );
+        } else {
+          return (
+            <Stack direction="row" spacing={3} sx={{ width: "100%" }}>
+              <Button
+                variant="outlined"
+                color="error"
+                fullWidth
+                sx={{ mt: 3, mb: 2 }}
+                onClick={() => {
+                  setDecision("rejected");
+                  handleOpenDialog();
+                }}
+              >
+                Reject
+              </Button>
+              <Button
+                variant="contained"
+                fullWidth
+                sx={{ mt: 3, mb: 2 }}
+                onClick={() => {
+                  setDecision("approved");
+                  handleOpenDialog();
+                }}
+              >
+                Approve
+              </Button>
+            </Stack>
+          );
+        }
       case "rejected":
         return (
           <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <HighlightOffIcon color="error" />
-            <Typography variant="h6" fontWeight={700} style={{ color: theme.palette.error.main }}>
-              REQUEST REJECTED
+            <Typography variant="h6" textAlign="center" fontWeight={700} style={{ color: theme.palette.error.main }}>
+              {user.role === "student" ? "REQUEST REJECTED. YOU CAN NOW SUBMIT A NEW REQUEST." : "REQUEST REJECTED"}
             </Typography>
           </Box>
         );
@@ -138,10 +161,26 @@ function RequestDetails(props) {
         return (
           <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <CheckCircleOutlineIcon color="success" />
-            <Typography variant="h6" fontWeight={700} style={{ color: theme.palette.success.main }}>
-              REQUEST STARTED
+            <Typography variant="h6" textAlign="center" fontWeight={700} style={{ color: theme.palette.success.main }}>
+              THESIS STARTED
             </Typography>
           </Box>
+        );
+      case "changes_requested":
+        return (
+          user.role === "student" && (
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <EditNotificationsIcon color="warning" />
+              <Typography
+                variant="h6"
+                textAlign="center"
+                fontWeight={700}
+                style={{ color: theme.palette.warning.main }}
+              >
+                CHANGES REQUESTED BY SUPERVISOR
+              </Typography>
+            </Box>
+          )
         );
       default:
         break;
@@ -150,23 +189,27 @@ function RequestDetails(props) {
 
   return (
     <>
-      <ConfirmationDialog
-        title="Confirm Decision"
-        message={dialogMessage}
-        primaryButtonLabel="Submit"
-        secondaryButtonLabel="Cancel"
-        open={openDialog}
-        handleClose={handleCloseDialog}
-        handleSubmit={handleDecisionSubmit}
-      />
-      <Typography variant="h5" gutterBottom paddingTop={2}>
-        Student information
-      </Typography>
-      <Divider variant="middle" />
-      <Typography variant="body1" gutterBottom paddingTop={2}>
-        <span style={{ fontWeight: "bold" }}>Student ID: </span>
-        {request.student_id}
-      </Typography>
+      {user.role !== "student" && (
+        <>
+          <ConfirmationDialog
+            title="Confirm Decision"
+            message={dialogMessage}
+            primaryButtonLabel="Submit"
+            secondaryButtonLabel="Cancel"
+            open={openDialog}
+            handleClose={handleCloseDialog}
+            handleSubmit={handleDecisionSubmit}
+          />
+          <Typography variant="h5" gutterBottom paddingTop={2}>
+            Student information
+          </Typography>
+          <Divider variant="middle" />
+          <Typography variant="body1" gutterBottom paddingTop={2}>
+            <span style={{ fontWeight: "bold" }}>Student ID: </span>
+            {request.student_id}
+          </Typography>
+        </>
+      )}
 
       <Typography variant="h5" gutterBottom paddingTop={2}>
         Supervisors
@@ -184,24 +227,36 @@ function RequestDetails(props) {
       )}
 
       <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
-        Thesis Request
+        Thesis Details
       </Typography>
       <Divider variant="middle" />
       <Typography variant="body1" gutterBottom paddingTop={2}>
         <span style={{ fontWeight: "bold" }}>Title: </span>
         {request.title}
       </Typography>
-      <Typography variant="body1" gutterBottom>
-        <span style={{ fontWeight: "bold" }}>Description: </span>
-        {showMore ? `${request.description} ` : `${request.description.substring(0, 250)}... `}
-        <Link component="button" variant="body2" onClick={() => setShowMore(!showMore)}>
-          {showMore ? "Show less" : "Show more"}
-        </Link>
-      </Typography>
-
-      <Box paddingTop={4} sx={{ display: "flex", justifyContent: "center" }}>
+      {request.description.length > 250 ? (
+        <Typography variant="body1" gutterBottom>
+          <span style={{ fontWeight: "bold" }}>Description: </span>
+          {showMore ? `${request.description} ` : `${request.description.substring(0, 250)}... `}
+          <Link component="button" variant="body2" onClick={() => setShowMore(!showMore)}>
+            {showMore ? "Show less" : "Show more"}
+          </Link>
+        </Typography>
+      ) : (
+        <Typography variant="body1" gutterBottom>
+          <span style={{ fontWeight: "bold" }}>Description: </span>
+          {request.description}
+        </Typography>
+      )}
+      <Box paddingTop={1} sx={{ display: "flex", justifyContent: "center" }}>
         {renderActions()}
       </Box>
+      {user.role === "student" && request.status === "changes_requested" && (
+        <Typography variant="body1" gutterBottom paddingTop={2}>
+          <span style={{ fontWeight: "bold" }}>Message from supervisor: </span>
+          {request.changes_requested}
+        </Typography>
+      )}
     </>
   );
 }

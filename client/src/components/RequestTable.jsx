@@ -34,6 +34,8 @@ function RequestTable(props) {
   const renderHeaders = () => {
     if (user.role === "teacher") {
       return HEADERS.filter((header) => header !== "Supervisor");
+    } else if (user.role === "student") {
+      return HEADERS.filter((header) => header !== "Student");
     } else {
       return HEADERS;
     }

@@ -38,8 +38,8 @@ function RequestRow(props) {
 
   return (
     <TableRow>
-      <TableCell>{request.student_id}</TableCell>
-      {user.role === "secretary_clerk" && <TableCell>{renderSupervisor()}</TableCell>}
+      {user.role !== "student" && <TableCell>{request.student_id}</TableCell>}
+      {user.role !== "teacher" && <TableCell>{renderSupervisor()}</TableCell>}
       <TableCell
         sx={{
           maxWidth: "30vw",

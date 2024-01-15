@@ -34,7 +34,7 @@ const sidebarTabs = [
   },
   {
     id: "requests",
-    label: "Requests",
+    label: "Start Requests",
     icon: <ApprovalIcon color="primary" />,
     path: "/requests"
   },
@@ -63,7 +63,7 @@ function Sidebar(props) {
     let tabs = [];
     switch (user.role) {
       case "student":
-        tabs = sidebarTabs.filter((tab) => tab.id !== "requests");
+        tabs = sidebarTabs.map((tab) => (tab.id === "requests" ? { ...tab, label: "Start Request" } : tab));
         break;
       case "teacher":
         tabs = sidebarTabs;
