@@ -766,7 +766,7 @@ router.put(
   check("expiration_date").isISO8601().toDate(),
   check("level").isString().isLength({ min: 3, max: 3 }),
   check("cds").isString(),
-  (req, res) => {
+  async (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
         return res.status(400).json({ message: "Invalid proposal content" });
@@ -840,7 +840,7 @@ router.put(
         level: level,
         cds: cds,
       };
-      notifyRemovedCosupervisors(proposal, newProposal);
+      await notifyRemovedCosupervisors(proposal, newProposal);
       updateProposal(newProposal);
       return res.status(200).json({ message: "Proposal updated successfully" });
     } catch (e) {

@@ -651,8 +651,8 @@ exports.isAccepted = (proposal_id, student_id) => {
 };
 
 exports.notifyRemovedCosupervisors = async (oldProposal, newProposal) => {
-  const oldCosupervisors = oldProposal.co_supervisors?.split(", ");
-  const newCosupervisors = newProposal.co_supervisors?.split(", ");
+  const oldCosupervisors = (oldProposal.co_supervisors || "").split(", ");
+  const newCosupervisors = (newProposal.co_supervisors || []);
   if(oldCosupervisors && newCosupervisors) {
     const removedCosupervisors = oldCosupervisors.filter((cosupervisor) => {
       return !newCosupervisors.includes(cosupervisor);
