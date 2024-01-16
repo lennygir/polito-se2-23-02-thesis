@@ -51,6 +51,7 @@ const {
   getAcceptedProposal,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
+const { runCronjob, cronjobNames } = require("./cronjobs");
 
 function getDate() {
   const clock = getDelta();
@@ -887,6 +888,7 @@ router.patch(
         return res.status(400).json({ message: "Cannot go back in the past" });
       }
       setDelta(newDelta);
+      runCronjob(cronjobNames.THESIS_EXPIRED);
       return res.status(200).json({ message: "Date successfully changed" });
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });

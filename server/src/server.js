@@ -5,6 +5,7 @@ const session = require("express-session");
 const passport = require("passport");
 require("./passport");
 const { router } = require("./routes");
+const { initCronjobs } = require("./cronjobs");
 
 const app = new express();
 
@@ -14,6 +15,8 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
+
+initCronjobs();
 
 app.use(
   session({
