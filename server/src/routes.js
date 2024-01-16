@@ -146,6 +146,11 @@ function validateProposal(res, proposal, user) {
   if (!groups.every((group) => legal_groups.includes(group))) {
     throw new Error("Invalid groups");
   }
+  if (co_supervisors.includes(user.email)) {
+    throw new Error(
+      "The supervisor's email is included in the list of co-supervisors",
+    );
+  }
 }
 
 async function setStateToApplication(req, res, state) {
