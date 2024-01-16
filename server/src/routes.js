@@ -51,6 +51,7 @@ const {
   getAcceptedProposal,
   getStartedThesisRequest,
   cancelPendingApplicationsOfStudent,
+  notifyRemovedCosupervisors,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 const { runCronjob, cronjobNames } = require("./cronjobs");
@@ -765,7 +766,7 @@ router.put(
   check("expiration_date").isISO8601().toDate(),
   check("level").isString().isLength({ min: 3, max: 3 }),
   check("cds").isString(),
-  (req, res) => {
+  async (req, res) => {
     try {
       if (!validationResult(req).isEmpty()) {
         return res.status(400).json({ message: "Invalid proposal content" });
@@ -824,7 +825,7 @@ router.put(
           message: e.message,
         });
       }
-      updateProposal({
+      const newProposal = {
         proposal_id: proposal_id,
         title: title,
         supervisor: user.id,
@@ -838,7 +839,9 @@ router.put(
         expiration_date: dayjs(expiration_date).format("YYYY-MM-DD"),
         level: level,
         cds: cds,
-      });
+      };
+      await notifyRemovedCosupervisors(proposal, newProposal);
+      updateProposal(newProposal);
       return res.status(200).json({ message: "Proposal updated successfully" });
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });

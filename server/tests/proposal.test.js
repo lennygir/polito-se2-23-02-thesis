@@ -28,6 +28,7 @@ const {
   getAcceptedApplicationsOfStudent,
   getRequestsForClerk,
   getProposalsThatExpireInXDays,
+  notifyRemovedCosupervisors,
 } = require("../src/theses-dao");
 
 const dayjs = require("dayjs");
@@ -960,5 +961,64 @@ describe("Cronjobs", () => {
       }
     ]);
     await runCronjob(cronjobNames.THESIS_EXPIRED);
+  });
+});
+
+describe("PUT /api/proposals/:id", () => {
+  test("Remove a co supervisor", async () => {
+
+    const originalModule = jest.requireActual("../src/theses-dao");
+    notifyRemovedCosupervisors.mockImplementation(originalModule.notifyRemovedCosupervisors);
+
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "maurizio.morisio@teacher.it",
+      };
+      next();
+    });
+
+    const proposal = {
+      id: 1,
+      title: "test",
+      description: "desc test",
+      supervisor: "s234567",
+      co_supervisors: "marco.torchiano@teacher.it",
+      keywords: ["keyword1", "keyword2"],
+      groups: ["SOFTENG"],
+      types: ["EXPERIMENTAL"],
+      required_knowledge: "required knowledge",
+      notes: "notes",
+      expiration_date: "2021-01-01",
+      level: "MSC",
+      cds: "LM-32 (DM270)",
+      manually_archived: 0,
+      deleted: 0
+    };
+
+    const modifiedProposal = {
+      id: 1,
+      title: "test",
+      description: "desc test",
+      co_supervisors: [],
+      keywords: ["keyword1", "keyword2"],
+      groups: [],
+      types: ["EXPERIMENTAL"],
+      required_knowledge: "required knowledge",
+      notes: "notes",
+      expiration_date: "2021-01-01",
+      level: "MSC",
+      cds: "LM-32 (DM270)"
+    };
+
+    getProposal.mockReturnValue(proposal);
+
+    const requests = (
+      await request(app)
+        .put("/api/proposals/1")
+        .set("Content-Type", "application/json")
+        .send(modifiedProposal)
+        .expect(200)
+    );
+    expect(requests.body).toEqual({ message: "Proposal updated successfully" });
   });
 });

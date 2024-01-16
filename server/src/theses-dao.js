@@ -6,17 +6,13 @@ const { db } = require("./db");
 const { nodemailer } = require("./smtp");
 const { applicationDecisionTemplate } = require("./mail/application-decision");
 const { newApplicationTemplate } = require("./mail/new-application");
-const {
-  supervisorStartRequestTemplate,
-} = require("./mail/supervisor-start-request");
-const {
-  cosupervisorApplicationDecisionTemplate,
-} = require("./mail/cosupervisor-application-decision");
-const {
-  cosupervisorStartRequestTemplate,
-} = require("./mail/cosupervisor-start-request");
+
 const dayjs = require("dayjs");
 const { proposalExpirationTemplate } = require("./mail/proposal-expiration");
+const { supervisorStartRequestTemplate } = require("./mail/supervisor-start-request");
+const { cosupervisorApplicationDecisionTemplate } = require("./mail/cosupervisor-application-decision");
+const { cosupervisorStartRequestTemplate } = require("./mail/cosupervisor-start-request");
+const { removedCosupervisorTemplate } = require("./mail/removed-cosupervisor");
 
 exports.insertApplication = (proposal, student, state) => {
   const result = db
@@ -652,6 +648,42 @@ exports.isAccepted = (proposal_id, student_id) => {
     )
     .get(proposal_id, student_id);
   return accepted_proposal !== undefined;
+};
+
+exports.notifyRemovedCosupervisors = async (oldProposal, newProposal) => {
+  const oldCosupervisors = (oldProposal.co_supervisors || "").split(", ");
+  const newCosupervisors = (newProposal.co_supervisors || []);
+  if(oldCosupervisors && newCosupervisors) {
+    const removedCosupervisors = oldCosupervisors.filter((cosupervisor) => {
+      return !newCosupervisors.includes(cosupervisor);
+    });
+    for(let cosupervisorEmail of removedCosupervisors) {
+      const teacher = this.getTeacherByEmail(cosupervisorEmail);
+      // -- Email
+      const mailBody = removedCosupervisorTemplate({
+        name: teacher.surname + " " + teacher.name,
+        proposal: newProposal
+      });
+      try {
+        await nodemailer.sendMail({
+          to: cosupervisorEmail,
+          subject: "You have been removed from a thesis proposal",
+          text: mailBody.text,
+          html: mailBody.html,
+        });
+      } catch (e) {
+        console.log("[mail service]", e);
+      }
+      // -- Website notification
+      db.prepare(
+        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+      ).run(
+        teacher.id,
+        "You have been removed from a thesis proposal",
+        mailBody.text,
+      );
+    }
+  }
 };
 
 exports.updateProposal = (proposal) => {
