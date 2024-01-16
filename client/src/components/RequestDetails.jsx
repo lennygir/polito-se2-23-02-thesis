@@ -10,7 +10,6 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import EditNotificationsIcon from "@mui/icons-material/EditNotifications";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
-import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import ScheduleSendIcon from "@mui/icons-material/ScheduleSend";
 import ConfirmationDialog from "./ConfirmationDialog";
 import UserContext from "../contexts/UserContext";
@@ -61,6 +60,7 @@ function RequestDetails(props) {
     const status = requests.find((req) => req.id === request.id).status;
     switch (status) {
       case "secretary_accepted":
+      case "changed":
         if (user.role === "secretary_clerk") {
           return (
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>

@@ -93,7 +93,9 @@ function ViewRequestPage(props) {
           Back
         </Button>
         {user.role === "teacher" &&
-          (request.status === "secretary_accepted" || request.status === "changes_requested") && (
+          (request.status === "secretary_accepted" ||
+            request.status === "changes_requested" ||
+            request.status === "changed") && (
             <Button
               disabled={request.status === "changes_requested"}
               variant="contained"
@@ -108,7 +110,7 @@ function ViewRequestPage(props) {
       <Typography variant="h4" sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}>
         Request Details
       </Typography>
-      {request.status === "changes_requested" && (
+      {(request.status === "changes_requested" || request.status === "changed") && (
         <Paper elevation={1} sx={{ mb: 3, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
           <Stack
             paddingX={5}
@@ -122,7 +124,11 @@ function ViewRequestPage(props) {
               <span style={{ fontWeight: "bold" }}>Changes requested: </span>
               {request.changes_requested}
             </Typography>
-            <Chip label="WAITING FOR CHANGES" size="small" color="info" />
+            <Chip
+              label={request.status === "changes_requested" ? "WAITING FOR CHANGES" : "CHANGES MADE"}
+              size="small"
+              color={request.status === "changes_requested" ? "info" : "success"}
+            />
           </Stack>
         </Paper>
       )}
