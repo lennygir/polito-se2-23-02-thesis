@@ -44,7 +44,7 @@ function Navbar(props) {
           onClick={handleDrawerToggle}
           sx={{ mr: 1, display: { sm: "none" } }}
         >
-          <MenuIcon />
+          <MenuIcon color="white" />
         </IconButton>
 
         <ButtonDatePicker
