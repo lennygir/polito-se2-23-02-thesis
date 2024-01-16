@@ -49,6 +49,8 @@ const {
   getRequestsForStudent,
   isAccepted,
   getAcceptedProposal,
+  getStartedThesisRequest,
+  cancelPendingApplicationsOfStudent,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 const { runCronjob, cronjobNames } = require("./cronjobs");
@@ -375,6 +377,7 @@ router.patch("/api/start-requests/:thesisRequestId", isLoggedIn, (req, res) => {
 
     if (new_status === "started") {
       setApprovalDateOfRequest(getDate(), request.id);
+      cancelPendingApplicationsOfStudent(request.student_id);
     } else if (new_status === "changes_requested") {
       setChangesRequestedOfStartRequest(message, request.id);
     }
@@ -535,6 +538,11 @@ router.post(
       if (getAcceptedApplicationsOfStudent(user.id).length !== 0) {
         return res.status(400).json({
           message: `The student ${user.id} has an accepted proposal`,
+        });
+      }
+      if (getStartedThesisRequest(user.id) !== undefined) {
+        return res.status(400).json({
+          message: `The student ${user.id} has already started a thesis`,
         });
       }
       let pendingApplicationsOfStudent = getPendingApplicationsOfStudent(

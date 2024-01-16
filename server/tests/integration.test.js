@@ -152,6 +152,13 @@ describe("Story 12: Archive Proposals", () => {
 
     // get all the proposals
     const proposals = (await getProposals()).body;
+    const single_proposal = (
+      await request(app)
+        .get(`/api/proposals/${inserted_proposal_id}`)
+        .expect(200)
+    ).body;
+    expect(single_proposal).toHaveProperty("id", inserted_proposal_id);
+    expect(single_proposal).toHaveProperty("archived", true);
     expect(proposals[0]).toHaveProperty("id", inserted_proposal_id);
     expect(proposals[0]).toHaveProperty("archived", true);
   });
@@ -289,6 +296,12 @@ describe("Story 12: Archive Proposals", () => {
 
     // the proposal should not be archived
     let proposals = (await getProposals()).body;
+    let single_proposal = (
+      await request(app)
+        .get(`/api/proposals/${inserted_proposal_id}`)
+        .expect(200)
+    ).body;
+    expect(single_proposal).toHaveProperty("archived", false);
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toHaveProperty("archived", false);
@@ -298,6 +311,12 @@ describe("Story 12: Archive Proposals", () => {
 
     // now the proposal should be archived
     proposals = (await getProposals()).body;
+    single_proposal = (
+      await request(app)
+        .get(`/api/proposals/${inserted_proposal_id}`)
+        .expect(200)
+    ).body;
+    expect(single_proposal).toHaveProperty("archived", true);
     expect(
       proposals.find((proposal) => proposal.id === inserted_proposal_id),
     ).toHaveProperty("archived", true);
@@ -1293,6 +1312,50 @@ describe("Delete proposals", () => {
 });
 
 describe("Story 28: the professor evaluates student request", () => {
+  it("A student that has a thesis request started should have its pending applications canceled", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
+
+    logIn("s309618@studenti.polito.it");
+    const application = (await applyForProposal(inserted_proposal_id)).body;
+
+    const thesis_request_id = (await startRequest(start_request)).body;
+
+    logIn("laura.ferrari@example.com");
+    await approveRequest(thesis_request_id);
+
+    logIn("marco.torchiano@teacher.it");
+    await approveRequest(thesis_request_id);
+
+    // now the request should be started, so the student's pending applications should be canceled
+    logIn("s309618@studenti.polito.it");
+    const applications = (await getApplications()).body;
+    expect(applications[0]).toHaveProperty("id", application.application_id);
+    expect(applications[0]).toHaveProperty("state", "canceled");
+  });
+  it("A student that has a thesis request started shouldn't be able to apply for any proposal", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
+
+    logIn("s309618@studenti.polito.it");
+    const thesis_request_id = (await startRequest(start_request)).body;
+
+    logIn("laura.ferrari@example.com");
+    await approveRequest(thesis_request_id);
+
+    logIn("marco.torchiano@teacher.it");
+    await approveRequest(thesis_request_id);
+
+    // now the request should be started, so the student shouldn't be able to apply for a proposal
+    logIn("s309618@studenti.polito.it");
+    const response = await applyForProposal(inserted_proposal_id);
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      message: `The student s309618 has already started a thesis`,
+    });
+  });
   it("The professor accepts without requesting changes", async () => {
     start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
     logIn("s309618@studenti.polito.it");

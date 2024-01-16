@@ -6,9 +6,15 @@ const { db } = require("./db");
 const { nodemailer } = require("./smtp");
 const { applicationDecisionTemplate } = require("./mail/application-decision");
 const { newApplicationTemplate } = require("./mail/new-application");
-const { supervisorStartRequestTemplate } = require("./mail/supervisor-start-request");
-const { cosupervisorApplicationDecisionTemplate } = require("./mail/cosupervisor-application-decision");
-const { cosupervisorStartRequestTemplate } = require("./mail/cosupervisor-start-request");
+const {
+  supervisorStartRequestTemplate,
+} = require("./mail/supervisor-start-request");
+const {
+  cosupervisorApplicationDecisionTemplate,
+} = require("./mail/cosupervisor-application-decision");
+const {
+  cosupervisorStartRequestTemplate,
+} = require("./mail/cosupervisor-start-request");
 const dayjs = require("dayjs");
 const { proposalExpirationTemplate } = require("./mail/proposal-expiration");
 
@@ -245,6 +251,20 @@ exports.cancelPendingApplications = (of_proposal) => {
   ).run(of_proposal);
 };
 
+exports.cancelPendingApplicationsOfStudent = (student_id) => {
+  db.prepare(
+    "update APPLICATIONS set state = 'canceled' where main.APPLICATIONS.student_id = ? and state = 'pending'",
+  ).run(student_id);
+};
+
+exports.getStartedThesisRequest = (student_id) => {
+  return db
+    .prepare(
+      "select * from main.START_REQUESTS where student_id = ? and status = 'started'",
+    )
+    .get(student_id);
+};
+
 exports.updateApplication = (id, state) => {
   db.prepare("update APPLICATIONS set state = ? where id = ?").run(state, id);
 };
@@ -285,11 +305,11 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
   // Retrieve the data
   const applicationJoined = db
     .prepare(
-      "SELECT S.id, P.title, P.co_supervisors, S.email, S.surname, S.name \
-    FROM APPLICATIONS A \
-    JOIN PROPOSALS P ON P.id = A.proposal_id \
-    JOIN STUDENT S ON S.id = A.student_id \
-    WHERE A.id = ?",
+      `SELECT S.id, P.title, P.co_supervisors, S.email, S.surname, S.name
+    FROM APPLICATIONS A
+    JOIN PROPOSALS P ON P.id = A.proposal_id
+    JOIN STUDENT S ON S.id = A.student_id
+    WHERE A.id = ?`,
     )
     .get(applicationId);
   let mailBody;
@@ -450,7 +470,7 @@ exports.notifyProposalExpiration = async (proposal) => {
     name: proposal.teacher_surname + " " + proposal.teacher_name,
     thesis: proposal.title,
     nbOfDays: 7,
-    date: dayjs(proposal.expiration_date).format("DD/MM/YYYY")
+    date: dayjs(proposal.expiration_date).format("DD/MM/YYYY"),
   });
   try {
     await nodemailer.sendMail({
@@ -466,11 +486,7 @@ exports.notifyProposalExpiration = async (proposal) => {
   // Save email in DB
   db.prepare(
     "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
-  ).run(
-    proposal.supervisor,
-    "Your proposal expires in 7 days",
-    mailBody.text,
-  );
+  ).run(proposal.supervisor, "Your proposal expires in 7 days", mailBody.text);
 };
 
 /**
@@ -517,19 +533,21 @@ exports.getApplicationsOfTeacher = (teacher_id) => {
 /**
  * @param nbOfDaysBeforeExpiration
  * @returns {[
-  *   {
-  *     supervisor,
-  *     expiration_date,
-  *     title
-  *   }
-  * ]}
-  */
- exports.getProposalsThatExpireInXDays = (nbOfDaysBeforeExpiration) => {
-  const currentDate = dayjs().add(getDelta().delta, 'day');  
-  const notificationDateFormatted = currentDate.add(nbOfDaysBeforeExpiration, 'day').format('YYYY-MM-DD');
-   return db
-     .prepare(
-       `select supervisor, 
+ *   {
+ *     supervisor,
+ *     expiration_date,
+ *     title
+ *   }
+ * ]}
+ */
+exports.getProposalsThatExpireInXDays = (nbOfDaysBeforeExpiration) => {
+  const currentDate = dayjs().add(getDelta().delta, "day");
+  const notificationDateFormatted = currentDate
+    .add(nbOfDaysBeforeExpiration, "day")
+    .format("YYYY-MM-DD");
+  return db
+    .prepare(
+      `select supervisor, 
           t.surname as teacher_surname,
           t.email as teacher_email,
           t.name as teacher_name,
@@ -538,9 +556,9 @@ exports.getApplicationsOfTeacher = (teacher_id) => {
         from PROPOSALS p
           join TEACHER t on p.supervisor = t.id
         where expiration_date = ?`,
-     )
-     .all(notificationDateFormatted);
- };
+    )
+    .all(notificationDateFormatted);
+};
 
 exports.getApplicationsOfStudent = (student_id) => {
   return db
