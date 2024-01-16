@@ -23,6 +23,7 @@ import ErrorContext from "../contexts/ErrorContext";
 import UserContext from "../contexts/UserContext";
 import { TEACHER_PROPOSALS_FILTERS, TEACHER_HEADERS_ACTIVE, TEACHER_HEADERS_EXPIRED } from "../utils/constants";
 import API from "../utils/API";
+import EmptyTable from "../components/EmptyTable";
 
 function ProposalsPage(props) {
   const { setAlert, setDirty, currentDate, proposals, applications, teachers, groups, getTeacherById } = props;
@@ -163,7 +164,11 @@ function ProposalsPage(props) {
           />
         </Card>
       </Toolbar>
-      <ProposalTable data={filteredStudentProposals} getTeacherById={getTeacherById} applications={applications} />
+      {filteredStudentProposals.length > 0 ? (
+        <ProposalTable data={filteredStudentProposals} getTeacherById={getTeacherById} applications={applications} />
+      ) : (
+        <EmptyTable data="proposals" />
+      )}
       <Box height={5} marginTop={3} />
     </>
   );
@@ -306,17 +311,21 @@ function ProposalsPage(props) {
           />
         )}
       </Stack>
-      <ProposalTable
-        headers={selectedTeacherFilter === "active" ? TEACHER_HEADERS_ACTIVE : TEACHER_HEADERS_EXPIRED}
-        data={filteredTeacherProposals}
-        deleteProposal={deleteProposal}
-        archiveProposal={archiveProposal}
-        teacherFilter={selectedTeacherFilter}
-        applications={applications}
-        currentDate={currentDate}
-        selectedTeacherFilter={selectedTeacherFilter}
-        viewAsCosupervisorOn={viewAsCosupervisorOn}
-      />
+      {filteredTeacherProposals.length > 0 ? (
+        <ProposalTable
+          headers={selectedTeacherFilter === "active" ? TEACHER_HEADERS_ACTIVE : TEACHER_HEADERS_EXPIRED}
+          data={filteredTeacherProposals}
+          deleteProposal={deleteProposal}
+          archiveProposal={archiveProposal}
+          teacherFilter={selectedTeacherFilter}
+          applications={applications}
+          currentDate={currentDate}
+          selectedTeacherFilter={selectedTeacherFilter}
+          viewAsCosupervisorOn={viewAsCosupervisorOn}
+        />
+      ) : (
+        <EmptyTable data="proposals" />
+      )}
       <Box height={5} marginTop={3} />
       <Hidden smUp>
         <Stack

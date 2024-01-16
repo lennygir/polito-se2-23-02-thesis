@@ -22,6 +22,7 @@ import ScheduleSendIcon from "@mui/icons-material/ScheduleSend";
 import RequestTable from "../components/RequestTable";
 import UserContext from "../contexts/UserContext";
 import RequestDetails from "../components/RequestDetails";
+import EmptyTable from "../components/EmptyTable";
 
 const infoMessage =
   "In order to start your thesis activity, you must submit a formal request. You can either create a thesis start request from this page after having discussed the topic with your supervisors, or you can create one from an accepted application in the application page.";
@@ -127,6 +128,28 @@ function RequestsPage(props) {
     setViewAsCosupervisorOn(event.target.checked);
   };
 
+  const renderTable = () => {
+    if (user.role === "teacher") {
+      if (filteredTeacherRequests.length > 0) {
+        return (
+          <RequestTable
+            requests={filteredTeacherRequests}
+            teachers={teachers}
+            viewAsCosupervisorOn={viewAsCosupervisorOn}
+          />
+        );
+      } else {
+        return <EmptyTable data="thesis start requests" />;
+      }
+    } else if (user.role === "secretary_clerk") {
+      if (requests.length > 0) {
+        return <RequestTable requests={requests} teachers={teachers} viewAsCosupervisorOn={viewAsCosupervisorOn} />;
+      } else {
+        return <EmptyTable data="thesis start requests" />;
+      }
+    }
+  };
+
   return (
     <div id="requests-page">
       <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -185,13 +208,7 @@ function RequestsPage(props) {
           />
         </Stack>
       )}
-      {user.role !== "student" && (
-        <RequestTable
-          requests={user.role === "teacher" ? filteredTeacherRequests : requests}
-          teachers={teachers}
-          viewAsCosupervisorOn={viewAsCosupervisorOn}
-        />
-      )}
+      {user.role !== "student" && renderTable()}
       <Box height={5} marginTop={3} />
       {user.role === "student" && (
         <Hidden smUp>
