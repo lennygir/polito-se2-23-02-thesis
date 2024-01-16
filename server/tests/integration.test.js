@@ -531,7 +531,33 @@ it("CRUD on proposal", async () => {
   });
 });
 
+describe("Proposal update tests", () => {
+  it("Update of a proposal with the supervisor in the list of co-supervisors", async () => {
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
+    proposal.co_supervisors.push("marco.torchiano@teacher.it");
+    const response = await modifyProposal(inserted_proposal_id, proposal);
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      message:
+        "The supervisor's email is included in the list of co-supervisors",
+    });
+  });
+});
+
 describe("Proposal insertion tests", () => {
+  it("Insertion of a proposal with the supervisor in the list of co-supervisors", async () => {
+    logIn("marco.torchiano@teacher.it");
+    proposal.co_supervisors.push("marco.torchiano@teacher.it");
+    const response = await insertProposal(proposal);
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      message:
+        "The supervisor's email is included in the list of co-supervisors",
+    });
+    const returned_proposals = (await getProposals()).body;
+    expect(returned_proposals).toHaveLength(0);
+  });
   it("Insertion of a proposal with no notes", async () => {
     proposal.notes = null;
 
@@ -698,6 +724,9 @@ describe("Proposal expiration tests (no virtual clock)", () => {
 
     // the professor inserts a proposal
     logIn("maurizio.morisio@teacher.it");
+    proposal.co_supervisors = proposal.co_supervisors.filter(
+      (co_supervisor) => co_supervisor !== "maurizio.morisio@teacher.it",
+    );
     const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // the student applies for the proposal
@@ -714,6 +743,9 @@ describe("Proposal expiration tests (no virtual clock)", () => {
     logIn("luigi.derussis@teacher.it");
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
     proposal.groups = ["ELITE"];
+    proposal.co_supervisors = proposal.co_supervisors.filter(
+      (co_supervisor) => co_supervisor !== "luigi.derussis@teacher.it",
+    );
     const notExpiredProposalId = (await insertProposal(proposal)).body;
 
     // the same student, now that the previous proposal is expired, can apply to another proposal
@@ -775,6 +807,9 @@ describe("Proposal expiration tests (no virtual clock)", () => {
 
     // the professor inserts a proposal
     logIn("maurizio.morisio@teacher.it");
+    proposal.co_supervisors = proposal.co_supervisors.filter(
+      (co_supervisor) => co_supervisor !== "maurizio.morisio@teacher.it",
+    );
     const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // the proposal expires
