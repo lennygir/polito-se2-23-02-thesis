@@ -521,6 +521,16 @@ describe("Proposal insertion tests", () => {
     expect(response.status).toBe(200);
     expect(response.body).toBeDefined();
   });
+  it("Insertion of a proposal with no keywords", async () => {
+    logIn("marco.torchiano@teacher.it");
+    const response = await request(app)
+      .post("/api/proposals")
+      .send({
+        ...proposal,
+        keywords: null,
+      });
+    expect(response.status).toBe(200);
+  });
   it("Insertion with an invalid date", async () => {
     proposal.expiration_date = "0";
 
