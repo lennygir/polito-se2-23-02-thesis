@@ -11,7 +11,7 @@ import FileOpenIcon from "@mui/icons-material/FileOpen";
 import UserContext from "../contexts/UserContext";
 
 function RequestRow(props) {
-  const { request, teachers } = props;
+  const { request, teachers, viewAsCosupervisorOn } = props;
   const user = useContext(UserContext);
 
   const renderStatus = () => {
@@ -58,7 +58,11 @@ function RequestRow(props) {
       <TableCell align="center">{renderStatus()}</TableCell>
       <TableCell align="center">
         <Tooltip title="View request">
-          <IconButton component={NavLink} to={"/requests/" + request.id} state={{ request: request }}>
+          <IconButton
+            component={NavLink}
+            to={"/requests/" + request.id}
+            state={{ request: request, viewAsCosupervisorOn: viewAsCosupervisorOn }}
+          >
             <FileOpenIcon />
           </IconButton>
         </Tooltip>
@@ -69,7 +73,8 @@ function RequestRow(props) {
 
 RequestRow.propTypes = {
   request: PropTypes.object,
-  teachers: PropTypes.array
+  teachers: PropTypes.array,
+  viewAsCosupervisorOn: PropTypes.bool
 };
 
 export default RequestRow;

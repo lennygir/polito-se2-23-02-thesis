@@ -26,6 +26,7 @@ function ViewRequestPage(props) {
   const [changesError, setChangesError] = useState("");
   const [openChangesDialog, setOpenChangesDialog] = useState(false);
   const [request, setRequest] = useState(location.state?.request);
+  const viewAsCosupervisorOn = location.state?.viewAsCosupervisorOn;
 
   const evaluateRequest = async (req) => {
     try {
@@ -93,6 +94,7 @@ function ViewRequestPage(props) {
           Back
         </Button>
         {user.role === "teacher" &&
+          !viewAsCosupervisorOn &&
           (request.status === "secretary_accepted" ||
             request.status === "changes_requested" ||
             request.status === "changed") && (
@@ -134,7 +136,12 @@ function ViewRequestPage(props) {
       )}
       <Paper elevation={1} sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
-          <RequestDetails request={request} evaluateRequest={evaluateRequest} requests={requests} />
+          <RequestDetails
+            request={request}
+            evaluateRequest={evaluateRequest}
+            requests={requests}
+            viewAsCosupervisorOn={viewAsCosupervisorOn}
+          />
         </Box>
       </Paper>
       <Box height={3} />

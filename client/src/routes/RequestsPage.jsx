@@ -1,7 +1,21 @@
 import PropTypes from "prop-types";
 import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
-import { Alert, Box, Button, Fab, Hidden, Paper, Stack, Step, StepLabel, Stepper, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Fab,
+  FormControlLabel,
+  Hidden,
+  Paper,
+  Stack,
+  Step,
+  StepLabel,
+  Stepper,
+  Switch,
+  Typography
+} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import ScheduleSendIcon from "@mui/icons-material/ScheduleSend";
@@ -19,6 +33,7 @@ function RequestsPage(props) {
   const user = useContext(UserContext);
 
   const [lastActiveStep, setLastActiveStep] = useState(-1);
+  const [viewAsCosupervisorOn, setViewAsCosupervisorOn] = useState(false);
 
   const getLastRequest = () => {
     const lastRequest = requests[requests.length - 1];
@@ -97,6 +112,21 @@ function RequestsPage(props) {
     }
   };
 
+  const isTeacherSupervisor = (request) => request.supervisor === user.email;
+  const isTeacherCoSupervisor = (request) => request.co_supervisors?.includes(user.email);
+
+  const filteredTeacherRequests = requests.filter((request) => {
+    if (viewAsCosupervisorOn) {
+      return isTeacherCoSupervisor(request);
+    } else {
+      return isTeacherSupervisor(request);
+    }
+  });
+
+  const handleSwitchChange = (event) => {
+    setViewAsCosupervisorOn(event.target.checked);
+  };
+
   return (
     <div id="requests-page">
       <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -146,7 +176,22 @@ function RequestsPage(props) {
           )}
         </>
       )}
-      {user.role !== "student" && <RequestTable requests={requests} teachers={teachers} />}
+      {user.role === "teacher" && (
+        <Stack direction={{ md: "row", xs: "column" }} sx={{ marginX: { md: 5, xs: 0 } }}>
+          <FormControlLabel
+            sx={{ mt: { md: 0, xs: 1 }, pl: { md: 0, xs: 1 } }}
+            control={<Switch checked={viewAsCosupervisorOn} onChange={handleSwitchChange} />}
+            label="View as co-supervisor"
+          />
+        </Stack>
+      )}
+      {user.role !== "student" && (
+        <RequestTable
+          requests={user.role === "teacher" ? filteredTeacherRequests : requests}
+          teachers={teachers}
+          viewAsCosupervisorOn={viewAsCosupervisorOn}
+        />
+      )}
       <Box height={5} marginTop={3} />
       {user.role === "student" && (
         <Hidden smUp>
