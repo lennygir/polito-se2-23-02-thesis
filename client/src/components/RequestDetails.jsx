@@ -17,7 +17,7 @@ import { useThemeContext } from "../theme/ThemeContextProvider";
 
 function RequestDetails(props) {
   const { theme } = useThemeContext();
-  const { request, evaluateRequest, requests } = props;
+  const { request, evaluateRequest, requests, viewAsCosupervisorOn } = props;
   const user = useContext(UserContext);
 
   const [decision, setDecision] = useState(null);
@@ -70,7 +70,7 @@ function RequestDetails(props) {
               </Typography>
             </Box>
           );
-        } else if (user.role === "teacher") {
+        } else if (user.role === "teacher" && !viewAsCosupervisorOn) {
           return (
             <Stack direction="row" spacing={3} sx={{ width: "100%" }}>
               <Button
@@ -264,7 +264,8 @@ function RequestDetails(props) {
 RequestDetails.propTypes = {
   request: PropTypes.object,
   evaluateRequest: PropTypes.func,
-  requests: PropTypes.array
+  requests: PropTypes.array,
+  viewAsCosupervisorOn: PropTypes.bool
 };
 
 export default RequestDetails;

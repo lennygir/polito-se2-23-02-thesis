@@ -1,13 +1,28 @@
 import PropTypes from "prop-types";
 import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
-import { Alert, Box, Button, Fab, Hidden, Paper, Stack, Step, StepLabel, Stepper, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Fab,
+  FormControlLabel,
+  Hidden,
+  Paper,
+  Stack,
+  Step,
+  StepLabel,
+  Stepper,
+  Switch,
+  Typography
+} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import ScheduleSendIcon from "@mui/icons-material/ScheduleSend";
 import RequestTable from "../components/RequestTable";
 import UserContext from "../contexts/UserContext";
 import RequestDetails from "../components/RequestDetails";
+import EmptyTable from "../components/EmptyTable";
 
 const infoMessage =
   "In order to start your thesis activity, you must submit a formal request. You can either create a thesis start request from this page after having discussed the topic with your supervisors, or you can create one from an accepted application in the application page.";
@@ -19,6 +34,7 @@ function RequestsPage(props) {
   const user = useContext(UserContext);
 
   const [lastActiveStep, setLastActiveStep] = useState(-1);
+  const [viewAsCosupervisorOn, setViewAsCosupervisorOn] = useState(false);
 
   const getLastRequest = () => {
     const lastRequest = requests[requests.length - 1];
@@ -97,6 +113,43 @@ function RequestsPage(props) {
     }
   };
 
+  const isTeacherSupervisor = (request) => request.supervisor === user.email;
+  const isTeacherCoSupervisor = (request) => request.co_supervisors?.includes(user.email);
+
+  const filteredTeacherRequests = requests.filter((request) => {
+    if (viewAsCosupervisorOn) {
+      return isTeacherCoSupervisor(request);
+    } else {
+      return isTeacherSupervisor(request);
+    }
+  });
+
+  const handleSwitchChange = (event) => {
+    setViewAsCosupervisorOn(event.target.checked);
+  };
+
+  const renderTable = () => {
+    if (user.role === "teacher") {
+      if (filteredTeacherRequests.length > 0) {
+        return (
+          <RequestTable
+            requests={filteredTeacherRequests}
+            teachers={teachers}
+            viewAsCosupervisorOn={viewAsCosupervisorOn}
+          />
+        );
+      } else {
+        return <EmptyTable data="thesis start requests" />;
+      }
+    } else if (user.role === "secretary_clerk") {
+      if (requests.length > 0) {
+        return <RequestTable requests={requests} teachers={teachers} viewAsCosupervisorOn={viewAsCosupervisorOn} />;
+      } else {
+        return <EmptyTable data="thesis start requests" />;
+      }
+    }
+  };
+
   return (
     <div id="requests-page">
       <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -146,7 +199,16 @@ function RequestsPage(props) {
           )}
         </>
       )}
-      {user.role !== "student" && <RequestTable requests={requests} teachers={teachers} />}
+      {user.role === "teacher" && (
+        <Stack direction={{ md: "row", xs: "column" }} sx={{ marginX: { md: 5, xs: 0 } }}>
+          <FormControlLabel
+            sx={{ mt: { md: 0, xs: 1 }, pl: { md: 0, xs: 1 } }}
+            control={<Switch checked={viewAsCosupervisorOn} onChange={handleSwitchChange} />}
+            label="View as co-supervisor"
+          />
+        </Stack>
+      )}
+      {user.role !== "student" && renderTable()}
       <Box height={5} marginTop={3} />
       {user.role === "student" && (
         <Hidden smUp>

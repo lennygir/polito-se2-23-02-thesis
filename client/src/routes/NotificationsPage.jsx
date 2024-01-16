@@ -6,6 +6,7 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import ReplayIcon from "@mui/icons-material/Replay";
 import NotificationTable from "../components/NotificationTable";
+import EmptyTable from "../components/EmptyTable";
 
 function NotificationsPage(props) {
   const { notifications, fetchNotifications } = props;
@@ -22,7 +23,7 @@ function NotificationsPage(props) {
           </Tooltip>
         </Fab>
       </Stack>
-      <NotificationTable data={notifications} />
+      {notifications.length > 0 ? <NotificationTable data={notifications} /> : <EmptyTable data="notifications" />}
       <Box height={5} marginTop={3} />
     </div>
   );

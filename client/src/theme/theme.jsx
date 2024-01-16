@@ -93,8 +93,15 @@ export const getDesignTokens = (mode) => ({
       styleOverrides: {
         root: {
           paddingLeft: 8,
-          paddingRight: 4,
+          paddingRight: 8,
           marginBottom: 3
+        }
+      }
+    },
+    MuiListItemIcon: {
+      styleOverrides: {
+        root: {
+          minWidth: "40px"
         }
       }
     },
