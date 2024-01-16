@@ -24,14 +24,6 @@ exports.insertApplication = (proposal, student, state) => {
   };
 };
 
-exports.searchAcceptedApplication = (student_id) => {
-  return db
-    .prepare(
-      "select * from APPLICATIONS where student_id = ? and state = 'accepted'",
-    )
-    .get(student_id);
-};
-
 exports.insertProposal = (proposal) => {
   const {
     title,
@@ -116,26 +108,8 @@ exports.setApprovalDateOfRequest = (new_date, request_id) => {
     .run(new_date, request_id);
 };
 
-exports.getStatusStartRequest = (id) => {
-  return db.prepare("SELECT status FROM START_REQUESTS WHERE id = ?").get(id);
-};
-
-exports.getSupervisorStartRequest = (id) => {
-  return db
-    .prepare("SELECT supervisor FROM START_REQUESTS WHERE id = ?")
-    .get(id);
-};
-
 exports.getApplicationById = (id) => {
   return db.prepare("select * from APPLICATIONS where id = ?").get(id);
-};
-
-exports.getApplication = (student_id, proposal_id) => {
-  return db
-    .prepare(
-      "select * from APPLICATIONS where student_id = ? and proposal_id = ?",
-    )
-    .get(student_id, proposal_id);
 };
 
 exports.getProposalsForTeacher = (id, email) => {
@@ -150,16 +124,8 @@ exports.getTeacher = (id) => {
   return db.prepare("select * from TEACHER where id = ?").get(id);
 };
 
-exports.getCds = (cds) => {
-  return db.prepare("select * from DEGREE where cod_degree = ?").get(cds);
-};
-
 exports.getTeacherByEmail = (email) => {
   return db.prepare("select * from TEACHER where email = ?").get(email);
-};
-
-exports.getTeacherEmailById = (id) => {
-  return db.prepare("select email from TEACHER where id = ?").get(id);
 };
 
 exports.getTeachers = () => {
@@ -170,35 +136,8 @@ exports.getProposal = (id) => {
   return db.prepare("select * from PROPOSALS where id = ?").get(id);
 };
 
-exports.getStudent = (id) => {
-  return db.prepare("select * from STUDENT where id = ?").get(id);
-};
-
-exports.getStudentByEmail = (email) => {
-  return db.prepare("select * from STUDENT where email = ?").get(email);
-};
-
-//to delete
-exports.findAcceptedProposal = (proposal_id) => {
-  return db
-    .prepare(
-      `select * from APPLICATIONS where proposal_id = ? and state = 'accepted'`,
-    )
-    .get(proposal_id);
-};
-
 exports.getGroup = (cod_group) => {
   return db.prepare("select * from GROUPS where cod_group = ?").get(cod_group);
-};
-
-exports.deleteApplication = (student_id, proposal_id) => {
-  db.prepare(
-    "delete from APPLICATIONS where student_id = ? and proposal_id = ?",
-  ).run(student_id, proposal_id);
-};
-
-exports.deleteApplicationsOfStudent = (student_id) => {
-  db.prepare("delete from APPLICATIONS where student_id = ?").run(student_id);
 };
 
 exports.getGroups = () => {
@@ -468,33 +407,6 @@ exports.getApplicationsOfStudent = (student_id) => {
     .all(student_id);
 };
 
-exports.getApplications = () => {
-  return db
-    .prepare(
-      `select APPLICATIONS.id,
-              APPLICATIONS.proposal_id,
-              APPLICATIONS.student_id,
-              APPLICATIONS.state,
-              STUDENT.name as student_name,
-              STUDENT.surname as student_surname,
-              TEACHER.name as teacher_name,
-              TEACHER.surname as teacher_surname,
-              PROPOSALS.title as title
-       from APPLICATIONS,
-            PROPOSALS,
-            STUDENT,
-            TEACHER
-       where APPLICATIONS.proposal_id = PROPOSALS.id
-         and PROPOSALS.supervisor = TEACHER.id
-         and APPLICATIONS.student_id = STUDENT.id`,
-    )
-    .all();
-};
-
-exports.getProposals = () => {
-  return db.prepare("select * from PROPOSALS").all();
-};
-
 exports.getNotifications = (user_id) => {
   return db
     .prepare(
@@ -574,10 +486,6 @@ exports.updateStartRequest = (id, new_fields) => {
       "UPDATE START_REQUESTS SET title = ?, description = ?, supervisor = ?, co_supervisors = ?, status = 'changed', changes_requested = NULL WHERE id = ?",
     )
     .run(title, description, supervisor, co_supervisors, id);
-};
-
-exports.getRequests = () => {
-  return db.prepare("select * from START_REQUESTS").all();
 };
 
 exports.getRequestById = (id) => {
