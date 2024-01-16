@@ -27,10 +27,12 @@ const {
   getPendingApplicationsOfStudent,
   getAcceptedApplicationsOfStudent,
   getRequestsForClerk,
+  getProposalsThatExpireInXDays,
 } = require("../src/theses-dao");
 
 const dayjs = require("dayjs");
 const isLoggedIn = require("../src/protect-routes");
+const { runCronjob, cronjobNames } = require("../src/cronjobs");
 
 jest.mock("../src/theses-dao");
 jest.mock("../src/protect-routes");
@@ -940,5 +942,23 @@ describe("GET /api/start-requests", () => {
       .get("/api/start-requests")
       .set("Content-Type", "application/json")
       .expect(200);
+  });
+});
+
+describe("Cronjobs", () => {
+  test("Notify on thesis expiration (7 days before)", async () => {
+    const expectedDate = dayjs().add(7 + 2, "day");
+    getDelta.mockReturnValue({ delta: 2 });
+    getProposalsThatExpireInXDays.mockReturnValue([
+      {
+        supervisor: "s234567", 
+        teacher_surname: "Torchiano",
+        teacher_email: "marco.torchiano@teacher.it",
+        teacher_name: "Marco",
+        expiration_date: expectedDate.format("YYYY-MM-DD"),
+        title: "Test proposal"
+      }
+    ]);
+    await runCronjob(cronjobNames.THESIS_EXPIRED);
   });
 });

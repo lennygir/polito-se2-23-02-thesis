@@ -17,6 +17,7 @@ function RequestRow(props) {
   const renderStatus = () => {
     switch (request.status) {
       case "secretary_accepted":
+      case "changed":
         return <Chip label={user.role === "secretary_clerk" ? "APPROVED" : "PENDING"} size="small" color="info" />;
       case "requested":
         return <Chip label="REQUESTED" size="small" color="default" />;

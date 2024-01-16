@@ -6,9 +6,17 @@ const { db } = require("./db");
 const { nodemailer } = require("./smtp");
 const { applicationDecisionTemplate } = require("./mail/application-decision");
 const { newApplicationTemplate } = require("./mail/new-application");
-const { supervisorStartRequestTemplate } = require("./mail/supervisor-start-request");
-const { cosupervisorApplicationDecisionTemplate } = require("./mail/cosupervisor-application-decision");
-const { cosupervisorStartRequestTemplate } = require("./mail/cosupervisor-start-request");
+const {
+  supervisorStartRequestTemplate,
+} = require("./mail/supervisor-start-request");
+const {
+  cosupervisorApplicationDecisionTemplate,
+} = require("./mail/cosupervisor-application-decision");
+const {
+  cosupervisorStartRequestTemplate,
+} = require("./mail/cosupervisor-start-request");
+const dayjs = require("dayjs");
+const { proposalExpirationTemplate } = require("./mail/proposal-expiration");
 
 exports.insertApplication = (proposal, student, state) => {
   const result = db
@@ -243,6 +251,20 @@ exports.cancelPendingApplications = (of_proposal) => {
   ).run(of_proposal);
 };
 
+exports.cancelPendingApplicationsOfStudent = (student_id) => {
+  db.prepare(
+    "update APPLICATIONS set state = 'canceled' where main.APPLICATIONS.student_id = ? and state = 'pending'",
+  ).run(student_id);
+};
+
+exports.getStartedThesisRequest = (student_id) => {
+  return db
+    .prepare(
+      "select * from main.START_REQUESTS where student_id = ? and status = 'started'",
+    )
+    .get(student_id);
+};
+
 exports.updateApplication = (id, state) => {
   db.prepare("update APPLICATIONS set state = ? where id = ?").run(state, id);
 };
@@ -283,11 +305,11 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
   // Retrieve the data
   const applicationJoined = db
     .prepare(
-      "SELECT S.id, P.title, P.co_supervisors, S.email, S.surname, S.name \
-    FROM APPLICATIONS A \
-    JOIN PROPOSALS P ON P.id = A.proposal_id \
-    JOIN STUDENT S ON S.id = A.student_id \
-    WHERE A.id = ?",
+      `SELECT S.id, P.title, P.co_supervisors, S.email, S.surname, S.name
+    FROM APPLICATIONS A
+    JOIN PROPOSALS P ON P.id = A.proposal_id
+    JOIN STUDENT S ON S.id = A.student_id
+    WHERE A.id = ?`,
     )
     .get(applicationId);
   let mailBody;
@@ -317,8 +339,8 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
     mailBody.text,
   );
   // Notify the co-supervisors
-  if(applicationJoined.co_supervisors) {
-    for(const cosupervisor of applicationJoined.co_supervisors.split(', ')) {
+  if (applicationJoined.co_supervisors) {
+    for (const cosupervisor of applicationJoined.co_supervisors.split(", ")) {
       const fullCosupervisor = this.getTeacherByEmail(cosupervisor);
       // -- Email
       mailBody = cosupervisorApplicationDecisionTemplate({
@@ -355,7 +377,8 @@ exports.notifyNewStartRequest = async (requestId) => {
       FROM START_REQUESTS S
       JOIN TEACHER T ON T.id = S.supervisor
       WHERE S.id = ?`,
-    ).get(requestId);
+    )
+    .get(requestId);
   // Send email to the supervisor
   let mailBody = supervisorStartRequestTemplate({
     name: requestJoined.surname + " " + requestJoined.name,
@@ -379,7 +402,7 @@ exports.notifyNewStartRequest = async (requestId) => {
   ).run(requestJoined.supervisor, "New start request", mailBody.text);
 
   // Send email to the co-supervisors
-  if(requestJoined.co_supervisors) {
+  if (requestJoined.co_supervisors) {
     const coSupervisors = requestJoined.co_supervisors.split(", ");
     for (const coSupervisorEmail of coSupervisors) {
       const coSupervisor = this.getTeacherByEmail(coSupervisorEmail);
@@ -441,6 +464,31 @@ exports.notifyNewApplication = async (proposalId) => {
   );
 };
 
+exports.notifyProposalExpiration = async (proposal) => {
+  // Send email to the supervisor
+  const mailBody = proposalExpirationTemplate({
+    name: proposal.teacher_surname + " " + proposal.teacher_name,
+    thesis: proposal.title,
+    nbOfDays: 7,
+    date: dayjs(proposal.expiration_date).format("DD/MM/YYYY"),
+  });
+  try {
+    await nodemailer.sendMail({
+      to: proposal.teacher_email,
+      subject: "Your proposal expires in 7 days",
+      text: mailBody.text,
+      html: mailBody.html,
+    });
+  } catch (e) {
+    console.log("[mail service]", e);
+  }
+
+  // Save email in DB
+  db.prepare(
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+  ).run(proposal.supervisor, "Your proposal expires in 7 days", mailBody.text);
+};
+
 /**
  * @param teacher_id
  * @returns {[
@@ -480,6 +528,36 @@ exports.getApplicationsOfTeacher = (teacher_id) => {
          and PROPOSALS.supervisor = ?`,
     )
     .all(teacher_id);
+};
+
+/**
+ * @param nbOfDaysBeforeExpiration
+ * @returns {[
+ *   {
+ *     supervisor,
+ *     expiration_date,
+ *     title
+ *   }
+ * ]}
+ */
+exports.getProposalsThatExpireInXDays = (nbOfDaysBeforeExpiration) => {
+  const currentDate = dayjs().add(getDelta().delta, "day");
+  const notificationDateFormatted = currentDate
+    .add(nbOfDaysBeforeExpiration, "day")
+    .format("YYYY-MM-DD");
+  return db
+    .prepare(
+      `select supervisor, 
+          t.surname as teacher_surname,
+          t.email as teacher_email,
+          t.name as teacher_name,
+          expiration_date,
+          title
+        from PROPOSALS p
+          join TEACHER t on p.supervisor = t.id
+        where expiration_date = ?`,
+    )
+    .all(notificationDateFormatted);
 };
 
 exports.getApplicationsOfStudent = (student_id) => {
@@ -553,9 +631,10 @@ exports.updateArchivedStateProposal = (new_archived_state, proposal_id) => {
   );
 };
 
-exports.getDelta = () => {
+const getDelta = () => {
   return db.prepare("select delta from VIRTUAL_CLOCK where id = 1").get();
 };
+exports.getDelta = getDelta;
 
 exports.setDelta = (delta) => {
   return db
@@ -622,7 +701,7 @@ exports.updateStartRequest = (id, new_fields) => {
   const { title, description, supervisor, co_supervisors } = new_fields;
   return db
     .prepare(
-      "UPDATE START_REQUESTS SET title = ?, description = ?, supervisor = ?, co_supervisors = ?, status = 'changed', changes_requested = NULL WHERE id = ?",
+      "UPDATE START_REQUESTS SET title = ?, description = ?, supervisor = ?, co_supervisors = ?, status = 'changed' WHERE id = ?",
     )
     .run(title, description, supervisor, co_supervisors, id);
 };

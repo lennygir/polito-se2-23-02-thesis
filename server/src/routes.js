@@ -49,8 +49,11 @@ const {
   getRequestsForStudent,
   isAccepted,
   getAcceptedProposal,
+  getStartedThesisRequest,
+  cancelPendingApplicationsOfStudent,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
+const { runCronjob, cronjobNames } = require("./cronjobs");
 
 function getDate() {
   const clock = getDelta();
@@ -127,11 +130,11 @@ function validateProposal(res, proposal, user) {
   const { co_supervisors, groups, level } = proposal;
   for (const group of groups) {
     if (getGroup(group) === undefined) {
-      return res.status(400).json({ message: "Invalid proposal content" });
+      throw new Error("Invalid proposal content");
     }
   }
   if (level !== "MSC" && level !== "BSC") {
-    return res.status(400).json({ message: "Invalid proposal content" });
+    throw new Error("Invalid proposal content");
   }
   const legal_groups = [user.cod_group];
   for (const co_supervisor_email of co_supervisors) {
@@ -141,7 +144,7 @@ function validateProposal(res, proposal, user) {
     }
   }
   if (!groups.every((group) => legal_groups.includes(group))) {
-    return res.status(400).json({ message: "Invalid groups" });
+    throw new Error("Invalid groups");
   }
 }
 
@@ -229,8 +232,8 @@ router.post(
   check("co_supervisors.*").isEmail(),
   check("groups").isArray(),
   check("groups.*").isString(),
-  check("keywords").isArray(),
-  check("keywords.*").isString(),
+  check("keywords").isArray().optional({ values: "null" }),
+  check("keywords.*").isString().optional(),
   check("types").isArray(),
   check("types.*").isString(),
   check("description").isString(),
@@ -263,13 +266,19 @@ router.post(
           message: "You must be authenticated as teacher to add a proposal",
         });
       }
-      validateProposal(res, req.body, user);
+      try {
+        validateProposal(res, req.body, user);
+      } catch (e) {
+        return res.status(400).json({
+          message: e.message,
+        });
+      }
       const teacher = insertProposal({
         title: title,
         supervisor: user.id,
         co_supervisors: co_supervisors.join(", "),
         groups: groups.join(", "),
-        keywords: keywords.join(", "),
+        keywords: keywords?.join(", "),
         types: types.join(", "),
         description: description,
         required_knowledge: required_knowledge,
@@ -368,6 +377,7 @@ router.patch("/api/start-requests/:thesisRequestId", isLoggedIn, (req, res) => {
 
     if (new_status === "started") {
       setApprovalDateOfRequest(getDate(), request.id);
+      cancelPendingApplicationsOfStudent(request.student_id);
     } else if (new_status === "changes_requested") {
       setChangesRequestedOfStartRequest(message, request.id);
     }
@@ -528,6 +538,11 @@ router.post(
       if (getAcceptedApplicationsOfStudent(user.id).length !== 0) {
         return res.status(400).json({
           message: `The student ${user.id} has an accepted proposal`,
+        });
+      }
+      if (getStartedThesisRequest(user.id) !== undefined) {
+        return res.status(400).json({
+          message: `The student ${user.id} has already started a thesis`,
         });
       }
       let pendingApplicationsOfStudent = getPendingApplicationsOfStudent(
@@ -797,7 +812,13 @@ router.put(
           message: `The proposal ${proposal_id} is already accepted for another student`,
         });
       }
-      validateProposal(res, req.body, user);
+      try {
+        validateProposal(res, req.body, user);
+      } catch (e) {
+        return res.status(400).json({
+          message: e.message,
+        });
+      }
       updateProposal({
         proposal_id: proposal_id,
         title: title,
@@ -887,6 +908,7 @@ router.patch(
         return res.status(400).json({ message: "Cannot go back in the past" });
       }
       setDelta(newDelta);
+      runCronjob(cronjobNames.THESIS_EXPIRED);
       return res.status(200).json({ message: "Date successfully changed" });
     } catch (err) {
       return res.status(500).json({ message: "Internal Server Error" });
@@ -982,6 +1004,7 @@ router.put(
         supervisor: getTeacher(supervisor).email,
         co_supervisors: co_supervisors,
         student_id: user.id,
+        changes_requested: request.changes_requested,
         status: "changed",
       };
 
