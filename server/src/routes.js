@@ -127,11 +127,11 @@ function validateProposal(res, proposal, user) {
   const { co_supervisors, groups, level } = proposal;
   for (const group of groups) {
     if (getGroup(group) === undefined) {
-      return res.status(400).json({ message: "Invalid proposal content" });
+      throw new Error("Invalid proposal content");
     }
   }
   if (level !== "MSC" && level !== "BSC") {
-    return res.status(400).json({ message: "Invalid proposal content" });
+    throw new Error("Invalid proposal content");
   }
   const legal_groups = [user.cod_group];
   for (const co_supervisor_email of co_supervisors) {
@@ -141,7 +141,7 @@ function validateProposal(res, proposal, user) {
     }
   }
   if (!groups.every((group) => legal_groups.includes(group))) {
-    return res.status(400).json({ message: "Invalid groups" });
+    throw new Error("Invalid groups");
   }
 }
 
@@ -263,7 +263,13 @@ router.post(
           message: "You must be authenticated as teacher to add a proposal",
         });
       }
-      validateProposal(res, req.body, user);
+      try {
+        validateProposal(res, req.body, user);
+      } catch (e) {
+        return res.status(400).json({
+          message: e.message,
+        });
+      }
       const teacher = insertProposal({
         title: title,
         supervisor: user.id,
@@ -797,7 +803,13 @@ router.put(
           message: `The proposal ${proposal_id} is already accepted for another student`,
         });
       }
-      validateProposal(res, req.body, user);
+      try {
+        validateProposal(res, req.body, user);
+      } catch (e) {
+        return res.status(400).json({
+          message: e.message,
+        });
+      }
       updateProposal({
         proposal_id: proposal_id,
         title: title,
