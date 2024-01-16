@@ -18,12 +18,26 @@ function CreateRequestPage(props) {
   const location = useLocation();
 
   const proposal = location.state?.proposal;
+  const request = location.state?.request;
 
   const createRequest = (request) => {
     API.createRequest(request)
       .then(() => {
         setAlert({
           message: "Request submitted successfully",
+          severity: "success"
+        });
+        fetchRequests();
+        navigate(-1);
+      })
+      .catch((err) => handleErrors(err));
+  };
+
+  const editRequest = (request) => {
+    API.updateRequest(request)
+      .then(() => {
+        setAlert({
+          message: "Request updated successfully",
           severity: "success"
         });
         fetchRequests();
@@ -51,15 +65,17 @@ function CreateRequestPage(props) {
         </Button>
       </Stack>
       <Typography variant="h4" sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}>
-        Thesis Start Request
+        {request ? "Edit Thesis Start Request" : "New Thesis Start Request"}
       </Typography>
       <Paper elevation={1} sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
           <RequestForm
             createRequest={createRequest}
+            editRequest={editRequest}
             teachers={teachers}
             getTeacherById={getTeacherById}
             proposal={proposal}
+            request={request}
           />
         </Box>
       </Paper>

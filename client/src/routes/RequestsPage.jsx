@@ -3,6 +3,7 @@ import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import { Alert, Box, Button, Fab, Hidden, Paper, Stack, Step, StepLabel, Stepper, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import ScheduleSendIcon from "@mui/icons-material/ScheduleSend";
 import RequestTable from "../components/RequestTable";
 import UserContext from "../contexts/UserContext";
@@ -19,13 +20,21 @@ function RequestsPage(props) {
 
   const [lastActiveStep, setLastActiveStep] = useState(-1);
 
-  const getActiveRequest = () => {
+  const getLastRequest = () => {
     const lastRequest = requests[requests.length - 1];
     return lastRequest;
   };
 
+  const getActiveRequest = () => {
+    const lastRequest = requests[requests.length - 1];
+    if (lastRequest?.status === "rejected") {
+      return null;
+    }
+    return lastRequest;
+  };
+
   const getActiveStep = () => {
-    const request = getActiveRequest();
+    const request = getLastRequest();
     if (!request) {
       return -1;
     }
@@ -42,6 +51,8 @@ function RequestsPage(props) {
         break;
       case "changes_requested":
         return 2;
+      case "changed":
+        return 2;
       default:
         return lastActiveStep;
     }
@@ -52,8 +63,38 @@ function RequestsPage(props) {
   };
 
   const isStartRequestButtonDisabled = () => {
-    const activeRequest = getActiveRequest();
-    return activeRequest && activeRequest.status !== "rejected";
+    const activeRequest = getLastRequest();
+    return activeRequest && activeRequest.status !== "rejected" && activeRequest.status !== "changes_requested";
+  };
+
+  const renderButtonIcon = () => {
+    const activeRequest = getLastRequest();
+    if (activeRequest) {
+      if (isStartRequestButtonDisabled()) {
+        return <ScheduleSendIcon />;
+      } else if (activeRequest.status === "rejected") {
+        return <AddIcon />;
+      } else if (activeRequest.status === "changes_requested") {
+        return <ModeEditIcon />;
+      }
+    } else {
+      return <AddIcon />;
+    }
+  };
+
+  const renderButtonLabel = () => {
+    const activeRequest = getLastRequest();
+    if (activeRequest) {
+      if (isStartRequestButtonDisabled()) {
+        return "Request sent";
+      } else if (activeRequest.status === "rejected") {
+        return "Start request";
+      } else if (activeRequest.status === "changes_requested") {
+        return "Edit request";
+      }
+    } else {
+      return "Start request";
+    }
   };
 
   return (
@@ -66,13 +107,14 @@ function RequestsPage(props) {
           <Hidden smDown>
             <Button
               component={Link}
-              to="/add-request"
+              to={getLastRequest()?.status === "changes_requested" ? "/edit-start-request" : "/add-start-request"}
+              state={{ request: getActiveRequest() }}
               disabled={isStartRequestButtonDisabled()}
               variant="contained"
               sx={{ mr: 4 }}
-              startIcon={isStartRequestButtonDisabled() ? <ScheduleSendIcon /> : <AddIcon />}
+              startIcon={renderButtonIcon()}
             >
-              {isStartRequestButtonDisabled() ? "Request sent" : "Start Request"}
+              {renderButtonLabel()}
             </Button>
           </Hidden>
         )}
@@ -89,10 +131,10 @@ function RequestsPage(props) {
               </Step>
             ))}
           </Stepper>
-          {getActiveRequest() ? (
+          {getLastRequest() ? (
             <Paper elevation={1} sx={{ mb: 5, pt: 1, mt: 3, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
               <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
-                <RequestDetails request={getActiveRequest()} requests={requests} />
+                <RequestDetails request={getLastRequest()} requests={requests} />
               </Box>
             </Paper>
           ) : (
@@ -116,12 +158,12 @@ function RequestsPage(props) {
           >
             <Fab
               component={Link}
-              to="/add-request"
+              to="/add-start-request"
               aria-label="Add"
               color="primary"
               disabled={isStartRequestButtonDisabled()}
             >
-              {isStartRequestButtonDisabled() ? <ScheduleSendIcon /> : <AddIcon />}
+              {renderButtonIcon()}
             </Fab>
           </Stack>
         </Hidden>

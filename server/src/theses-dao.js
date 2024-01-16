@@ -15,6 +15,8 @@ const {
 const {
   cosupervisorStartRequestTemplate,
 } = require("./mail/cosupervisor-start-request");
+const dayjs = require("dayjs");
+const { proposalExpirationTemplate } = require("./mail/proposal-expiration");
 
 exports.insertApplication = (proposal, student, state) => {
   const result = db
@@ -462,6 +464,35 @@ exports.notifyNewApplication = async (proposalId) => {
   );
 };
 
+exports.notifyProposalExpiration = async (proposal) => {
+  // Send email to the supervisor
+  const mailBody = proposalExpirationTemplate({
+    name: proposal.teacher_surname + " " + proposal.teacher_name,
+    thesis: proposal.title,
+    nbOfDays: 7,
+    date: dayjs(proposal.expiration_date).format("DD/MM/YYYY")
+  });
+  try {
+    await nodemailer.sendMail({
+      to: proposal.teacher_email,
+      subject: "Your proposal expires in 7 days",
+      text: mailBody.text,
+      html: mailBody.html,
+    });
+  } catch (e) {
+    console.log("[mail service]", e);
+  }
+
+  // Save email in DB
+  db.prepare(
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+  ).run(
+    proposal.supervisor,
+    "Your proposal expires in 7 days",
+    mailBody.text,
+  );
+};
+
 /**
  * @param teacher_id
  * @returns {[
@@ -502,6 +533,34 @@ exports.getApplicationsOfTeacher = (teacher_id) => {
     )
     .all(teacher_id);
 };
+
+/**
+ * @param nbOfDaysBeforeExpiration
+ * @returns {[
+  *   {
+  *     supervisor,
+  *     expiration_date,
+  *     title
+  *   }
+  * ]}
+  */
+ exports.getProposalsThatExpireInXDays = (nbOfDaysBeforeExpiration) => {
+  const currentDate = dayjs().add(getDelta().delta, 'day');
+  const notificationDateFormatted = currentDate.add(nbOfDaysBeforeExpiration, 'day').format('YYYY-MM-DD');
+   return db
+     .prepare(
+       `select supervisor, 
+          t.surname as teacher_surname,
+          t.email as teacher_email,
+          t.name as teacher_name,
+          expiration_date,
+          title
+        from PROPOSALS p
+          join TEACHER t on p.supervisor = t.id
+        where expiration_date = ?`,
+     )
+     .all(notificationDateFormatted);
+ };
 
 exports.getApplicationsOfStudent = (student_id) => {
   return db
@@ -574,9 +633,10 @@ exports.updateArchivedStateProposal = (new_archived_state, proposal_id) => {
   );
 };
 
-exports.getDelta = () => {
+const getDelta = () => {
   return db.prepare("select delta from VIRTUAL_CLOCK where id = 1").get();
 };
+exports.getDelta = getDelta;
 
 exports.setDelta = (delta) => {
   return db
@@ -643,7 +703,7 @@ exports.updateStartRequest = (id, new_fields) => {
   const { title, description, supervisor, co_supervisors } = new_fields;
   return db
     .prepare(
-      "UPDATE START_REQUESTS SET title = ?, description = ?, supervisor = ?, co_supervisors = ?, status = 'changed', changes_requested = NULL WHERE id = ?",
+      "UPDATE START_REQUESTS SET title = ?, description = ?, supervisor = ?, co_supervisors = ?, status = 'changed' WHERE id = ?",
     )
     .run(title, description, supervisor, co_supervisors, id);
 };

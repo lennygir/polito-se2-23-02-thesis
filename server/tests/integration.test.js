@@ -540,6 +540,16 @@ describe("Proposal insertion tests", () => {
     expect(response.status).toBe(200);
     expect(response.body).toBeDefined();
   });
+  it("Insertion of a proposal with no keywords", async () => {
+    logIn("marco.torchiano@teacher.it");
+    const response = await request(app)
+      .post("/api/proposals")
+      .send({
+        ...proposal,
+        keywords: null,
+      });
+    expect(response.status).toBe(200);
+  });
   it("Insertion with an invalid date", async () => {
     proposal.expiration_date = "0";
 
@@ -1459,6 +1469,7 @@ describe("Story 28: the professor evaluates student request", () => {
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",
       status: "changed",
+      changes_requested: "You have to change this, that, whatever I want",
     });
 
     response = await getRequests();
@@ -1708,6 +1719,7 @@ describe("Story 28: the professor evaluates student request", () => {
       supervisor: "marco.torchiano@teacher.it",
       student_id: "s309618",
       status: "changed",
+      changes_requested: "You have to change this, that, whatever I want",
     });
     let status = (await requestChangesForRequest(thesis_request_id)).status;
     expect(status).toBe(200);
