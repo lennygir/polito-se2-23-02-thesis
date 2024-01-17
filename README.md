@@ -124,7 +124,7 @@ Once the docker container is running you can access the application using [local
 - Route `/applications/applicationId`: students see the check the details of an applications, teachers can also accept or reject an application
 - Route `/notifications`: students and teachers see the list of notifications related to the proposals/applications
 - Route `/requests`: students can see the request that has been submitted by them, teachers can view the requests which are sent to them, and secretary clerks can also view thesis requests directed to them.
-- `/requests/requestId`: teachers can see the details of the request made by the student, in addition to accepting or rejecting the request, the teacher can ask for changes from the student. Furthermore, secretary clerks can see the details of the requests sent to them, and they can accept or reject it
+- Route `/requests/requestId`: teachers can see the details of the request made by the student, in addition to accepting or rejecting the request, the teacher can ask for changes from the student. Furthermore, secretary clerks can see the details of the requests sent to them, and they can accept or reject it
 - Route `/add-start-request`: students can either create a thesis start request from "start request" in the side bar or they can create one from an accepted application.
 - Route `/settings`: users can change the theme (light/dark mode)
 - Route `*`: non-existing routes view
@@ -915,5 +915,4 @@ Currently, the implemented user roles are:
 | Student  |Luca Tortore| s319823@studenti.polito.it  | s319823  |
 | Student  |Francesco Baracco| s317743@studenti.polito.it  | s317743  |
 | Student  |Lenny Girardot| s321503@studenti.polito.it  | s321503  |
-| Student  |Ghazal Ghorbani| s308920@studenti.polito.it  | s308920  |
 
