@@ -13,6 +13,7 @@ const { supervisorStartRequestTemplate } = require("./mail/supervisor-start-requ
 const { cosupervisorApplicationDecisionTemplate } = require("./mail/cosupervisor-application-decision");
 const { cosupervisorStartRequestTemplate } = require("./mail/cosupervisor-start-request");
 const { removedCosupervisorTemplate } = require("./mail/removed-cosupervisor");
+const { addedCosupervisorTemplate } = require("./mail/added-cosupervisor");
 
 exports.insertApplication = (proposal, student, state) => {
   const result = db
@@ -424,7 +425,7 @@ exports.notifyProposalExpiration = async (proposal) => {
 
   // Save email in DB
   db.prepare(
-    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
   ).run(proposal.supervisor, "Your proposal expires in 7 days", mailBody.text);
 };
 
@@ -566,38 +567,82 @@ exports.isAccepted = (proposal_id, student_id) => {
   return accepted_proposal !== undefined;
 };
 
+function getCosupervisorsFromProposal(proposal) {
+  return proposal.co_supervisors ? proposal.co_supervisors.split(", ") : [];
+}
+
+function getArrayDifference(arrayIn, arrayNotIn) {
+  return arrayIn.filter((el) => !arrayNotIn.includes(el));
+}
+
 exports.notifyRemovedCosupervisors = async (oldProposal, newProposal) => {
-  const oldCosupervisors = (oldProposal.co_supervisors || "").split(", ");
-  const newCosupervisors = (newProposal.co_supervisors || []);
+  const oldCosupervisors = getCosupervisorsFromProposal(oldProposal);
+  const newCosupervisors = getCosupervisorsFromProposal(newProposal);
   if(oldCosupervisors && newCosupervisors) {
-    const removedCosupervisors = oldCosupervisors.filter((cosupervisor) => {
-      return !newCosupervisors.includes(cosupervisor);
-    });
+    const removedCosupervisors = getArrayDifference(oldCosupervisors, newCosupervisors);
     for(let cosupervisorEmail of removedCosupervisors) {
       const teacher = this.getTeacherByEmail(cosupervisorEmail);
-      // -- Email
-      const mailBody = removedCosupervisorTemplate({
-        name: teacher.surname + " " + teacher.name,
-        proposal: newProposal
-      });
-      try {
-        await nodemailer.sendMail({
-          to: cosupervisorEmail,
-          subject: "You have been removed from a thesis proposal",
-          text: mailBody.text,
-          html: mailBody.html,
+      if(teacher) {
+        // -- Email
+        const mailBody = removedCosupervisorTemplate({
+          name: teacher.surname + " " + teacher.name,
+          proposal: newProposal
         });
-      } catch (e) {
-        console.log("[mail service]", e);
+        try {
+          await nodemailer.sendMail({
+            to: cosupervisorEmail,
+            subject: "You have been removed from a thesis proposal",
+            text: mailBody.text,
+            html: mailBody.html,
+          });
+        } catch (e) {
+          console.log("[mail service]", e);
+        }
+        // -- Website notification
+        db.prepare(
+          "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+        ).run(
+          teacher.id,
+          "You have been removed from a thesis proposal",
+          mailBody.text,
+        );
       }
-      // -- Website notification
-      db.prepare(
-        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
-      ).run(
-        teacher.id,
-        "You have been removed from a thesis proposal",
-        mailBody.text,
-      );
+    }
+  }
+};
+
+exports.notifyAddedCosupervisors = async (oldProposal, newProposal) => {
+  const oldCosupervisors = getCosupervisorsFromProposal(oldProposal);
+  const newCosupervisors = getCosupervisorsFromProposal(newProposal);
+  if(oldCosupervisors && newCosupervisors) {
+    const addedCosupervisors = getArrayDifference(newCosupervisors, oldCosupervisors);
+    for(let cosupervisorEmail of addedCosupervisors) {
+      const teacher = this.getTeacherByEmail(cosupervisorEmail);
+      if(teacher) {
+        // -- Email
+        const mailBody = addedCosupervisorTemplate({
+          name: teacher.surname + " " + teacher.name,
+          proposal: newProposal
+        });
+        try {
+          await nodemailer.sendMail({
+            to: cosupervisorEmail,
+            subject: "You have been added to a thesis proposal",
+            text: mailBody.text,
+            html: mailBody.html,
+          });
+        } catch (e) {
+          console.log("[mail service]", e);
+        }
+        // -- Website notification
+        db.prepare(
+          "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+        ).run(
+          teacher.id,
+          "You have been added to a thesis proposal",
+          mailBody.text,
+        );
+      }
     }
   }
 };
