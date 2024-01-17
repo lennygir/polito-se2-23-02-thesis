@@ -2,7 +2,7 @@
 
 /* Data Access Object (DAO) module for accessing users */
 
-const { db } = require("./db");
+const { db } = require("../db");
 
 exports.getUser = (reqUser) => {
   const { email } = reqUser;
@@ -23,4 +23,28 @@ exports.getUser = (reqUser) => {
     secretary_clerk.role = "secretary_clerk";
   }
   return student || teacher || secretary_clerk;
+};
+
+exports.getTeacher = (id) => {
+  return db.prepare("select * from TEACHER where id = ?").get(id);
+};
+
+exports.getTeacherByEmail = (email) => {
+  return db.prepare("select * from TEACHER where email = ?").get(email);
+};
+
+exports.getTeacherEmailById = (id) => {
+  return db.prepare("select email from TEACHER where id = ?").get(id);
+};
+
+exports.getTeachers = () => {
+  return db.prepare("select * from TEACHER").all();
+};
+
+exports.getStudent = (id) => {
+  return db.prepare("select * from STUDENT where id = ?").get(id);
+};
+
+exports.getStudentByEmail = (email) => {
+  return db.prepare("select * from STUDENT where email = ?").get(email);
 };

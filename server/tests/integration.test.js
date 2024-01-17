@@ -25,11 +25,11 @@ const {
   rejectRequest,
   requestChangesForRequest,
   modifyRequest,
-} = require("../test_utils/requests");
-const { createPDF } = require("../test_utils/pdf");
+} = require("./test_utils/endpoint-requests");
+const { createPDF } = require("./test_utils/pdf");
 
 jest.mock("../src/db");
-jest.mock("../src/protect-routes");
+jest.mock("../src/routes_utils/protect-routes");
 
 let proposal, start_request;
 

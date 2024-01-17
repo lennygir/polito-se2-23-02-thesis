@@ -29,14 +29,14 @@ const {
   getRequestsForClerk,
   getProposalsThatExpireInXDays,
   notifyRemovedCosupervisors,
-} = require("../src/theses-dao");
+} = require("../src/dao/misc");
 
 const dayjs = require("dayjs");
-const isLoggedIn = require("../src/protect-routes");
+const isLoggedIn = require("../src/routes_utils/protect-routes");
 const { runCronjob, cronjobNames } = require("../src/cronjobs");
 
-jest.mock("../src/theses-dao");
-jest.mock("../src/protect-routes");
+jest.mock("../src/dao/misc");
+jest.mock("../src/routes_utils/protect-routes");
 
 const application = {
   proposal: 8,
@@ -952,13 +952,13 @@ describe("Cronjobs", () => {
     getDelta.mockReturnValue({ delta: 2 });
     getProposalsThatExpireInXDays.mockReturnValue([
       {
-        supervisor: "s234567", 
+        supervisor: "s234567",
         teacher_surname: "Torchiano",
         teacher_email: "marco.torchiano@teacher.it",
         teacher_name: "Marco",
         expiration_date: expectedDate.format("YYYY-MM-DD"),
-        title: "Test proposal"
-      }
+        title: "Test proposal",
+      },
     ]);
     await runCronjob(cronjobNames.THESIS_EXPIRED);
   });
@@ -966,9 +966,10 @@ describe("Cronjobs", () => {
 
 describe("PUT /api/proposals/:id", () => {
   test("Remove a co supervisor", async () => {
-
-    const originalModule = jest.requireActual("../src/theses-dao");
-    notifyRemovedCosupervisors.mockImplementation(originalModule.notifyRemovedCosupervisors);
+    const originalModule = jest.requireActual("../src/dao/misc");
+    notifyRemovedCosupervisors.mockImplementation(
+      originalModule.notifyRemovedCosupervisors,
+    );
 
     isLoggedIn.mockImplementation((req, res, next) => {
       req.user = {
@@ -992,7 +993,7 @@ describe("PUT /api/proposals/:id", () => {
       level: "MSC",
       cds: "LM-32 (DM270)",
       manually_archived: 0,
-      deleted: 0
+      deleted: 0,
     };
 
     const modifiedProposal = {
@@ -1007,18 +1008,16 @@ describe("PUT /api/proposals/:id", () => {
       notes: "notes",
       expiration_date: "2021-01-01",
       level: "MSC",
-      cds: "LM-32 (DM270)"
+      cds: "LM-32 (DM270)",
     };
 
     getProposal.mockReturnValue(proposal);
 
-    const requests = (
-      await request(app)
-        .put("/api/proposals/1")
-        .set("Content-Type", "application/json")
-        .send(modifiedProposal)
-        .expect(200)
-    );
+    const requests = await request(app)
+      .put("/api/proposals/1")
+      .set("Content-Type", "application/json")
+      .send(modifiedProposal)
+      .expect(200);
     expect(requests.body).toEqual({ message: "Proposal updated successfully" });
   });
 });
