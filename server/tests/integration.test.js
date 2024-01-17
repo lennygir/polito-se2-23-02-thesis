@@ -958,6 +958,28 @@ describe("test the correct flow for a proposal expiration (virtual clock)", () =
 });
 
 describe("Proposal acceptance", () => {
+  it("If a proposal gets accepted for a student, other students' cannot apply for that proposal", async () => {
+    // the professor inserts a proposal
+    logIn("marco.torchiano@teacher.it");
+    proposal.co_supervisors=[]; //this line is to test all the branch in theses.dao
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
+
+    // the student1 applies for that proposal
+    logIn("s309618@studenti.polito.it");
+    const { body: application } = await applyForProposal(inserted_proposal_id);
+
+    // the professor accepts the proposal for the student1
+    logIn("marco.torchiano@teacher.it");
+    await acceptApplication(application.application_id);
+
+    // the student2 tries to apply for that proposal
+    logIn("s308747@studenti.polito.it");
+    const response = await applyForProposal(inserted_proposal_id);
+    const prop_id = parseInt(inserted_proposal_id);
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ message: `The proposal ${prop_id} is already accepted for another student`});
+  });
+
   it("If a proposal gets accepted for a student, other students' applications should become canceled", async () => {
     proposal.expiration_date = dayjs().add(1, "day").format("YYYY-MM-DD");
 

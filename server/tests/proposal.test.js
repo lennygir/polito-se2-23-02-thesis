@@ -14,7 +14,6 @@ const {
   getGroup,
   cancelPendingApplications,
   getProposal,
-  getStudent,
   findAcceptedProposal,
   findRejectedApplication,
   getNotifications,
@@ -46,6 +45,29 @@ const application = {
 beforeEach(() => {
   jest.clearAllMocks();
   application.proposal = 8;
+});
+
+describe('GET /api/sessions/current', () => {
+  test('should return user details if authenticated', async () => {
+    const mockedUser = {  email: "s309618@studenti.polito.it", };
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = mockedUser;
+      next();
+    });
+    const response = await request(app).get('/api/sessions/current');
+    expect(response.status).toBe(200);
+  });
+
+  test('should handle database error', async () => {
+    const mockedUser = {  email: "s000000@studenti.polito.it", };
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = mockedUser;
+      next();
+    });
+    const response = await request(app).get('/api/sessions/current');
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({ message: 'database error' });
+  });
 });
 
 describe("Career retrieval tests", () => {
@@ -156,9 +178,6 @@ describe("Application Insertion Tests", () => {
     getProposal.mockReturnValueOnce({
       proposal: "something",
     });
-    getStudent.mockReturnValue({
-      student: "something",
-    });
     getAcceptedApplicationsOfStudent.mockReturnValue([]);
     getPendingApplicationsOfStudent.mockReturnValue([
       {
@@ -188,9 +207,6 @@ describe("Application Insertion Tests", () => {
     getProposal.mockReturnValueOnce({
       proposal: "something",
     });
-    getStudent.mockReturnValue({
-      student: "something",
-    });
     getAcceptedApplicationsOfStudent.mockReturnValue([]);
     getPendingApplicationsOfStudent.mockReturnValue([]);
     findAcceptedProposal.mockReturnValue({
@@ -210,9 +226,6 @@ describe("Application Insertion Tests", () => {
   test("There same application was already rejected for the student", () => {
     getProposal.mockReturnValueOnce({
       proposal: "something",
-    });
-    getStudent.mockReturnValue({
-      student: "something",
     });
     getAcceptedApplicationsOfStudent.mockReturnValue([]);
     getPendingApplicationsOfStudent.mockReturnValue([]);
@@ -240,9 +253,6 @@ describe("Application Insertion Tests", () => {
       expiration_date: dayjs().add(1, "day"),
     });
     getDelta.mockReturnValue({ delta: 0 });
-    getStudent.mockReturnValue({
-      student: "something",
-    });
     getAcceptedApplicationsOfStudent.mockReturnValue([]);
     getPendingApplicationsOfStudent.mockReturnValue([]);
     findAcceptedProposal.mockReturnValue(undefined);

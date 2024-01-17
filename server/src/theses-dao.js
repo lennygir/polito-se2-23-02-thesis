@@ -31,14 +31,6 @@ exports.insertApplication = (proposal, student, state) => {
   };
 };
 
-exports.searchAcceptedApplication = (student_id) => {
-  return db
-    .prepare(
-      "select * from APPLICATIONS where student_id = ? and state = 'accepted'",
-    )
-    .get(student_id);
-};
-
 exports.insertProposal = (proposal) => {
   const {
     title,
@@ -123,26 +115,8 @@ exports.setApprovalDateOfRequest = (new_date, request_id) => {
     .run(new_date, request_id);
 };
 
-exports.getStatusStartRequest = (id) => {
-  return db.prepare("SELECT status FROM START_REQUESTS WHERE id = ?").get(id);
-};
-
-exports.getSupervisorStartRequest = (id) => {
-  return db
-    .prepare("SELECT supervisor FROM START_REQUESTS WHERE id = ?")
-    .get(id);
-};
-
 exports.getApplicationById = (id) => {
   return db.prepare("select * from APPLICATIONS where id = ?").get(id);
-};
-
-exports.getApplication = (student_id, proposal_id) => {
-  return db
-    .prepare(
-      "select * from APPLICATIONS where student_id = ? and proposal_id = ?",
-    )
-    .get(student_id, proposal_id);
 };
 
 exports.getProposalsForTeacher = (id, email) => {
@@ -155,10 +129,6 @@ exports.getProposalsForTeacher = (id, email) => {
 
 exports.getTeacher = (id) => {
   return db.prepare("select * from TEACHER where id = ?").get(id);
-};
-
-exports.getCds = (cds) => {
-  return db.prepare("select * from DEGREE where cod_degree = ?").get(cds);
 };
 
 exports.getTeacherByEmail = (email) => {
@@ -177,35 +147,8 @@ exports.getProposal = (id) => {
   return db.prepare("select * from PROPOSALS where id = ?").get(id);
 };
 
-exports.getStudent = (id) => {
-  return db.prepare("select * from STUDENT where id = ?").get(id);
-};
-
-exports.getStudentByEmail = (email) => {
-  return db.prepare("select * from STUDENT where email = ?").get(email);
-};
-
-//to delete
-exports.findAcceptedProposal = (proposal_id) => {
-  return db
-    .prepare(
-      `select * from APPLICATIONS where proposal_id = ? and state = 'accepted'`,
-    )
-    .get(proposal_id);
-};
-
 exports.getGroup = (cod_group) => {
   return db.prepare("select * from GROUPS where cod_group = ?").get(cod_group);
-};
-
-exports.deleteApplication = (student_id, proposal_id) => {
-  db.prepare(
-    "delete from APPLICATIONS where student_id = ? and proposal_id = ?",
-  ).run(student_id, proposal_id);
-};
-
-exports.deleteApplicationsOfStudent = (student_id) => {
-  db.prepare("delete from APPLICATIONS where student_id = ?").run(student_id);
 };
 
 exports.getGroups = () => {
@@ -330,7 +273,7 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
   }
   // -- Website notification
   db.prepare(
-    "INSERT INTO NOTIFICATIONS(student_id, object, content) VALUES(?,?,?)",
+    "INSERT INTO NOTIFICATIONS(student_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
   ).run(
     applicationJoined.id,
     "New decision on your thesis application",
@@ -358,7 +301,7 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
       }
       // -- Website notification
       db.prepare(
-        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+        "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
       ).run(
         fullCosupervisor.id,
         "New decision for a thesis you co-supervise",
@@ -396,7 +339,7 @@ exports.notifyNewStartRequest = async (requestId) => {
 
   // Save email in DB
   db.prepare(
-    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
   ).run(requestJoined.supervisor, "New start request", mailBody.text);
 
   // Send email to the co-supervisors
@@ -421,7 +364,7 @@ exports.notifyNewStartRequest = async (requestId) => {
 
       // Save email in DB
       db.prepare(
-        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+        "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
       ).run(coSupervisor.id, "New start request", mailBody.text);
     }
   }
@@ -454,7 +397,7 @@ exports.notifyNewApplication = async (proposalId) => {
 
   // Save email in DB
   db.prepare(
-    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
   ).run(
     proposalJoined.id,
     "New application on your thesis proposal",
@@ -619,33 +562,6 @@ exports.getApplicationsOfStudent = (student_id) => {
     .all(student_id);
 };
 
-exports.getApplications = () => {
-  return db
-    .prepare(
-      `select APPLICATIONS.id,
-              APPLICATIONS.proposal_id,
-              APPLICATIONS.student_id,
-              APPLICATIONS.state,
-              STUDENT.name as student_name,
-              STUDENT.surname as student_surname,
-              TEACHER.name as teacher_name,
-              TEACHER.surname as teacher_surname,
-              PROPOSALS.title as title
-       from APPLICATIONS,
-            PROPOSALS,
-            STUDENT,
-            TEACHER
-       where APPLICATIONS.proposal_id = PROPOSALS.id
-         and PROPOSALS.supervisor = TEACHER.id
-         and APPLICATIONS.student_id = STUDENT.id`,
-    )
-    .all();
-};
-
-exports.getProposals = () => {
-  return db.prepare("select * from PROPOSALS").all();
-};
-
 exports.getNotifications = (user_id) => {
   return db
     .prepare(
@@ -721,7 +637,7 @@ exports.notifyRemovedCosupervisors = async (oldProposal, newProposal) => {
         }
         // -- Website notification
         db.prepare(
-          "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+          "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
         ).run(
           teacher.id,
           "You have been removed from a thesis proposal",
@@ -757,7 +673,7 @@ exports.notifyAddedCosupervisors = async (oldProposal, newProposal) => {
         }
         // -- Website notification
         db.prepare(
-          "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+          "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
         ).run(
           teacher.id,
           "You have been added to a thesis proposal",
@@ -818,10 +734,6 @@ exports.updateStartRequest = (id, new_fields) => {
       "UPDATE START_REQUESTS SET title = ?, description = ?, supervisor = ?, co_supervisors = ?, status = 'changed' WHERE id = ?",
     )
     .run(title, description, supervisor, co_supervisors, id);
-};
-
-exports.getRequests = () => {
-  return db.prepare("select * from START_REQUESTS").all();
 };
 
 exports.getRequestById = (id) => {
