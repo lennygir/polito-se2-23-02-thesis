@@ -914,6 +914,4 @@ Currently, the implemented user roles are:
 | Student  |Lorenzo Bertetto| s309618@studenti.polito.it  | s309618  |
 | Student  |Carlos Valeriano| s308747@studenti.polito.it  | s308747  |
 | Student  |Luca Tortore| s319823@studenti.polito.it  | s319823  |
-| Student  |Francesco Baracco| s317743@studenti.polito.it  | s317743  |
-| Student  |Lenny Girardot| s321503@studenti.polito.it  | s321503  |
 
