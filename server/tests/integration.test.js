@@ -975,9 +975,9 @@ describe("Proposal acceptance", () => {
     // the student2 tries to apply for that proposal
     logIn("s308747@studenti.polito.it");
     const response = await applyForProposal(inserted_proposal_id);
-
+    const prop_id = parseInt(inserted_proposal_id);
     expect(response.status).toBe(400);
-    expect(response.body).toEqual({ message: `The proposal ${inserted_proposal_id} is already accepted for another student`});
+    expect(response.body).toEqual({ message: `The proposal ${prop_id} is already accepted for another student`});
   });
 
   it("If a proposal gets accepted for a student, other students' applications should become canceled", async () => {

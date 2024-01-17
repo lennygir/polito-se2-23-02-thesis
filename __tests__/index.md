@@ -29,7 +29,6 @@ and it is the most efficient way to test the application.
     - [\[14\] Application - see the applicant CV (last check 14/12/2023 - sprint3)](#14-application---see-the-applicant-cv-last-check-14122023---sprint3)
     - [\[15\] Start request - professor approval (last check 16/01/2024 - sprint4)](#15-start-request---professor-approval-last-check-16012024---sprint4)
     - [\[16\] Start request - professor rejection (last check 16/01/2024 - sprint4)](#16-start-request---professor-rejection-last-check-16012024---sprint4)
-    - [\[16\] Start request - professor rejection (last check 16/01/2024 - sprint4)](#16-start-request---professor-rejection-last-check-16012024---sprint4)
     - [\[17\] Start request/Notification - create a start request (last check 16/01/2024 - sprint4)](#17-start-requestnotification---create-a-start-request-last-check-16012024---sprint4)
     - [\[18\] Proposal/Notification - expiration of a proposal (last check 17/01/2024 - sprint4)](#18-proposalnotification---expiration-of-a-proposal-last-check-17012024---sprint4)
     - [\[19\] Start request - create a start request from Application (last check 16/01/2024 - sprint4)](#19-start-request---create-a-start-request-from-application-last-check-16012024---sprint4)
