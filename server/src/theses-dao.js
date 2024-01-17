@@ -651,13 +651,19 @@ exports.isAccepted = (proposal_id, student_id) => {
   return accepted_proposal !== undefined;
 };
 
+function getCosupervisorsFromProposal(proposal) {
+  return proposal.co_supervisors ? proposal.co_supervisors.split(", ") : [];
+}
+
+function getArrayDifference(arrayIn, arrayNotIn) {
+  return arrayIn.filter((el) => !arrayNotIn.includes(el));
+}
+
 exports.notifyRemovedCosupervisors = async (oldProposal, newProposal) => {
-  const oldCosupervisors = (oldProposal.co_supervisors ? oldProposal.co_supervisors.split(", ") : []);
-  const newCosupervisors = (newProposal.co_supervisors ? newProposal.co_supervisors.split(", ") : []);
+  const oldCosupervisors = getCosupervisorsFromProposal(oldProposal);
+  const newCosupervisors = getCosupervisorsFromProposal(newProposal);
   if(oldCosupervisors && newCosupervisors) {
-    const removedCosupervisors = oldCosupervisors.filter((cosupervisor) => {
-      return !newCosupervisors.includes(cosupervisor);
-    });
+    const removedCosupervisors = getArrayDifference(oldCosupervisors, newCosupervisors);
     for(let cosupervisorEmail of removedCosupervisors) {
       const teacher = this.getTeacherByEmail(cosupervisorEmail);
       if(teacher) {
@@ -690,12 +696,10 @@ exports.notifyRemovedCosupervisors = async (oldProposal, newProposal) => {
 };
 
 exports.notifyAddedCosupervisors = async (oldProposal, newProposal) => {
-  const oldCosupervisors = (oldProposal.co_supervisors ? oldProposal.co_supervisors.split(", ") : []);
-  const newCosupervisors = (newProposal.co_supervisors ? newProposal.co_supervisors.split(", ") : []);
+  const oldCosupervisors = getCosupervisorsFromProposal(oldProposal);
+  const newCosupervisors = getCosupervisorsFromProposal(newProposal);
   if(oldCosupervisors && newCosupervisors) {
-    const addedCosupervisors = newCosupervisors.filter((cosupervisor) => {
-      return !oldCosupervisors.includes(cosupervisor);
-    });
+    const addedCosupervisors = getArrayDifference(newCosupervisors, oldCosupervisors);
     for(let cosupervisorEmail of addedCosupervisors) {
       const teacher = this.getTeacherByEmail(cosupervisorEmail);
       if(teacher) {
