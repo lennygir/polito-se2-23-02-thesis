@@ -2,40 +2,51 @@
 
 const request = require("supertest");
 const { app } = require("../src/server");
-
-const {
-  getGroups,
-  getTeachers,
-  getTeacher,
-  getDegrees,
-  updateApplication,
-  getApplicationById,
-  getTeacherByEmail,
-  getGroup,
-  cancelPendingApplications,
-  getProposal,
-  getStudent,
-  findAcceptedProposal,
-  findRejectedApplication,
-  getNotifications,
-  getDelta,
-  setDelta,
-  getApplicationsOfTeacher,
-  getApplicationsOfStudent,
-  getExamsOfStudent,
-  getNotRejectedStartRequest,
-  getPendingApplicationsOfStudent,
-  getAcceptedApplicationsOfStudent,
-  getRequestsForClerk,
-  getProposalsThatExpireInXDays,
-  notifyRemovedCosupervisors,
-} = require("../src/dao/misc");
-
 const dayjs = require("dayjs");
+
 const isLoggedIn = require("../src/routes_utils/protect-routes");
 const { runCronjob, cronjobNames } = require("../src/cronjobs");
+const {
+  getExamsOfStudent,
+  getGroup,
+  getGroups,
+  getDegrees,
+  notifyRemovedCosupervisors,
+  getNotifications,
+} = require("../src/dao/misc");
+const {
+  getProposal,
+  findAcceptedProposal,
+  getProposalsThatExpireInXDays,
+} = require("../src/dao/proposals");
+const {
+  getStudent,
+  getTeacherByEmail,
+  getTeachers,
+  getTeacher,
+} = require("../src/dao/user");
+const {
+  getAcceptedApplicationsOfStudent,
+  getPendingApplicationsOfStudent,
+  findRejectedApplication,
+  getApplicationById,
+  getApplicationsOfStudent,
+  getApplicationsOfTeacher,
+  updateApplication,
+  cancelPendingApplications,
+} = require("../src/dao/applications");
+const { getDelta, setDelta } = require("../src/dao/virtual-clock");
+const {
+  getNotRejectedStartRequest,
+  getRequestsForClerk,
+} = require("../src/dao/start-requests");
 
 jest.mock("../src/dao/misc");
+jest.mock("../src/dao/proposals");
+jest.mock("../src/dao/applications");
+jest.mock("../src/dao/user");
+jest.mock("../src/dao/start-requests");
+jest.mock("../src/dao/virtual-clock");
 jest.mock("../src/routes_utils/protect-routes");
 
 const application = {
@@ -496,7 +507,6 @@ describe("Get All Teachers Test", () => {
       .then((response) => {
         // Assuming the response body is an array
         expect(Array.isArray(response.body)).toBe(true);
-        // todo: Add more specific checks on the response body if needed
       });
   });
   test("Get 200 for an empty group table db", () => {
@@ -761,7 +771,7 @@ describe("GET /api/virtualClock", () => {
     getDelta.mockReturnValueOnce({ delta: 3 });
     const response = await request(app).get("/api/virtualClock");
     expect(response.status).toBe(200);
-    expect(response.body).toEqual(dayjs().add("3", "day").format("YYYY-MM-DD"));
+    expect(response.body).toEqual(dayjs().add(3, "day").format("YYYY-MM-DD"));
   });
   it("should handle server error and respond with status 500", async () => {
     getDelta.mockImplementation(() => {
