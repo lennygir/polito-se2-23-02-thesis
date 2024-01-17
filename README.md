@@ -13,9 +13,18 @@
   - [React Client Application Routes](#react-client-application-routes)
   - [Client Components](#client-components)
     - [AccountPopover](#accountpopover)
+    - [AppAlert](#appalert)
     - [ApplicationDetails](#applicationdetails)
     - [ApplicationRow](#applicationrow)
     - [ApplicationTable](#applicationtable)
+    - [Auth](#auth)
+    - [ButtonDatePicker](#buttondatepicker)
+    - [ChangeRequestDialog](#changerequestdialog)
+    - [ConfirmationDialog](#confirmationdialog)
+    - [CustomPaper](#custompaper)
+    - [DropzoneDialog](#dropzonedialog)
+    - [EmptyTable](#emptytable)
+    - [Navbar](#navbar)
     - [NotificationRow](#notificationrow)
     - [NotificationTable](#notificationtable)
     - [ProposalDetails](#proposaldetails)
@@ -27,8 +36,10 @@
     - [RequestForm](#requestform)
     - [RequestRow](#requestrow)
     - [RequestTable](#requesttable)
+    - [Sidebar](#sidebar)
     - [StudentCareerRow](#studentcareerrow)
     - [StudentCareerTable](#studentcareertable)
+    - [ThemeToggle](#themetoggle)
   - [API Server](#api-server)
   - [Additional Server Functions](#additional-server-functions)
   - [Users](#users)
@@ -36,7 +47,7 @@
 
 
 ## Project Description
-Thesis Management is a specialized web platform created exclusively for the Polytechnic University of Turin to effectively oversee thesis-related processes. Within this application, students have the capability to explore available theses and submit their applications. Additionally, professors can contribute thesis proposals and review and decide on student applications. As of now, the system encompasses three primary user roles: professors, students, and secretary clerks. Each user is empowered to undertake various tasks aligned with their specific roles and permissions.
+Thesis Manager is a specialized web platform created exclusively for the Polytechnic University of Turin to effectively oversee thesis-related processes. Within this application, students have the capability to explore available theses and submit their applications. Additionally, professors can contribute thesis proposals and review and decide on student applications. As of now, the system encompasses three primary user roles: professors, students, and secretary clerks. Each user is empowered to undertake various tasks aligned with their specific roles and permissions.
 
 ## Use Case Diagram
 <img width="559" alt="Screenshot 2024-01-10 at 2 33 12 PM" src="https://github.com/lennygir/polito-se2-23-02-thesis/assets/97409881/408c2fe6-b7f7-4757-b9aa-3fbbedcb9c43">
@@ -106,13 +117,16 @@ Once the docker container is running you can access the application using [local
 
 - Route `/`: login page
 - Route `/proposals`: students see the list of proposals for their cds, teachers see the list of their proposals
-- Route `/proposals/:proposalId`: students see the details of a proposal and can apply to it, teachers can only see the proposal details
+- Route `/proposals/proposalId`: students see the details of a proposal and can apply to it, teachers can only see the proposal details
 - Route `/add-proposal`: teachers can create a new proposal
 - Route `/edit-proposal/proposalId`: teachers can edit an existing proposal
 - Route `/applications`: students see the list of their applications, teachers see the list of applications to their proposals
-- Route `/applications/:applicationId`: students see the check the details of an applications, teachers can also accept or reject an application
+- Route `/applications/applicationId`: students see the check the details of an applications, teachers can also accept or reject an application
 - Route `/notifications`: students and teachers see the list of notifications related to the proposals/applications
-- Route `/settings`: users can change the theme and the current date
+- Route `/requests`: students can see the request that has been submitted by them, teachers can view the requests which are sent to them, and secretary clerks can also view thesis requests directed to them.
+- `/requests/requestId`: teachers can see the details of the request made by the student, in addition to accepting or rejecting the request, the teacher can ask for changes from the student. Furthermore, secretary clerks can see the details of the requests sent to them, and they can accept or reject it
+- Route `/add-start-request`: students can either create a thesis start request from "start request" in the side bar or they can create one from an accepted application.
+- Route `/settings`: users can change the theme (light/dark mode)
 - Route `*`: non-existing routes view
 
 ## Client Components
@@ -121,6 +135,12 @@ Once the docker container is running you can access the application using [local
 
 This component, when rendered within a UI, would display a Chip containing the user's avatar, name, and role.
 It pulls user information from a UserContext, and provides user details across the application.
+
+### AppAlert
+
+This component utilizes the Material-UI library to display alert messages in a Snackbar. It is designed to show notifications to the user with a message, severity level, and a customizable closing mechanism.
+
+
 
 ### ApplicationDetails
 
@@ -143,6 +163,38 @@ This component renders a table based on the provided data (`applications`) and t
 
 If the user's role is teacher, the rendered table headers will be "Student", "Proposal", "Status", "Open". 
 On the contrary, if the user's role is student, the rendered table headers will be "Teacher", "Proposal", "Status", "Open"
+
+### Auth
+
+Auth defines two React functional components, LoginButton and LogoutButton, each representing a button with specific functionality related to user authentication. The LoginButton is a button that, when clicked, redirects the user to the login page using the LOGIN_URL. The LogoutButton is a ListItemButton with a logout icon and text, and when clicked, it redirects the user to the logout page using the LOGOUT_URL.
+
+### ButtonDatePicker
+
+This customizable date picker component includes a button (ButtonField) with an associated icon and label. 
+
+### ChangeRequestDialog
+
+This component represents a dialog for requesting changes related to a thesis request. The dialog includes a form with a text field for entering a message, and buttons for canceling or submitting the changes.
+
+### ConfirmationDialog
+
+This component utilizes a confirmation dialog with a title, message, and two action buttons (primary and secondary). Users can confirm or cancel an action using this dialog.
+
+### CustomPaper
+
+This component serves as a wrapper around the Material-UI Paper component. It provides a custom configuration for the Paper component by setting specific elevation, border radius, and padding properties.
+
+### DropzoneDialog
+
+This component is used to create a dialog for confirming a decision and allowing users to upload a single PDF file using the FilePond component.
+
+### EmptyTable
+
+This component is a reusable piece of UI that can be used to inform users when a table is empty and specify the type of data that is currently not available. 
+
+### Navbar
+
+This component named Navbar represents a navigation bar with specific functionality. It includes elements like an app drawer toggle button, a date picker button (ButtonDatePicker), and an account popover.
 
 ### NotificationRow
 
@@ -181,7 +233,6 @@ This component is responsible for rendering a table displaying proposals. It acc
 This functional React component takes in several props that include headers, proposal data, functions to delete or archive a proposal, functions to fetch teacher details, filters, application data, and the current date.
 It dynamically populates the table headers based on the user's role and the provided headers, and it renders each proposal using the `ProposalRow` component while passing necessary data and functions as props.
 
-
 ### RequestDetails
 
 This RequestDetails component manages the display of detailed information about a student's request, especially concerning thesis supervision.
@@ -206,6 +257,10 @@ This component's primary purpose is to present a table displaying various detail
 The "Status" column includes a tooltip legend for better understanding of the different statuses associated with requests.
 By using the RequestRow component, it iterates through each request object to render rows in the table according to the defined headers.
 
+### Sidebar
+
+This component named Sidebar represents a navigation sidebar. The sidebar includes tabs for various functionalities based on the user's role, such as proposals, applications, start requests, and notifications. It also has a "Settings" tab and a logout button.
+
 ### StudentCareerRow
 
 StudentCareerRow component generates a row in a table, each row representing a specific course taken by a student.
@@ -216,6 +271,10 @@ It populates the cells of the row with data related to the course, such as the c
 This component generates a table displaying a student's academic career, with each row representing a course and each column displaying specific details about that course.
 The table headers define what information is shown in each column (course code, exam name, grade, credits, and date).
 For each course in the career array, the StudentCareerRow component is utilized to create a row in the table, populating it with course-related data.
+
+### ThemeToggle
+
+This component creates a themed toggle switch for changing the color mode of the application. The appearance of the switch adapts to the current theme mode, providing a seamless and visually appealing experience for users to switch between light and dark modes.
 
 
 ## API Server
@@ -838,7 +897,7 @@ For each course in the career array, the StudentCareerRow component is utilized 
 
 Currently, the implemented user roles are:
 - Professor
-- Secretary
+- Secretary Clerk
 - Student
 
 
@@ -848,9 +907,13 @@ Currently, the implemented user roles are:
 | Professor  |Marco Torchiano| marco.torchiano@teacher.it  | s123456  |
 | Professor  |Luigi De Russis| luigi.derussis@teacher.it  | s345678  |
 | professor  |Maurizio Morisio| maurizio.morisio@teacher.it  | s234567  |
-| Secretary  |Laura Ferrari| laura.ferrari@example.com  | d123456  |
+| Secretary Clerk  |Laura Ferrari| laura.ferrari@example.com  | d123456  |
+| Secretary Clerk  |Fabio Russo| fabio.russo@example.com  | d234567  |
+| Secretary Clerk  |Alessia Romano| alessia.romano@example.com  | d345678  |
 | Student  |Lorenzo Bertetto| s309618@studenti.polito.it  | s309618  |
 | Student  |Carlos Valeriano| s308747@studenti.polito.it  | s308747  |
 | Student  |Luca Tortore| s319823@studenti.polito.it  | s319823  |
-
+| Student  |Francesco Baracco| s317743@studenti.polito.it  | s317743  |
+| Student  |Lenny Girardot| s321503@studenti.polito.it  | s321503  |
+| Student  |Ghazal Ghorbani| s308920@studenti.polito.it  | s308920  |
 
