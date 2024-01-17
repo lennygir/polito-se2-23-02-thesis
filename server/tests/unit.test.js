@@ -2,41 +2,53 @@
 
 const request = require("supertest");
 const { app } = require("../src/server");
+const dayjs = require("dayjs");
 
+const isLoggedIn = require("../src/routes_utils/protect-routes");
+const { runCronjob, cronjobNames } = require("../src/cronjobs");
 const {
-  getGroups,
-  getTeachers,
-  getTeacher,
-  getDegrees,
-  updateApplication,
-  getApplicationById,
-  getTeacherByEmail,
-  getGroup,
-  cancelPendingApplications,
-  getProposal,
-  findAcceptedProposal,
-  findRejectedApplication,
-  getNotifications,
-  getDelta,
-  setDelta,
-  getApplicationsOfTeacher,
-  getApplicationsOfStudent,
   getExamsOfStudent,
-  getNotRejectedStartRequest,
-  getPendingApplicationsOfStudent,
-  getAcceptedApplicationsOfStudent,
-  getRequestsForClerk,
-  getProposalsThatExpireInXDays,
+  getGroup,
+  getGroups,
+  getDegrees,
   notifyRemovedCosupervisors,
   notifyAddedCosupervisors,
-} = require("../src/theses-dao");
+  getNotifications,
+} = require("../src/dao/misc");
+const {
+  getProposal,
+  findAcceptedProposal,
+  getProposalsThatExpireInXDays,
+} = require("../src/dao/proposals");
+const {
+  getTeacherByEmail,
+  getTeachers,
+  getTeacher,
+  getUser,
+} = require("../src/dao/user");
+const {
+  getAcceptedApplicationsOfStudent,
+  getPendingApplicationsOfStudent,
+  findRejectedApplication,
+  getApplicationById,
+  getApplicationsOfStudent,
+  getApplicationsOfTeacher,
+  updateApplication,
+  cancelPendingApplications,
+} = require("../src/dao/applications");
+const { getDelta, setDelta } = require("../src/dao/virtual-clock");
+const {
+  getNotRejectedStartRequest,
+  getRequestsForClerk,
+} = require("../src/dao/start-requests");
 
-const dayjs = require("dayjs");
-const isLoggedIn = require("../src/protect-routes");
-const { runCronjob, cronjobNames } = require("../src/cronjobs");
-
-jest.mock("../src/theses-dao");
-jest.mock("../src/protect-routes");
+jest.mock("../src/dao/misc");
+jest.mock("../src/dao/proposals");
+jest.mock("../src/dao/applications");
+jest.mock("../src/dao/user");
+jest.mock("../src/dao/start-requests");
+jest.mock("../src/dao/virtual-clock");
+jest.mock("../src/routes_utils/protect-routes");
 
 const application = {
   proposal: 8,
@@ -47,26 +59,38 @@ beforeEach(() => {
   application.proposal = 8;
 });
 
-describe('GET /api/sessions/current', () => {
-  test('should return user details if authenticated', async () => {
-    const mockedUser = {  email: "s309618@studenti.polito.it", };
+describe("GET /api/sessions/current", () => {
+  test("should return user details if authenticated", async () => {
+    const mockedUser = { email: "s309618@studenti.polito.it" };
     isLoggedIn.mockImplementation((req, res, next) => {
       req.user = mockedUser;
       next();
     });
-    const response = await request(app).get('/api/sessions/current');
+    getUser.mockReturnValue({
+      id: "s309618",
+      surname: "Bertetto",
+      name: "Lorenzo",
+      gender: "Male",
+      nationality: "Italy",
+      email: "s309618@studenti.polito.it",
+      cod_degree: "LM-32-D",
+      enrollment_year: 2022,
+      role: "student",
+    });
+    const response = await request(app).get("/api/sessions/current");
     expect(response.status).toBe(200);
   });
 
-  test('should handle database error', async () => {
-    const mockedUser = {  email: "s000000@studenti.polito.it", };
+  test("should handle database error", async () => {
+    const mockedUser = { email: "s000000@studenti.polito.it" };
     isLoggedIn.mockImplementation((req, res, next) => {
       req.user = mockedUser;
       next();
     });
-    const response = await request(app).get('/api/sessions/current');
+    getUser.mockReturnValue(undefined);
+    const response = await request(app).get("/api/sessions/current");
     expect(response.status).toBe(500);
-    expect(response.body).toEqual({ message: 'database error' });
+    expect(response.body).toEqual({ message: "database error" });
   });
 });
 
@@ -102,7 +126,7 @@ describe("Career retrieval tests", () => {
     const studentId = "s309618";
     isLoggedIn.mockImplementation((req, res, next) => next());
     getExamsOfStudent.mockImplementation(() => {
-      throw "ERROR: SQL_SOMETHING";
+      throw new Error("ERROR: SQL_SOMETHING");
     });
     await request(app).get(`/api/students/${studentId}/exams`).expect(500);
   });
@@ -125,6 +149,17 @@ describe("Application Insertion Tests", () => {
         email: "s309618@studenti.polito.it",
       };
       next();
+    });
+    getUser.mockReturnValue({
+      id: "s309618",
+      surname: "Bertetto",
+      name: "Lorenzo",
+      gender: "Male",
+      nationality: "Italy",
+      email: "s309618@studenti.polito.it",
+      cod_degree: "LM-32-D",
+      enrollment_year: 2022,
+      role: "student",
     });
   });
   test("Insertion of an application with a wrong proposal", () => {
@@ -163,6 +198,7 @@ describe("Application Insertion Tests", () => {
       };
       next();
     });
+    getUser.mockReturnValue(undefined);
     return request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
@@ -469,6 +505,15 @@ describe("Applications retrieval tests", () => {
       };
       next();
     });
+    getUser.mockReturnValue({
+      id: "s123456",
+      surname: "Torchiano",
+      name: "Marco",
+      email: "marco.torchiano@teacher.it",
+      cod_group: "SOFTENG",
+      cod_department: "DAUIN",
+      role: "teacher",
+    });
     getApplicationsOfTeacher.mockReturnValue([]);
     await request(app)
       .get("/api/applications")
@@ -507,7 +552,6 @@ describe("Get All Teachers Test", () => {
       .then((response) => {
         // Assuming the response body is an array
         expect(Array.isArray(response.body)).toBe(true);
-        // todo: Add more specific checks on the response body if needed
       });
   });
   test("Get 200 for an empty group table db", () => {
@@ -705,6 +749,17 @@ describe("PATCH /api/applications/:id", () => {
     getApplicationById.mockReturnValue({
       state: "accepted",
     });
+    getUser.mockReturnValue({
+      id: "s309618",
+      surname: "Bertetto",
+      name: "Lorenzo",
+      gender: "Male",
+      nationality: "Italy",
+      email: "s309618@studenti.polito.it",
+      cod_degree: "LM-32-D",
+      enrollment_year: 2022,
+      role: "student",
+    });
     const response = await request(app)
       .patch("/api/applications/1")
       .send(Buffer.alloc(5))
@@ -772,7 +827,7 @@ describe("GET /api/virtualClock", () => {
     getDelta.mockReturnValueOnce({ delta: 3 });
     const response = await request(app).get("/api/virtualClock");
     expect(response.status).toBe(200);
-    expect(response.body).toEqual(dayjs().add("3", "day").format("YYYY-MM-DD"));
+    expect(response.body).toEqual(dayjs().add(3, "day").format("YYYY-MM-DD"));
   });
   it("should handle server error and respond with status 500", async () => {
     getDelta.mockImplementation(() => {
@@ -851,6 +906,15 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
+    getUser.mockReturnValue({
+      id: "s234567",
+      surname: "Morisio",
+      name: "Maurizio",
+      email: "maurizio.morisio@teacher.it",
+      cod_group: "SOFTENG",
+      cod_department: "DAUIN",
+      role: "teacher",
+    });
     getTeacher.mockReturnValue({ email: "fake@fake.com" });
     getNotRejectedStartRequest.mockReturnValue([]);
     return request(app)
@@ -873,6 +937,17 @@ describe("POST /api/start-requests", () => {
         email: "s309618@studenti.polito.it",
       };
       next();
+    });
+    getUser.mockReturnValue({
+      id: "s309618",
+      surname: "Bertetto",
+      name: "Lorenzo",
+      gender: "Male",
+      nationality: "Italy",
+      email: "s309618@studenti.polito.it",
+      cod_degree: "LM-32-D",
+      enrollment_year: 2022,
+      role: "student",
     });
     getTeacher.mockReturnValue({ email: "fake@fake.com" });
     getNotRejectedStartRequest.mockReturnValue([]);
@@ -922,7 +997,9 @@ describe("GET /api/start-requests", () => {
       };
       next();
     });
-
+    getUser.mockReturnValue({
+      role: "secretary_clerk",
+    });
     const expectedRequests = [
       {
         id: 1,
@@ -963,30 +1040,37 @@ describe("Cronjobs", () => {
     getDelta.mockReturnValue({ delta: 2 });
     getProposalsThatExpireInXDays.mockReturnValue([
       {
-        supervisor: "s234567", 
+        supervisor: "s234567",
         teacher_surname: "Torchiano",
         teacher_email: "marco.torchiano@teacher.it",
         teacher_name: "Marco",
         expiration_date: expectedDate.format("YYYY-MM-DD"),
-        title: "Test proposal"
-      }
+        title: "Test proposal",
+      },
     ]);
-    await runCronjob(cronjobNames.THESIS_EXPIRED);
+    runCronjob(cronjobNames.THESIS_EXPIRED);
   });
 });
 
 describe("PUT /api/proposals/:id", () => {
   test("Remove a co supervisor", async () => {
-
-    const originalModule = jest.requireActual("../src/theses-dao");
-    notifyRemovedCosupervisors.mockImplementation(originalModule.notifyRemovedCosupervisors);
-    notifyAddedCosupervisors.mockImplementation(originalModule.notifyAddedCosupervisors);
+    const originalModule = jest.requireActual("../src/dao/misc");
+    notifyRemovedCosupervisors.mockImplementation(
+      originalModule.notifyRemovedCosupervisors,
+    );
+    notifyAddedCosupervisors.mockImplementation(
+      originalModule.notifyAddedCosupervisors,
+    );
 
     isLoggedIn.mockImplementation((req, res, next) => {
       req.user = {
         email: "maurizio.morisio@teacher.it",
       };
       next();
+    });
+    getUser.mockReturnValue({
+      id: "s234567",
+      role: "teacher",
     });
 
     const proposal = {
@@ -1004,16 +1088,14 @@ describe("PUT /api/proposals/:id", () => {
       level: "MSC",
       cds: "LM-32 (DM270)",
       manually_archived: 0,
-      deleted: 0
+      deleted: 0,
     };
 
     const modifiedProposal = {
       id: 1,
       title: "test",
       description: "desc test",
-      co_supervisors: [
-        "luigi.derussis@teacher.it"
-      ],
+      co_supervisors: ["luigi.derussis@teacher.it"],
       keywords: ["keyword1", "keyword2"],
       groups: [],
       types: ["EXPERIMENTAL"],
@@ -1021,18 +1103,16 @@ describe("PUT /api/proposals/:id", () => {
       notes: "notes",
       expiration_date: "2021-01-01",
       level: "MSC",
-      cds: "LM-32 (DM270)"
+      cds: "LM-32 (DM270)",
     };
 
     getProposal.mockReturnValue(proposal);
 
-    const requests = (
-      await request(app)
-        .put("/api/proposals/1")
-        .set("Content-Type", "application/json")
-        .send(modifiedProposal)
-        .expect(200)
-    );
+    const requests = await request(app)
+      .put("/api/proposals/1")
+      .set("Content-Type", "application/json")
+      .send(modifiedProposal)
+      .expect(200);
     expect(requests.body).toEqual({ message: "Proposal updated successfully" });
   });
 });

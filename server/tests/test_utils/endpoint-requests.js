@@ -2,9 +2,9 @@
 
 "use strict";
 
-const isLoggedIn = require("../src/protect-routes");
+const isLoggedIn = require("../../src/routes_utils/protect-routes");
 const request = require("supertest");
-const { app } = require("../src/server");
+const { app } = require("../../src/server");
 const dayjs = require("dayjs");
 
 /**
