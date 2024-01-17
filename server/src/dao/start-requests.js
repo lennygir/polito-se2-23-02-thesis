@@ -39,16 +39,6 @@ exports.setApprovalDateOfRequest = (new_date, request_id) => {
     .run(new_date, request_id);
 };
 
-exports.getStatusStartRequest = (id) => {
-  return db.prepare("SELECT status FROM START_REQUESTS WHERE id = ?").get(id);
-};
-
-exports.getSupervisorStartRequest = (id) => {
-  return db
-    .prepare("SELECT supervisor FROM START_REQUESTS WHERE id = ?")
-    .get(id);
-};
-
 exports.getStartedThesisRequest = (student_id) => {
   return db
     .prepare(
@@ -70,10 +60,6 @@ exports.updateStartRequest = (id, new_fields) => {
       "UPDATE START_REQUESTS SET title = ?, description = ?, supervisor = ?, co_supervisors = ?, status = 'changed' WHERE id = ?",
     )
     .run(title, description, supervisor, co_supervisors, id);
-};
-
-exports.getRequests = () => {
-  return db.prepare("select * from START_REQUESTS").all();
 };
 
 exports.getRequestById = (id) => {

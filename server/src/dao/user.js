@@ -40,11 +40,3 @@ exports.getTeacherEmailById = (id) => {
 exports.getTeachers = () => {
   return db.prepare("select * from TEACHER").all();
 };
-
-exports.getStudent = (id) => {
-  return db.prepare("select * from STUDENT where id = ?").get(id);
-};
-
-exports.getStudentByEmail = (email) => {
-  return db.prepare("select * from STUDENT where email = ?").get(email);
-};

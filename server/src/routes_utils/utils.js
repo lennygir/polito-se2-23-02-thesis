@@ -131,7 +131,6 @@ async function setStateToApplication(req, res, state) {
 module.exports = {
   getDate,
   isArchived,
-  check_errors,
   determineNewStatus,
   validateProposal,
   setStateToApplication,

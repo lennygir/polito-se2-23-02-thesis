@@ -21,7 +21,6 @@ const {
   getProposalsThatExpireInXDays,
 } = require("../src/dao/proposals");
 const {
-  getStudent,
   getTeacherByEmail,
   getTeachers,
   getTeacher,
@@ -60,26 +59,38 @@ beforeEach(() => {
   application.proposal = 8;
 });
 
-describe('GET /api/sessions/current', () => {
-  test('should return user details if authenticated', async () => {
-    const mockedUser = {  email: "s309618@studenti.polito.it", };
+describe("GET /api/sessions/current", () => {
+  test("should return user details if authenticated", async () => {
+    const mockedUser = { email: "s309618@studenti.polito.it" };
     isLoggedIn.mockImplementation((req, res, next) => {
       req.user = mockedUser;
       next();
     });
-    const response = await request(app).get('/api/sessions/current');
+    getUser.mockReturnValue({
+      id: "s309618",
+      surname: "Bertetto",
+      name: "Lorenzo",
+      gender: "Male",
+      nationality: "Italy",
+      email: "s309618@studenti.polito.it",
+      cod_degree: "LM-32-D",
+      enrollment_year: 2022,
+      role: "student",
+    });
+    const response = await request(app).get("/api/sessions/current");
     expect(response.status).toBe(200);
   });
 
-  test('should handle database error', async () => {
-    const mockedUser = {  email: "s000000@studenti.polito.it", };
+  test("should handle database error", async () => {
+    const mockedUser = { email: "s000000@studenti.polito.it" };
     isLoggedIn.mockImplementation((req, res, next) => {
       req.user = mockedUser;
       next();
     });
-    const response = await request(app).get('/api/sessions/current');
+    getUser.mockReturnValue(undefined);
+    const response = await request(app).get("/api/sessions/current");
     expect(response.status).toBe(500);
-    expect(response.body).toEqual({ message: 'database error' });
+    expect(response.body).toEqual({ message: "database error" });
   });
 });
 
@@ -1047,7 +1058,9 @@ describe("PUT /api/proposals/:id", () => {
     notifyRemovedCosupervisors.mockImplementation(
       originalModule.notifyRemovedCosupervisors,
     );
-    notifyAddedCosupervisors.mockImplementation(originalModule.notifyAddedCosupervisors);
+    notifyAddedCosupervisors.mockImplementation(
+      originalModule.notifyAddedCosupervisors,
+    );
 
     isLoggedIn.mockImplementation((req, res, next) => {
       req.user = {
@@ -1082,9 +1095,7 @@ describe("PUT /api/proposals/:id", () => {
       id: 1,
       title: "test",
       description: "desc test",
-      co_supervisors: [
-        "luigi.derussis@teacher.it"
-      ],
+      co_supervisors: ["luigi.derussis@teacher.it"],
       keywords: ["keyword1", "keyword2"],
       groups: [],
       types: ["EXPERIMENTAL"],

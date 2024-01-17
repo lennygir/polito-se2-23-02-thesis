@@ -51,10 +51,6 @@ exports.getProposal = (id) => {
   return db.prepare("select * from PROPOSALS where id = ?").get(id);
 };
 
-exports.getProposals = () => {
-  return db.prepare("select * from PROPOSALS").all();
-};
-
 exports.getProposalsByDegree = (cds) => {
   return db
     .prepare(

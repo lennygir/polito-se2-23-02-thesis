@@ -17,13 +17,17 @@ const {
 } = require("../mail/cosupervisor-start-request");
 const { removedCosupervisorTemplate } = require("../mail/removed-cosupervisor");
 const { getTeacherByEmail, getTeacherEmailById } = require("./user");
+const {
+  getCosupervisorsFromProposal,
+  getArrayDifference,
+} = require("./dao_utils/utils");
+const {
+  changesStartRequestStudentTemplate,
+} = require("../mail/changes-start-request-student");
+const { addedCosupervisorTemplate } = require("../mail/added-cosupervisor");
 
 exports.getExamsOfStudent = (id) => {
   return db.prepare("select * from main.CAREER where id = ?").all(id);
-};
-
-exports.getCds = (cds) => {
-  return db.prepare("select * from DEGREE where cod_degree = ?").get(cds);
 };
 
 exports.getGroup = (cod_group) => {
@@ -69,7 +73,7 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
   }
   // -- Website notification
   db.prepare(
-    "INSERT INTO NOTIFICATIONS(student_id, object, content) VALUES(?,?,?)",
+    "INSERT INTO NOTIFICATIONS(student_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
   ).run(
     applicationJoined.id,
     "New decision on your thesis application",
@@ -97,7 +101,7 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
       }
       // -- Website notification
       db.prepare(
-        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+        "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
       ).run(
         fullCosupervisor.id,
         "New decision for a thesis you co-supervise",
@@ -135,7 +139,7 @@ exports.notifyNewStartRequest = async (requestId) => {
 
   // Save email in DB
   db.prepare(
-    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
   ).run(requestJoined.supervisor, "New start request", mailBody.text);
 
   // Send email to the co-supervisors
@@ -160,7 +164,7 @@ exports.notifyNewStartRequest = async (requestId) => {
 
       // Save email in DB
       db.prepare(
-        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+        "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
       ).run(coSupervisor.id, "New start request", mailBody.text);
     }
   }
@@ -193,10 +197,49 @@ exports.notifyNewApplication = async (proposalId) => {
 
   // Save email in DB
   db.prepare(
-    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
   ).run(
     proposalJoined.id,
     "New application on your thesis proposal",
+    mailBody.text,
+  );
+};
+
+exports.notifyChangesRequestedOnStartRequest = async (
+  message,
+  startRequestId,
+) => {
+  // Send email to the supervisor
+  const startRequestJoined = db
+    .prepare(
+      `SELECT SR.title, S.id, S.email, S.surname, S.name
+      FROM START_REQUESTS SR
+      JOIN STUDENT S ON S.id = SR.student_id
+      WHERE SR.id = ?`,
+    )
+    .get(startRequestId);
+  const mailBody = changesStartRequestStudentTemplate({
+    name: startRequestJoined.surname + " " + startRequestJoined.name,
+    startRequest: startRequestJoined.title,
+    changes: message,
+  });
+  try {
+    await nodemailer.sendMail({
+      to: startRequestJoined.email,
+      subject: "Your start request requires changes",
+      text: mailBody.text,
+      html: mailBody.html,
+    });
+  } catch (e) {
+    console.log("[mail service]", e);
+  }
+
+  // Save email in DB
+  db.prepare(
+    "INSERT INTO NOTIFICATIONS(student_id, object, content) VALUES(?,?,?)",
+  ).run(
+    startRequestJoined.id,
+    "Your start request requires changes",
     mailBody.text,
   );
 };
@@ -222,7 +265,7 @@ exports.notifyProposalExpiration = async (proposal) => {
 
   // Save email in DB
   db.prepare(
-    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
   ).run(proposal.supervisor, "Your proposal expires in 7 days", mailBody.text);
 };
 
@@ -235,37 +278,79 @@ exports.getNotifications = (user_id) => {
 };
 
 exports.notifyRemovedCosupervisors = async (oldProposal, newProposal) => {
-  const oldCosupervisors = (oldProposal.co_supervisors || "").split(", ");
-  const newCosupervisors = newProposal.co_supervisors || [];
+  const oldCosupervisors = getCosupervisorsFromProposal(oldProposal);
+  const newCosupervisors = getCosupervisorsFromProposal(newProposal);
   if (oldCosupervisors && newCosupervisors) {
-    const removedCosupervisors = oldCosupervisors.filter((cosupervisor) => {
-      return !newCosupervisors.includes(cosupervisor);
-    });
+    const removedCosupervisors = getArrayDifference(
+      oldCosupervisors,
+      newCosupervisors,
+    );
     for (let cosupervisorEmail of removedCosupervisors) {
       const teacher = getTeacherByEmail(cosupervisorEmail);
-      // -- Email
-      const mailBody = removedCosupervisorTemplate({
-        name: teacher.surname + " " + teacher.name,
-        proposal: newProposal,
-      });
-      try {
-        await nodemailer.sendMail({
-          to: cosupervisorEmail,
-          subject: "You have been removed from a thesis proposal",
-          text: mailBody.text,
-          html: mailBody.html,
+      if (teacher) {
+        // -- Email
+        const mailBody = removedCosupervisorTemplate({
+          name: teacher.surname + " " + teacher.name,
+          proposal: newProposal,
         });
-      } catch (e) {
-        console.log("[mail service]", e);
+        try {
+          await nodemailer.sendMail({
+            to: cosupervisorEmail,
+            subject: "You have been removed from a thesis proposal",
+            text: mailBody.text,
+            html: mailBody.html,
+          });
+        } catch (e) {
+          console.log("[mail service]", e);
+        }
+        // -- Website notification
+        db.prepare(
+          "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
+        ).run(
+          teacher.id,
+          "You have been removed from a thesis proposal",
+          mailBody.text,
+        );
       }
-      // -- Website notification
-      db.prepare(
-        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
-      ).run(
-        teacher.id,
-        "You have been removed from a thesis proposal",
-        mailBody.text,
-      );
+    }
+  }
+};
+
+exports.notifyAddedCosupervisors = async (oldProposal, newProposal) => {
+  const oldCosupervisors = getCosupervisorsFromProposal(oldProposal);
+  const newCosupervisors = getCosupervisorsFromProposal(newProposal);
+  if (oldCosupervisors && newCosupervisors) {
+    const addedCosupervisors = getArrayDifference(
+      newCosupervisors,
+      oldCosupervisors,
+    );
+    for (let cosupervisorEmail of addedCosupervisors) {
+      const teacher = getTeacherByEmail(cosupervisorEmail);
+      if (teacher) {
+        // -- Email
+        const mailBody = addedCosupervisorTemplate({
+          name: teacher.surname + " " + teacher.name,
+          proposal: newProposal,
+        });
+        try {
+          await nodemailer.sendMail({
+            to: cosupervisorEmail,
+            subject: "You have been added to a thesis proposal",
+            text: mailBody.text,
+            html: mailBody.html,
+          });
+        } catch (e) {
+          console.log("[mail service]", e);
+        }
+        // -- Website notification
+        db.prepare(
+          "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
+        ).run(
+          teacher.id,
+          "You have been added to a thesis proposal",
+          mailBody.text,
+        );
+      }
     }
   }
 };

@@ -29,16 +29,6 @@ exports.getApplicationById = (id) => {
   return db.prepare("select * from APPLICATIONS where id = ?").get(id);
 };
 
-exports.deleteApplication = (student_id, proposal_id) => {
-  db.prepare(
-    "delete from APPLICATIONS where student_id = ? and proposal_id = ?",
-  ).run(student_id, proposal_id);
-};
-
-exports.deleteApplicationsOfStudent = (student_id) => {
-  db.prepare("delete from APPLICATIONS where student_id = ?").run(student_id);
-};
-
 exports.cancelPendingApplications = (of_proposal) => {
   db.prepare(
     "update APPLICATIONS set state = 'canceled' where proposal_id = ? AND state = 'pending'",
@@ -143,29 +133,6 @@ exports.getApplicationsOfStudent = (student_id) => {
          and APPLICATIONS.student_id = ?`,
     )
     .all(student_id);
-};
-
-exports.getApplications = () => {
-  return db
-    .prepare(
-      `select APPLICATIONS.id,
-              APPLICATIONS.proposal_id,
-              APPLICATIONS.student_id,
-              APPLICATIONS.state,
-              STUDENT.name as student_name,
-              STUDENT.surname as student_surname,
-              TEACHER.name as teacher_name,
-              TEACHER.surname as teacher_surname,
-              PROPOSALS.title as title
-       from APPLICATIONS,
-            PROPOSALS,
-            STUDENT,
-            TEACHER
-       where APPLICATIONS.proposal_id = PROPOSALS.id
-         and PROPOSALS.supervisor = TEACHER.id
-         and APPLICATIONS.student_id = STUDENT.id`,
-    )
-    .all();
 };
 
 /**
