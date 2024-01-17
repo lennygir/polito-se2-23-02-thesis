@@ -1000,6 +1000,7 @@ describe("PUT /api/proposals/:id", () => {
       title: "test",
       description: "desc test",
       co_supervisors: [
+        "luigi.derussis@teacher.it"
       ],
       keywords: ["keyword1", "keyword2"],
       groups: [],
