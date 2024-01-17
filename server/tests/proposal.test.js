@@ -29,6 +29,7 @@ const {
   getRequestsForClerk,
   getProposalsThatExpireInXDays,
   notifyRemovedCosupervisors,
+  notifyAddedCosupervisors,
 } = require("../src/theses-dao");
 
 const dayjs = require("dayjs");
@@ -969,6 +970,7 @@ describe("PUT /api/proposals/:id", () => {
 
     const originalModule = jest.requireActual("../src/theses-dao");
     notifyRemovedCosupervisors.mockImplementation(originalModule.notifyRemovedCosupervisors);
+    notifyAddedCosupervisors.mockImplementation(originalModule.notifyAddedCosupervisors);
 
     isLoggedIn.mockImplementation((req, res, next) => {
       req.user = {
@@ -999,7 +1001,9 @@ describe("PUT /api/proposals/:id", () => {
       id: 1,
       title: "test",
       description: "desc test",
-      co_supervisors: [],
+      co_supervisors: [
+        "luigi.derussis@teacher.it"
+      ],
       keywords: ["keyword1", "keyword2"],
       groups: [],
       types: ["EXPERIMENTAL"],
