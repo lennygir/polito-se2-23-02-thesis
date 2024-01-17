@@ -53,6 +53,7 @@ const {
   cancelPendingApplicationsOfStudent,
   notifyRemovedCosupervisors,
   notifyAddedCosupervisors,
+  notifyChangesRequestedOnStartRequest,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 const { runCronjob, cronjobNames } = require("./cronjobs");
@@ -386,6 +387,7 @@ router.patch("/api/start-requests/:thesisRequestId", isLoggedIn, (req, res) => {
       setApprovalDateOfRequest(getDate(), request.id);
       cancelPendingApplicationsOfStudent(request.student_id);
     } else if (new_status === "changes_requested") {
+      notifyChangesRequestedOnStartRequest(message, request.id);
       setChangesRequestedOfStartRequest(message, request.id);
     }
 

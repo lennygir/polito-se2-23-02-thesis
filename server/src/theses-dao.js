@@ -14,6 +14,7 @@ const { cosupervisorApplicationDecisionTemplate } = require("./mail/cosupervisor
 const { cosupervisorStartRequestTemplate } = require("./mail/cosupervisor-start-request");
 const { removedCosupervisorTemplate } = require("./mail/removed-cosupervisor");
 const { addedCosupervisorTemplate } = require("./mail/added-cosupervisor");
+const { changesStartRequestStudentTemplate } = require("./mail/changes-start-request-student");
 
 exports.insertApplication = (proposal, student, state) => {
   const result = db
@@ -457,6 +458,42 @@ exports.notifyNewApplication = async (proposalId) => {
   ).run(
     proposalJoined.id,
     "New application on your thesis proposal",
+    mailBody.text,
+  );
+};
+
+exports.notifyChangesRequestedOnStartRequest = async (message, startRequestId) => {
+  // Send email to the supervisor
+  const startRequestJoined = db
+    .prepare(
+      `SELECT SR.title, S.id, S.email, S.surname, S.name
+      FROM START_REQUESTS SR
+      JOIN STUDENT S ON S.id = SR.student_id
+      WHERE SR.id = ?`,
+    )
+    .get(startRequestId);
+  const mailBody = changesStartRequestStudentTemplate({
+    name: startRequestJoined.surname + " " + startRequestJoined.name,
+    startRequest: startRequestJoined.title,
+    changes: message,
+  });
+  try {
+    await nodemailer.sendMail({
+      to: startRequestJoined.email,
+      subject: "Your start request requires changes",
+      text: mailBody.text,
+      html: mailBody.html,
+    });
+  } catch (e) {
+    console.log("[mail service]", e);
+  }
+
+  // Save email in DB
+  db.prepare(
+    "INSERT INTO NOTIFICATIONS(student_id, object, content) VALUES(?,?,?)",
+  ).run(
+    startRequestJoined.id,
+    "Your start request requires changes",
     mailBody.text,
   );
 };
