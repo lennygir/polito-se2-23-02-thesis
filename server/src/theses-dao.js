@@ -272,7 +272,7 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
   }
   // -- Website notification
   db.prepare(
-    "INSERT INTO NOTIFICATIONS(student_id, object, content) VALUES(?,?,?)",
+    "INSERT INTO NOTIFICATIONS(student_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
   ).run(
     applicationJoined.id,
     "New decision on your thesis application",
@@ -300,7 +300,7 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
       }
       // -- Website notification
       db.prepare(
-        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+        "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
       ).run(
         fullCosupervisor.id,
         "New decision for a thesis you co-supervise",
@@ -338,7 +338,7 @@ exports.notifyNewStartRequest = async (requestId) => {
 
   // Save email in DB
   db.prepare(
-    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
   ).run(requestJoined.supervisor, "New start request", mailBody.text);
 
   // Send email to the co-supervisors
@@ -363,7 +363,7 @@ exports.notifyNewStartRequest = async (requestId) => {
 
       // Save email in DB
       db.prepare(
-        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+        "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
       ).run(coSupervisor.id, "New start request", mailBody.text);
     }
   }
@@ -396,7 +396,7 @@ exports.notifyNewApplication = async (proposalId) => {
 
   // Save email in DB
   db.prepare(
-    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
   ).run(
     proposalJoined.id,
     "New application on your thesis proposal",
@@ -600,7 +600,7 @@ exports.notifyRemovedCosupervisors = async (oldProposal, newProposal) => {
         }
         // -- Website notification
         db.prepare(
-          "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+          "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
         ).run(
           teacher.id,
           "You have been removed from a thesis proposal",
@@ -636,7 +636,7 @@ exports.notifyAddedCosupervisors = async (oldProposal, newProposal) => {
         }
         // -- Website notification
         db.prepare(
-          "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+          "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
         ).run(
           teacher.id,
           "You have been added to a thesis proposal",
