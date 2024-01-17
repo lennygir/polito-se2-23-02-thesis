@@ -482,7 +482,7 @@ exports.notifyProposalExpiration = async (proposal) => {
 
   // Save email in DB
   db.prepare(
-    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
   ).run(proposal.supervisor, "Your proposal expires in 7 days", mailBody.text);
 };
 
