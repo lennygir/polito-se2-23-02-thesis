@@ -133,6 +133,10 @@ exports.getTeacherByEmail = (email) => {
   return db.prepare("select * from TEACHER where email = ?").get(email);
 };
 
+exports.getTeacherEmailById = (id) => {
+  return db.prepare("select email from TEACHER where id = ?").get(id);
+};
+
 exports.getTeachers = () => {
   return db.prepare("select * from TEACHER").all();
 };

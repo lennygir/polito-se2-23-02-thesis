@@ -222,12 +222,12 @@ In this test we will check if the professor receives a notification when a stude
    - Verify that there is a new notification in the list
    - Verify that an email has been sent to the student
 
-### [12] Start request - create an start request (last check 14/12/2023 - sprint3)
+### [12] Start request - create an start request (last check 17/01/2024 - sprint4)
 
 In this test we will check if a student can correctly create a start request.
 
-1. Login as a student that has no start request 
-2. Click on the "Applications" button
+1. Login as a student that has no start request 'requested','pending' or 'started'
+2. Click on the "Start Request" button
 3. Click on the "New request" button
 4. Click the "create request" button
    - Verify that the title, description and supervisor fields are required (and that the error message is displayed)
@@ -291,12 +291,66 @@ In this test we will check if a professor can reject correctly the start thesis 
 
 In this test we will check if the professor receives a notification when a student create a new start thesis request that has him as a supervisor.
 
-1. Login as a student that has not a thesis request started or pending or requested   
-2. Click on the "New request" button
-3. Fill the field for the request
-4. Click on the "Create request" button
-   - Verify that you are redirected to the proposal page and that the proposal is in your list of proposals
+1. Login as a student that has not a thesis request 'started', 'pending' or 'requested'   
+2. Click on the "Start Request" button
+3. Click on the "+ Start Request" button
+4. Fill the fields for the request
+5. Click on the "Create request" button
+   - Verify that you sent correctly the request
 6. Login as the teacher that you choose as a supervisor
 7. Click on the "Notifications" button
    - Verify that there is a new notification in the list
    - Verify that an email has been sent to the professor
+
+### [18] Proposal/Notification - expiration of a proposal (last check 17/01/2024 - sprint4)
+
+In this test we will check if the professor receives a notification a week before one of his proposals expiration date.
+
+1. Login as a professor
+2. Click on the date in the left-top corner 
+3. Set a new date to a week before the expiration date of one of the proposal of the professor
+4. Click on the "Notifications" button
+   - Verify that there is a new notification in the list
+   - Verify that an email has been sent to the professor
+
+### [19] Start request - create a start request from Application (last check 16/01/2024 - sprint4)
+
+In this test we will check if the student can create correctly a new thesis start request from his approved application
+
+1. Login as a student that has an accepted application
+   - Make sure that he has not a thesis request 'started', 'pending' or 'requested' 
+2. Click on the "Application" button
+3. Open the accepted application
+   - Verify that in the top-right corner there is the "+ Start Request" button
+4. Click on the "+ Start Request" button 
+   - Verify that in the page opened there are the fields prefilled
+   - Verify that the field "Supervisor" can't be change
+5. Click on the "Create request" button
+6. Open the "Start Request" Tab 
+   - Verify that there is the thesis start request just created in "Waiting for secretary approval" status
+
+### [20] Proposal/Notification - browse co-supervised proposal and notify added co-supervisor (last check 16/01/2024 - sprint4)
+
+In this test we will check if a professor can see a proposal in his dashboard and receives a notification after he has been added as a co-supervisor
+
+1. Login as a professor
+2. Create a new proposal and make sure to add an accademic co-supervisor
+3. Login as the professor added as a co-supervisor
+4. Click on the switch "View as co-supervisor"
+   - Verify that in the list of proposals there is the one just created
+5. Click on the "Notifications" button
+   - Verify that there is a new notification in the list
+   - Verify that an email has been sent to the professor  
+
+### [21] Notification - notify added co-supervisor (last check 16/01/2024 - sprint4)
+
+In this test we will check if a professor receives a notification after he has been added as a co-supervisor
+
+1. Login as a professor
+2. Modify an existing proposal and make sure to add an accademic co-supervisor
+3. Login as the professor added as a co-supervisor
+4. Click on the switch "View as co-supervisor"
+   - Verify that in the list of proposals there is the one just created
+5. Click on the "Notifications" button
+   - Verify that there is a new notification in the list
+   - Verify that an email has been sent to the professor  
