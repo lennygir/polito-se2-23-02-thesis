@@ -29,11 +29,13 @@ const LEGEND_TEACHER = `• PENDING: the request is waiting for a teacher evalua
                         • REJECTED: the request has been rejected by a secretary clerk or a teacher`;
 
 function RequestTable(props) {
-  const { requests, teachers } = props;
+  const { requests, teachers, viewAsCosupervisorOn } = props;
   const user = useContext(UserContext);
   const renderHeaders = () => {
     if (user.role === "teacher") {
       return HEADERS.filter((header) => header !== "Supervisor");
+    } else if (user.role === "student") {
+      return HEADERS.filter((header) => header !== "Student");
     } else {
       return HEADERS;
     }
@@ -77,7 +79,12 @@ function RequestTable(props) {
           </TableHead>
           <TableBody>
             {requests.map((request) => (
-              <RequestRow key={request.id} request={request} teachers={teachers} />
+              <RequestRow
+                key={request.id}
+                request={request}
+                teachers={teachers}
+                viewAsCosupervisorOn={viewAsCosupervisorOn}
+              />
             ))}
           </TableBody>
         </Table>
@@ -88,7 +95,8 @@ function RequestTable(props) {
 
 RequestTable.propTypes = {
   requests: PropTypes.array,
-  teachers: PropTypes.array
+  teachers: PropTypes.array,
+  viewAsCosupervisorOn: PropTypes.bool
 };
 
 export default RequestTable;

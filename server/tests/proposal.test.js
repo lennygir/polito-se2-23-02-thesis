@@ -27,10 +27,13 @@ const {
   getPendingApplicationsOfStudent,
   getAcceptedApplicationsOfStudent,
   getRequestsForClerk,
+  getProposalsThatExpireInXDays,
+  notifyRemovedCosupervisors,
 } = require("../src/theses-dao");
 
 const dayjs = require("dayjs");
 const isLoggedIn = require("../src/protect-routes");
+const { runCronjob, cronjobNames } = require("../src/cronjobs");
 
 jest.mock("../src/theses-dao");
 jest.mock("../src/protect-routes");
@@ -940,5 +943,82 @@ describe("GET /api/start-requests", () => {
       .get("/api/start-requests")
       .set("Content-Type", "application/json")
       .expect(200);
+  });
+});
+
+describe("Cronjobs", () => {
+  test("Notify on thesis expiration (7 days before)", async () => {
+    const expectedDate = dayjs().add(7 + 2, "day");
+    getDelta.mockReturnValue({ delta: 2 });
+    getProposalsThatExpireInXDays.mockReturnValue([
+      {
+        supervisor: "s234567", 
+        teacher_surname: "Torchiano",
+        teacher_email: "marco.torchiano@teacher.it",
+        teacher_name: "Marco",
+        expiration_date: expectedDate.format("YYYY-MM-DD"),
+        title: "Test proposal"
+      }
+    ]);
+    await runCronjob(cronjobNames.THESIS_EXPIRED);
+  });
+});
+
+describe("PUT /api/proposals/:id", () => {
+  test("Remove a co supervisor", async () => {
+
+    const originalModule = jest.requireActual("../src/theses-dao");
+    notifyRemovedCosupervisors.mockImplementation(originalModule.notifyRemovedCosupervisors);
+
+    isLoggedIn.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "maurizio.morisio@teacher.it",
+      };
+      next();
+    });
+
+    const proposal = {
+      id: 1,
+      title: "test",
+      description: "desc test",
+      supervisor: "s234567",
+      co_supervisors: "marco.torchiano@teacher.it",
+      keywords: ["keyword1", "keyword2"],
+      groups: ["SOFTENG"],
+      types: ["EXPERIMENTAL"],
+      required_knowledge: "required knowledge",
+      notes: "notes",
+      expiration_date: "2021-01-01",
+      level: "MSC",
+      cds: "LM-32 (DM270)",
+      manually_archived: 0,
+      deleted: 0
+    };
+
+    const modifiedProposal = {
+      id: 1,
+      title: "test",
+      description: "desc test",
+      co_supervisors: [],
+      keywords: ["keyword1", "keyword2"],
+      groups: [],
+      types: ["EXPERIMENTAL"],
+      required_knowledge: "required knowledge",
+      notes: "notes",
+      expiration_date: "2021-01-01",
+      level: "MSC",
+      cds: "LM-32 (DM270)"
+    };
+
+    getProposal.mockReturnValue(proposal);
+
+    const requests = (
+      await request(app)
+        .put("/api/proposals/1")
+        .set("Content-Type", "application/json")
+        .send(modifiedProposal)
+        .expect(200)
+    );
+    expect(requests.body).toEqual({ message: "Proposal updated successfully" });
   });
 });

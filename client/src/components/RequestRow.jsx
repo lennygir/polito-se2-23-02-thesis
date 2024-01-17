@@ -11,12 +11,13 @@ import FileOpenIcon from "@mui/icons-material/FileOpen";
 import UserContext from "../contexts/UserContext";
 
 function RequestRow(props) {
-  const { request, teachers } = props;
+  const { request, teachers, viewAsCosupervisorOn } = props;
   const user = useContext(UserContext);
 
   const renderStatus = () => {
     switch (request.status) {
       case "secretary_accepted":
+      case "changed":
         return <Chip label={user.role === "secretary_clerk" ? "APPROVED" : "PENDING"} size="small" color="info" />;
       case "requested":
         return <Chip label="REQUESTED" size="small" color="default" />;
@@ -38,8 +39,8 @@ function RequestRow(props) {
 
   return (
     <TableRow>
-      <TableCell>{request.student_id}</TableCell>
-      {user.role === "secretary_clerk" && <TableCell>{renderSupervisor()}</TableCell>}
+      {user.role !== "student" && <TableCell>{request.student_id}</TableCell>}
+      {user.role !== "teacher" && <TableCell>{renderSupervisor()}</TableCell>}
       <TableCell
         sx={{
           maxWidth: "30vw",
@@ -57,7 +58,11 @@ function RequestRow(props) {
       <TableCell align="center">{renderStatus()}</TableCell>
       <TableCell align="center">
         <Tooltip title="View request">
-          <IconButton component={NavLink} to={"/requests/" + request.id} state={{ request: request }}>
+          <IconButton
+            component={NavLink}
+            to={"/requests/" + request.id}
+            state={{ request: request, viewAsCosupervisorOn: viewAsCosupervisorOn }}
+          >
             <FileOpenIcon />
           </IconButton>
         </Tooltip>
@@ -68,7 +73,8 @@ function RequestRow(props) {
 
 RequestRow.propTypes = {
   request: PropTypes.object,
-  teachers: PropTypes.array
+  teachers: PropTypes.array,
+  viewAsCosupervisorOn: PropTypes.bool
 };
 
 export default RequestRow;

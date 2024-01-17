@@ -89,6 +89,19 @@ const createProposal = async (proposal) => {
 };
 
 /**
+ * Retrieves the proposal based on logged in user and proposal id by sending a GET request to the server's proposals endpoint.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the proposal object response.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
+const getProposalById = async (proposalId) => {
+  return getJson(
+    fetch(SERVER_URL + "/proposals/" + proposalId, {
+      credentials: "include"
+    })
+  );
+};
+
+/**
  * Retrieves the list of proposals based on logged in user by sending a GET request to the server's proposals endpoint.
  * @returns {Promise} A promise that resolves to the parsed JSON content of the proposals list response.
  * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
@@ -391,6 +404,7 @@ const API = {
   getDegrees,
   getGroups,
   getTeachers,
+  getProposalById,
   getProposals,
   getApplications,
   getNotifications,

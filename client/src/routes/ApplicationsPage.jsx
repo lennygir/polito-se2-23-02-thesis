@@ -5,6 +5,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import ApplicationTable from "../components/ApplicationTable";
 import UserContext from "../contexts/UserContext";
+import EmptyTable from "../components/EmptyTable";
 
 function ApplicationsPage(props) {
   const user = useContext(UserContext);
@@ -17,7 +18,7 @@ function ApplicationsPage(props) {
           My Applications
         </Typography>
       </Stack>
-      <ApplicationTable applications={applications} />
+      {applications.length > 0 ? <ApplicationTable applications={applications} /> : <EmptyTable data="applications" />}
       <Box height={5} marginTop={3} />
     </>
   );
@@ -29,7 +30,7 @@ function ApplicationsPage(props) {
           Applications
         </Typography>
       </Stack>
-      <ApplicationTable applications={applications} />
+      {applications.length > 0 ? <ApplicationTable applications={applications} /> : <EmptyTable data="applications" />}
       <Box height={5} marginTop={3} />
     </>
   );

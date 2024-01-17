@@ -9,11 +9,12 @@ import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import Chip from "@mui/material/Chip";
 import Fab from "@mui/material/Fab";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import Hidden from "@mui/material/Hidden";
 import InputAdornment from "@mui/material/InputAdornment";
 import OutlinedInput from "@mui/material/OutlinedInput";
-import ScheduleSendIcon from "@mui/icons-material/ScheduleSend";
 import Stack from "@mui/material/Stack";
+import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 import Toolbar from "@mui/material/Toolbar";
 import ProposalFilters from "../components/ProposalFilters";
@@ -22,10 +23,10 @@ import ErrorContext from "../contexts/ErrorContext";
 import UserContext from "../contexts/UserContext";
 import { TEACHER_PROPOSALS_FILTERS, TEACHER_HEADERS_ACTIVE, TEACHER_HEADERS_EXPIRED } from "../utils/constants";
 import API from "../utils/API";
+import EmptyTable from "../components/EmptyTable";
 
 function ProposalsPage(props) {
-  const { requestSent, setAlert, setDirty, currentDate, proposals, applications, teachers, groups, getTeacherById } =
-    props;
+  const { setAlert, setDirty, currentDate, proposals, applications, teachers, groups, getTeacherById } = props;
   const user = useContext(UserContext);
   const handleErrors = useContext(ErrorContext);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -37,6 +38,7 @@ function ProposalsPage(props) {
     endDate: null
   });
   const [selectedTeacherFilter, setSelectedTeacherFilter] = useState("active");
+  const [viewAsCosupervisorOn, setViewAsCosupervisorOn] = useState(false);
 
   const handleTeacherFilterChange = (selectedFilter) => {
     setSelectedTeacherFilter(selectedFilter);
@@ -120,18 +122,6 @@ function ProposalsPage(props) {
         <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
           Theses Proposals
         </Typography>
-        <Hidden smDown>
-          <Button
-            component={Link}
-            to="/add-request"
-            variant="contained"
-            sx={{ mr: 4 }}
-            startIcon={requestSent ? <ScheduleSendIcon /> : <AddIcon />}
-            disabled={requestSent}
-          >
-            {requestSent ? "Request sent" : "New Request"}
-          </Button>
-        </Hidden>
       </Stack>
       <Toolbar
         sx={{
@@ -174,48 +164,51 @@ function ProposalsPage(props) {
           />
         </Card>
       </Toolbar>
-      <ProposalTable data={filteredStudentProposals} getTeacherById={getTeacherById} applications={applications} />
+      {filteredStudentProposals.length > 0 ? (
+        <ProposalTable data={filteredStudentProposals} getTeacherById={getTeacherById} applications={applications} />
+      ) : (
+        <EmptyTable data="proposals" />
+      )}
       <Box height={5} marginTop={3} />
-      <Hidden smUp>
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="flex-end"
-          sx={{ position: "fixed", bottom: 24, right: 24 }}
-        >
-          <Fab component={Link} to="/add-request" aria-label="Add" color="primary">
-            <AddIcon />
-          </Fab>
-        </Stack>
-      </Hidden>
     </>
   );
 
+  const isMatchSearchInput = (proposal) => {
+    const supervisor = props.teachers.find((teacher) => teacher.id === proposal.supervisor);
+    return (
+      searchInput === "" ||
+      proposal.title.toLowerCase().includes(searchInput.toLowerCase()) ||
+      supervisor?.email.toLowerCase().includes(searchInput.toLowerCase()) ||
+      proposal.co_supervisors?.toLowerCase().includes(searchInput.toLowerCase()) ||
+      proposal.keywords?.toLowerCase().includes(searchInput.toLowerCase()) ||
+      proposal.type?.toLowerCase().includes(searchInput.toLowerCase()) ||
+      proposal.groups?.toLowerCase().includes(searchInput.toLowerCase()) ||
+      proposal.description?.toLowerCase().includes(searchInput.toLowerCase()) ||
+      proposal.required_knowledge?.toLowerCase().includes(searchInput.toLowerCase()) ||
+      proposal.notes?.toLowerCase().includes(searchInput.toLowerCase()) ||
+      proposal.expiration_date?.toLowerCase().includes(searchInput.toLowerCase()) ||
+      proposal.level?.toLowerCase().includes(searchInput.toLowerCase()) ||
+      proposal.cds?.toLowerCase().includes(searchInput.toLowerCase())
+    );
+  };
+
+  const isActiveProposal = (proposal) => !proposal.archived;
+  const isArchivedMatchSearchInput = (proposal) => proposal.archived && isMatchSearchInput(proposal);
+  const isTeacherSupervisor = (proposal) => proposal.supervisor === user.id;
+  const isTeacherCoSupervisor = (proposal) => proposal.co_supervisors.split(", ").includes(user.email);
+
   const filteredTeacherProposals = proposals.filter((proposal) => {
-    if (selectedTeacherFilter === "active") {
-      return !proposal.archived;
-    }
-    if (selectedTeacherFilter === "archive") {
-      // Check if search bar is empty or proposal matches search input
-      const supervisor = props.teachers.find((t) => t.id === proposal.supervisor);
+    if (viewAsCosupervisorOn) {
       return (
-        proposal.archived &&
-        (searchInput === "" ||
-          proposal.title.toLowerCase().includes(searchInput.toLowerCase()) ||
-          supervisor?.email?.toLowerCase().includes(searchInput.toLowerCase()) ||
-          proposal.co_supervisors?.toLowerCase().includes(searchInput.toLowerCase()) ||
-          proposal.keywords?.toLowerCase().includes(searchInput.toLowerCase()) ||
-          proposal.type?.toLowerCase().includes(searchInput.toLowerCase()) ||
-          proposal.groups?.toLowerCase().includes(searchInput.toLowerCase()) ||
-          proposal.description?.toLowerCase().includes(searchInput.toLowerCase()) ||
-          proposal.required_knowledge?.toLowerCase().includes(searchInput.toLowerCase()) ||
-          proposal.notes?.toLowerCase().includes(searchInput.toLowerCase()) ||
-          proposal.expiration_date?.toLowerCase().includes(searchInput.toLowerCase()) ||
-          proposal.level?.toLowerCase().includes(searchInput.toLowerCase()) ||
-          proposal.cds?.toLowerCase().includes(searchInput.toLowerCase()))
+        (selectedTeacherFilter === "active" && isActiveProposal(proposal) && isTeacherCoSupervisor(proposal)) ||
+        (selectedTeacherFilter === "archive" && isArchivedMatchSearchInput(proposal) && isTeacherSupervisor(proposal))
+      );
+    } else {
+      return (
+        (selectedTeacherFilter === "active" && isActiveProposal(proposal) && isTeacherSupervisor(proposal)) ||
+        (selectedTeacherFilter === "archive" && isArchivedMatchSearchInput(proposal) && isTeacherSupervisor(proposal))
       );
     }
-    return true;
   });
 
   const archiveProposal = (proposalId) => {
@@ -240,6 +233,10 @@ function ProposalsPage(props) {
         setDirty(true);
       })
       .catch((err) => handleErrors(err));
+  };
+
+  const handleSwitchChange = (event) => {
+    setViewAsCosupervisorOn(event.target.checked);
   };
 
   const teacherView = (
@@ -290,26 +287,45 @@ function ProposalsPage(props) {
           </Card>
         </Toolbar>
       )}
-      <Stack direction="row" spacing={1} sx={{ marginX: { md: 5, xs: 1 }, marginTop: 2 }}>
-        {TEACHER_PROPOSALS_FILTERS.map((filter) => (
-          <Chip
-            key={filter.id}
-            label={filter.label}
-            variant={selectedTeacherFilter === filter.id ? "filled" : "outlined"}
-            onClick={() => handleTeacherFilterChange(filter.id)}
-            sx={{ height: 30 }}
+      <Stack
+        direction={{ md: "row", xs: "column" }}
+        justifyContent="space-between"
+        sx={{ marginX: { md: 5, xs: 0 }, marginTop: 2 }}
+      >
+        <Stack direction="row" spacing={1}>
+          {TEACHER_PROPOSALS_FILTERS.map((filter) => (
+            <Chip
+              key={filter.id}
+              label={filter.label}
+              variant={selectedTeacherFilter === filter.id ? "filled" : "outlined"}
+              onClick={() => handleTeacherFilterChange(filter.id)}
+              sx={{ height: 30 }}
+            />
+          ))}
+        </Stack>
+        {selectedTeacherFilter === "active" && (
+          <FormControlLabel
+            sx={{ mt: { md: 0, xs: 1 }, pl: { md: 0, xs: 1 } }}
+            control={<Switch checked={viewAsCosupervisorOn} onChange={handleSwitchChange} />}
+            label="View as co-supervisor"
           />
-        ))}
+        )}
       </Stack>
-      <ProposalTable
-        headers={selectedTeacherFilter === "active" ? TEACHER_HEADERS_ACTIVE : TEACHER_HEADERS_EXPIRED}
-        data={filteredTeacherProposals}
-        deleteProposal={deleteProposal}
-        archiveProposal={archiveProposal}
-        teacherFilter={selectedTeacherFilter}
-        applications={applications}
-        currentDate={currentDate}
-      />
+      {filteredTeacherProposals.length > 0 ? (
+        <ProposalTable
+          headers={selectedTeacherFilter === "active" ? TEACHER_HEADERS_ACTIVE : TEACHER_HEADERS_EXPIRED}
+          data={filteredTeacherProposals}
+          deleteProposal={deleteProposal}
+          archiveProposal={archiveProposal}
+          teacherFilter={selectedTeacherFilter}
+          applications={applications}
+          currentDate={currentDate}
+          selectedTeacherFilter={selectedTeacherFilter}
+          viewAsCosupervisorOn={viewAsCosupervisorOn}
+        />
+      ) : (
+        <EmptyTable data="proposals" />
+      )}
       <Box height={5} marginTop={3} />
       <Hidden smUp>
         <Stack
@@ -330,7 +346,6 @@ function ProposalsPage(props) {
 }
 
 ProposalsPage.propTypes = {
-  requestSent: PropTypes.bool,
   setAlert: PropTypes.func,
   setDirty: PropTypes.func,
   currentDate: PropTypes.string,

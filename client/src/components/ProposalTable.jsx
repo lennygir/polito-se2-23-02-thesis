@@ -15,8 +15,25 @@ const STUDENT_HEADERS = ["Supervisor", "Thesis", "Expiration Date"];
 
 function ProposalTable(props) {
   const user = useContext(UserContext);
-  const { headers, data, deleteProposal, archiveProposal, getTeacherById, teacherFilter, applications, currentDate } =
-    props;
+  const {
+    headers,
+    data,
+    deleteProposal,
+    archiveProposal,
+    getTeacherById,
+    teacherFilter,
+    applications,
+    currentDate,
+    viewAsCosupervisorOn
+  } = props;
+
+  const renderTeacherHeaders = () => {
+    if (viewAsCosupervisorOn) {
+      return headers.slice(0, -1);
+    } else {
+      return headers;
+    }
+  };
 
   return (
     <Paper sx={{ mt: { xs: 1 }, mx: { md: 4, xs: 0 }, overflow: "hidden", borderRadius: 4 }}>
@@ -37,7 +54,7 @@ function ProposalTable(props) {
                   </TableCell>
                 ))}
               {user?.role === "teacher" &&
-                headers.map((headCell) => (
+                renderTeacherHeaders().map((headCell) => (
                   <TableCell
                     key={headCell}
                     align={headCell === "Expiration" || headCell === "Reason" ? "center" : "inherit"}
@@ -61,6 +78,7 @@ function ProposalTable(props) {
                 teacherFilter={teacherFilter}
                 applications={applications}
                 currentDate={currentDate}
+                viewAsCosupervisorOn={viewAsCosupervisorOn}
               />
             ))}
           </TableBody>
@@ -78,7 +96,8 @@ ProposalTable.propTypes = {
   getTeacherById: PropTypes.func,
   teacherFilter: PropTypes.string,
   applications: PropTypes.array,
-  currentDate: PropTypes.string
+  currentDate: PropTypes.string,
+  viewAsCosupervisorOn: PropTypes.bool
 };
 
 export default ProposalTable;
