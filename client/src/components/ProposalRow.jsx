@@ -24,7 +24,16 @@ import UserContext from "../contexts/UserContext";
 import ConfirmationDialog from "./ConfirmationDialog";
 
 function ProposalRow(props) {
-  const { proposal, getTeacherById, deleteProposal, archiveProposal, teacherFilter, applications, currentDate } = props;
+  const {
+    proposal,
+    getTeacherById,
+    deleteProposal,
+    archiveProposal,
+    teacherFilter,
+    applications,
+    currentDate,
+    viewAsCosupervisorOn
+  } = props;
   const user = useContext(UserContext);
   const teacher = user.role === "student" ? getTeacherById(proposal.supervisor) : null;
 
@@ -138,7 +147,7 @@ function ProposalRow(props) {
         {user.role === "teacher" && teacherFilter === "archive" && (
           <TableCell align="center">{renderReason()}</TableCell>
         )}
-        {user.role === "teacher" && (
+        {user.role === "teacher" && !viewAsCosupervisorOn && (
           <TableCell align="right">
             {!proposalIsAccepted && !proposalIsManual && (
               <IconButton onClick={handleOpenMenu}>
@@ -212,7 +221,8 @@ ProposalRow.propTypes = {
   archiveProposal: PropTypes.func,
   teacherFilter: PropTypes.string,
   applications: PropTypes.array,
-  currentDate: PropTypes.string
+  currentDate: PropTypes.string,
+  viewAsCosupervisorOn: PropTypes.bool
 };
 
 export default ProposalRow;

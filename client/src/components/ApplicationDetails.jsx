@@ -17,12 +17,13 @@ import ConfirmationDialog from "./ConfirmationDialog";
 import { useThemeContext } from "../theme/ThemeContextProvider";
 import API from "../utils/API";
 import StudentCareerTable from "./StudentCareerTable";
+import { NavLink } from "react-router-dom";
 
 function ApplicationDetails(props) {
   const user = useContext(UserContext);
   const handleErrors = useContext(ErrorContext);
   const { theme } = useThemeContext();
-  const { application, evaluateApplication, applications } = props;
+  const { application, evaluateApplication, applications, proposal } = props;
 
   const [decision, setDecision] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
@@ -227,7 +228,19 @@ function ApplicationDetails(props) {
       <Divider variant="middle" />
       <Typography variant="body1" gutterBottom paddingTop={2}>
         <span style={{ fontWeight: "bold" }}>Title: </span>
-        {application.title}
+        {isApplicationAccepted() && user.role === "student" ? (
+          <Link
+            color="primary"
+            underline="always"
+            component={NavLink}
+            to={`/proposals/${proposal?.id}`}
+            state={{ proposal: proposal }}
+          >
+            {application.title}
+          </Link>
+        ) : (
+          application.title
+        )}
       </Typography>
       <Box paddingTop={4} sx={{ display: "flex", justifyContent: "center" }}>
         {renderActionButton()}
@@ -239,7 +252,8 @@ function ApplicationDetails(props) {
 ApplicationDetails.propTypes = {
   application: PropTypes.object,
   evaluateApplication: PropTypes.func,
-  applications: PropTypes.array
+  applications: PropTypes.array,
+  proposal: PropTypes.object
 };
 
 export default ApplicationDetails;

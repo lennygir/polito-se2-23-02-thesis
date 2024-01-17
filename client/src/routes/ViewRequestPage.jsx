@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -17,14 +17,16 @@ import API from "../utils/API";
 
 function ViewRequestPage(props) {
   const { fetchRequests, setAlert, requests } = props;
-  const user = useContext(UserContext);
-  const location = useLocation();
   const handleErrors = useContext(ErrorContext);
+  const user = useContext(UserContext);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [changesMessage, setChangesMessage] = useState("");
   const [changesError, setChangesError] = useState("");
   const [openChangesDialog, setOpenChangesDialog] = useState(false);
   const [request, setRequest] = useState(location.state?.request);
+  const viewAsCosupervisorOn = location.state?.viewAsCosupervisorOn;
 
   const evaluateRequest = async (req) => {
     try {
@@ -84,8 +86,7 @@ function ViewRequestPage(props) {
         justifyContent="space-between"
       >
         <Button
-          component={Link}
-          to="/requests"
+          onClick={() => navigate(-1)}
           variant="outlined"
           startIcon={<ArrowBackIcon />}
           sx={{ ml: { md: 4, xs: 0 } }}
@@ -93,7 +94,10 @@ function ViewRequestPage(props) {
           Back
         </Button>
         {user.role === "teacher" &&
-          (request.status === "secretary_accepted" || request.status === "changes_requested") && (
+          !viewAsCosupervisorOn &&
+          (request.status === "secretary_accepted" ||
+            request.status === "changes_requested" ||
+            request.status === "changed") && (
             <Button
               disabled={request.status === "changes_requested"}
               variant="contained"
@@ -108,7 +112,7 @@ function ViewRequestPage(props) {
       <Typography variant="h4" sx={{ paddingY: 4, marginLeft: { md: 4, xs: 0 } }}>
         Request Details
       </Typography>
-      {request.status === "changes_requested" && (
+      {(request.status === "changes_requested" || request.status === "changed") && (
         <Paper elevation={1} sx={{ mb: 3, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
           <Stack
             paddingX={5}
@@ -122,13 +126,22 @@ function ViewRequestPage(props) {
               <span style={{ fontWeight: "bold" }}>Changes requested: </span>
               {request.changes_requested}
             </Typography>
-            <Chip label="WAITING FOR CHANGES" size="small" color="info" />
+            <Chip
+              label={request.status === "changes_requested" ? "WAITING FOR CHANGES" : "CHANGES MADE"}
+              size="small"
+              color={request.status === "changes_requested" ? "info" : "success"}
+            />
           </Stack>
         </Paper>
       )}
       <Paper elevation={1} sx={{ mb: 5, pt: 2, borderRadius: 4, mx: { md: 4, xs: 0 } }}>
         <Box paddingX={5} sx={{ px: { md: 5, xs: 3 } }} paddingBottom={3}>
-          <RequestDetails request={request} evaluateRequest={evaluateRequest} requests={requests} />
+          <RequestDetails
+            request={request}
+            evaluateRequest={evaluateRequest}
+            requests={requests}
+            viewAsCosupervisorOn={viewAsCosupervisorOn}
+          />
         </Box>
       </Paper>
       <Box height={3} />

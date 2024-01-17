@@ -6,8 +6,13 @@ const { db } = require("./db");
 const { nodemailer } = require("./smtp");
 const { applicationDecisionTemplate } = require("./mail/application-decision");
 const { newApplicationTemplate } = require("./mail/new-application");
+
+const dayjs = require("dayjs");
+const { proposalExpirationTemplate } = require("./mail/proposal-expiration");
 const { supervisorStartRequestTemplate } = require("./mail/supervisor-start-request");
 const { cosupervisorApplicationDecisionTemplate } = require("./mail/cosupervisor-application-decision");
+const { cosupervisorStartRequestTemplate } = require("./mail/cosupervisor-start-request");
+const { removedCosupervisorTemplate } = require("./mail/removed-cosupervisor");
 
 exports.insertApplication = (proposal, student, state) => {
   const result = db
@@ -163,10 +168,36 @@ exports.getProposalsByDegree = (cds) => {
     .all(cds);
 };
 
+exports.getAcceptedProposal = (student_id) => {
+  return db
+    .prepare(
+      `select PROPOSALS.id, PROPOSALS.title, PROPOSALS.supervisor, PROPOSALS.co_supervisors, PROPOSALS.keywords, PROPOSALS.type, PROPOSALS.groups, PROPOSALS.description, PROPOSALS.required_knowledge, PROPOSALS.notes, PROPOSALS.expiration_date, PROPOSALS.level, PROPOSALS.cds, PROPOSALS.manually_archived, PROPOSALS.deleted
+                     from main.PROPOSALS, main.APPLICATIONS 
+                     where APPLICATIONS.proposal_id = PROPOSALS.id and 
+                         APPLICATIONS.student_id = ? and 
+                         APPLICATIONS.state = 'accepted'`,
+    )
+    .get(student_id);
+};
+
 exports.cancelPendingApplications = (of_proposal) => {
   db.prepare(
     "update APPLICATIONS set state = 'canceled' where proposal_id = ? AND state = 'pending'",
   ).run(of_proposal);
+};
+
+exports.cancelPendingApplicationsOfStudent = (student_id) => {
+  db.prepare(
+    "update APPLICATIONS set state = 'canceled' where main.APPLICATIONS.student_id = ? and state = 'pending'",
+  ).run(student_id);
+};
+
+exports.getStartedThesisRequest = (student_id) => {
+  return db
+    .prepare(
+      "select * from main.START_REQUESTS where student_id = ? and status = 'started'",
+    )
+    .get(student_id);
 };
 
 exports.updateApplication = (id, state) => {
@@ -209,11 +240,11 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
   // Retrieve the data
   const applicationJoined = db
     .prepare(
-      "SELECT S.id, P.title, P.co_supervisors, S.email, S.surname, S.name \
-    FROM APPLICATIONS A \
-    JOIN PROPOSALS P ON P.id = A.proposal_id \
-    JOIN STUDENT S ON S.id = A.student_id \
-    WHERE A.id = ?",
+      `SELECT S.id, P.title, P.co_supervisors, S.email, S.surname, S.name
+    FROM APPLICATIONS A
+    JOIN PROPOSALS P ON P.id = A.proposal_id
+    JOIN STUDENT S ON S.id = A.student_id
+    WHERE A.id = ?`,
     )
     .get(applicationId);
   let mailBody;
@@ -243,8 +274,8 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
     mailBody.text,
   );
   // Notify the co-supervisors
-  if(applicationJoined.co_supervisors) {
-    for(const cosupervisor of applicationJoined.co_supervisors.split(', ')) {
+  if (applicationJoined.co_supervisors) {
+    for (const cosupervisor of applicationJoined.co_supervisors.split(", ")) {
       const fullCosupervisor = this.getTeacherByEmail(cosupervisor);
       // -- Email
       mailBody = cosupervisorApplicationDecisionTemplate({
@@ -275,23 +306,23 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
 };
 
 exports.notifyNewStartRequest = async (requestId) => {
-  // Send email to the supervisor
   const requestJoined = db
     .prepare(
-      `SELECT S.student_id, S.supervisor, T.name, T.surname
+      `SELECT S.student_id, S.supervisor, S.co_supervisors, T.name, T.surname
       FROM START_REQUESTS S
       JOIN TEACHER T ON T.id = S.supervisor
       WHERE S.id = ?`,
     )
     .get(requestId);
-  console.log(requestJoined);
-  const mailBody = supervisorStartRequestTemplate({
+  // Send email to the supervisor
+  let mailBody = supervisorStartRequestTemplate({
     name: requestJoined.surname + " " + requestJoined.name,
     student: requestJoined.student_id,
   });
+  const teacher = this.getTeacherEmailById(requestJoined.supervisor);
   try {
     await nodemailer.sendMail({
-      to: requestJoined.email,
+      to: teacher.email,
       subject: "New start request",
       text: mailBody.text,
       html: mailBody.html,
@@ -304,6 +335,33 @@ exports.notifyNewStartRequest = async (requestId) => {
   db.prepare(
     "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
   ).run(requestJoined.supervisor, "New start request", mailBody.text);
+
+  // Send email to the co-supervisors
+  if (requestJoined.co_supervisors) {
+    const coSupervisors = requestJoined.co_supervisors.split(", ");
+    for (const coSupervisorEmail of coSupervisors) {
+      const coSupervisor = this.getTeacherByEmail(coSupervisorEmail);
+      mailBody = cosupervisorStartRequestTemplate({
+        name: coSupervisor.surname + " " + coSupervisor.name,
+        student: requestJoined.student_id,
+      });
+      try {
+        await nodemailer.sendMail({
+          to: coSupervisorEmail,
+          subject: "New start request",
+          text: mailBody.text,
+          html: mailBody.html,
+        });
+      } catch (e) {
+        console.log("[mail service]", e);
+      }
+
+      // Save email in DB
+      db.prepare(
+        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+      ).run(coSupervisor.id, "New start request", mailBody.text);
+    }
+  }
 };
 
 exports.notifyNewApplication = async (proposalId) => {
@@ -339,6 +397,31 @@ exports.notifyNewApplication = async (proposalId) => {
     "New application on your thesis proposal",
     mailBody.text,
   );
+};
+
+exports.notifyProposalExpiration = async (proposal) => {
+  // Send email to the supervisor
+  const mailBody = proposalExpirationTemplate({
+    name: proposal.teacher_surname + " " + proposal.teacher_name,
+    thesis: proposal.title,
+    nbOfDays: 7,
+    date: dayjs(proposal.expiration_date).format("DD/MM/YYYY"),
+  });
+  try {
+    await nodemailer.sendMail({
+      to: proposal.teacher_email,
+      subject: "Your proposal expires in 7 days",
+      text: mailBody.text,
+      html: mailBody.html,
+    });
+  } catch (e) {
+    console.log("[mail service]", e);
+  }
+
+  // Save email in DB
+  db.prepare(
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+  ).run(proposal.supervisor, "Your proposal expires in 7 days", mailBody.text);
 };
 
 /**
@@ -380,6 +463,36 @@ exports.getApplicationsOfTeacher = (teacher_id) => {
          and PROPOSALS.supervisor = ?`,
     )
     .all(teacher_id);
+};
+
+/**
+ * @param nbOfDaysBeforeExpiration
+ * @returns {[
+ *   {
+ *     supervisor,
+ *     expiration_date,
+ *     title
+ *   }
+ * ]}
+ */
+exports.getProposalsThatExpireInXDays = (nbOfDaysBeforeExpiration) => {
+  const currentDate = dayjs().add(getDelta().delta, "day");
+  const notificationDateFormatted = currentDate
+    .add(nbOfDaysBeforeExpiration, "day")
+    .format("YYYY-MM-DD");
+  return db
+    .prepare(
+      `select supervisor, 
+          t.surname as teacher_surname,
+          t.email as teacher_email,
+          t.name as teacher_name,
+          expiration_date,
+          title
+        from PROPOSALS p
+          join TEACHER t on p.supervisor = t.id
+        where expiration_date = ?`,
+    )
+    .all(notificationDateFormatted);
 };
 
 exports.getApplicationsOfStudent = (student_id) => {
@@ -426,14 +539,63 @@ exports.updateArchivedStateProposal = (new_archived_state, proposal_id) => {
   );
 };
 
-exports.getDelta = () => {
+const getDelta = () => {
   return db.prepare("select delta from VIRTUAL_CLOCK where id = 1").get();
 };
+exports.getDelta = getDelta;
 
 exports.setDelta = (delta) => {
   return db
     .prepare("UPDATE VIRTUAL_CLOCK SET delta = ? WHERE id = 1")
     .run(delta);
+};
+
+exports.isAccepted = (proposal_id, student_id) => {
+  const accepted_proposal = db
+    .prepare(
+      `select * from main.APPLICATIONS 
+      where APPLICATIONS.proposal_id = ?
+        and APPLICATIONS.student_id = ?
+        and APPLICATIONS.state = 'accepted'`,
+    )
+    .get(proposal_id, student_id);
+  return accepted_proposal !== undefined;
+};
+
+exports.notifyRemovedCosupervisors = async (oldProposal, newProposal) => {
+  const oldCosupervisors = (oldProposal.co_supervisors || "").split(", ");
+  const newCosupervisors = (newProposal.co_supervisors || []);
+  if(oldCosupervisors && newCosupervisors) {
+    const removedCosupervisors = oldCosupervisors.filter((cosupervisor) => {
+      return !newCosupervisors.includes(cosupervisor);
+    });
+    for(let cosupervisorEmail of removedCosupervisors) {
+      const teacher = this.getTeacherByEmail(cosupervisorEmail);
+      // -- Email
+      const mailBody = removedCosupervisorTemplate({
+        name: teacher.surname + " " + teacher.name,
+        proposal: newProposal
+      });
+      try {
+        await nodemailer.sendMail({
+          to: cosupervisorEmail,
+          subject: "You have been removed from a thesis proposal",
+          text: mailBody.text,
+          html: mailBody.html,
+        });
+      } catch (e) {
+        console.log("[mail service]", e);
+      }
+      // -- Website notification
+      db.prepare(
+        "INSERT INTO NOTIFICATIONS(teacher_id, object, content) VALUES(?,?,?)",
+      ).run(
+        teacher.id,
+        "You have been removed from a thesis proposal",
+        mailBody.text,
+      );
+    }
+  }
 };
 
 exports.updateProposal = (proposal) => {
@@ -483,7 +645,7 @@ exports.updateStartRequest = (id, new_fields) => {
   const { title, description, supervisor, co_supervisors } = new_fields;
   return db
     .prepare(
-      "UPDATE START_REQUESTS SET title = ?, description = ?, supervisor = ?, co_supervisors = ?, status = 'changed', changes_requested = NULL WHERE id = ?",
+      "UPDATE START_REQUESTS SET title = ?, description = ?, supervisor = ?, co_supervisors = ?, status = 'changed' WHERE id = ?",
     )
     .run(title, description, supervisor, co_supervisors, id);
 };

@@ -62,7 +62,6 @@ function Main() {
   const [applications, setApplications] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [requests, setRequests] = useState([]);
-  const [requestSent, setRequestSent] = useState(false);
 
   // Message to be shown to the user after an API has been called
   const [alert, setAlert] = useState({
@@ -183,12 +182,13 @@ function Main() {
         <Routes>
           {/* prettier-ignore */}
           <Route path="/" element={user ? <RootPage loading={loading} setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} fetchProposals={fetchProposals} fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} fetchRequests={fetchRequests} /> : <LoginPage />}>
-            <Route path="proposals" element={user ? <ProposalsPage requestSent={requestSent} setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} proposals={proposals} applications={applications} teachers={teachers} groups={groups} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
+            <Route path="proposals" element={user ? <ProposalsPage setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} proposals={proposals} applications={applications} teachers={teachers} groups={groups} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
             <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} setAlert={setAlert} getTeacherById={getTeacherById} getDegreeById={getDegreeById} applications={applications} /> : <Navigate replace to="/" />} />
-            <Route path="add-request" element={user ? <CreateRequestPage teachers={teachers} setAlert={setAlert} setRequestSent={setRequestSent} /> : <Navigate replace to="/" />} />
+            <Route path="add-start-request" element={user ? <CreateRequestPage fetchRequests={fetchRequests} teachers={teachers} getTeacherById={getTeacherById} setAlert={setAlert} /> : <Navigate replace to="/" />} />
+            <Route path="edit-start-request" element={user ? <CreateRequestPage fetchRequests={fetchRequests} teachers={teachers} getTeacherById={getTeacherById} setAlert={setAlert} /> : <Navigate replace to="/" />} />
             <Route path="edit-proposal/:proposalId" element={user ? <EditProposalPage currentDate={currentDate} fetchProposals={fetchProposals} teachers={teachers} degrees={degrees} setAlert={setAlert} /> : <Navigate replace to="/" />} />
             <Route path="applications" element={user ? <ApplicationsPage applications={applications} /> : <Navigate replace to="/" /> } />
-            <Route path="applications/:applicationId" element={user ? <ViewApplicationPage fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} setAlert={setAlert} applications={applications} /> : <Navigate replace to="/" />} />
+            <Route path="applications/:applicationId" element={user ? <ViewApplicationPage fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} setAlert={setAlert} applications={applications} requests={requests} /> : <Navigate replace to="/" />} />
             <Route path="notifications" element={user ? <NotificationsPage notifications={notifications} fetchNotifications={fetchNotifications} /> : <Navigate replace to="/" />} />
             <Route path="requests" element={user ? <RequestsPage requests={requests} teachers={teachers} /> : <Navigate replace to="/" /> } />
             <Route path="requests/:requestId" element={user ? <ViewRequestPage fetchRequests={fetchRequests} setAlert={setAlert} requests={requests} /> : <Navigate replace to="/" /> } />

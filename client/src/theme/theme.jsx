@@ -98,6 +98,13 @@ export const getDesignTokens = (mode) => ({
         }
       }
     },
+    MuiListItemIcon: {
+      styleOverrides: {
+        root: {
+          minWidth: "40px"
+        }
+      }
+    },
     MuiListItemButton: {
       styleOverrides: {
         root: {

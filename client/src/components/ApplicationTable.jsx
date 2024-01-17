@@ -12,7 +12,7 @@ import ApplicationRow from "./ApplicationRow";
 import UserContext from "../contexts/UserContext";
 
 const TEACHER_HEADERS = ["Student", "Proposal", "Status", "Open"];
-const STUDENT_HEADERS = ["Teacher", "Proposal", "Status", "Open"];
+const STUDENT_HEADERS = ["Supervisor", "Proposal", "Status", "Open"];
 
 function generateTableHeaders(headers, align) {
   return headers.map((headCell) => (
