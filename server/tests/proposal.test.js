@@ -999,7 +999,8 @@ describe("PUT /api/proposals/:id", () => {
       id: 1,
       title: "test",
       description: "desc test",
-      co_supervisors: [],
+      co_supervisors: [
+      ],
       keywords: ["keyword1", "keyword2"],
       groups: [],
       types: ["EXPERIMENTAL"],

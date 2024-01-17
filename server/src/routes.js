@@ -52,6 +52,7 @@ const {
   getStartedThesisRequest,
   cancelPendingApplicationsOfStudent,
   notifyRemovedCosupervisors,
+  notifyAddedCosupervisors,
 } = require("./theses-dao");
 const { getUser } = require("./user-dao");
 const { runCronjob, cronjobNames } = require("./cronjobs");
@@ -841,6 +842,7 @@ router.put(
         cds: cds,
       };
       await notifyRemovedCosupervisors(proposal, newProposal);
+      await notifyAddedCosupervisors(proposal, newProposal);
       updateProposal(newProposal);
       return res.status(200).json({ message: "Proposal updated successfully" });
     } catch (e) {
