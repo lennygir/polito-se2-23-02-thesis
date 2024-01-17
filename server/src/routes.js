@@ -45,6 +45,8 @@ const {
   getExamsOfStudent,
   getNotifications,
   notifyRemovedCosupervisors,
+  notifyAddedCosupervisors,
+  notifyChangesRequestedOnStartRequest,
 } = require("./dao/misc");
 const {
   cancelPendingApplicationsOfStudent,
@@ -274,6 +276,7 @@ router.patch("/api/start-requests/:thesisRequestId", isLoggedIn, (req, res) => {
       setApprovalDateOfRequest(getDate(), request.id);
       cancelPendingApplicationsOfStudent(request.student_id);
     } else if (new_status === "changes_requested") {
+      notifyChangesRequestedOnStartRequest(message, request.id);
       setChangesRequestedOfStartRequest(message, request.id);
     }
 
@@ -730,6 +733,7 @@ router.put(
         cds: cds,
       };
       notifyRemovedCosupervisors(proposal, newProposal);
+      notifyAddedCosupervisors(proposal, newProposal);
       updateProposal(newProposal);
       return res.status(200).json({ message: "Proposal updated successfully" });
     } catch (e) {

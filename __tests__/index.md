@@ -24,11 +24,20 @@ and it is the most efficient way to test the application.
     - [\[9\] Proposal - copy a proposal](#9-proposal---copy-a-proposal)
     - [\[10\] Proposal - archive a proposal](#10-proposal---archive-a-proposal)
     - [\[11\] Application/Notification - create an application (last check 14/12/2023 - sprint3)](#11-applicationnotification---create-an-application-last-check-14122023---sprint3)
-    - [\[12\] Start request - create an start request (last check 14/12/2023 - sprint3)](#12-start-request---create-an-start-request-last-check-14122023---sprint3)
+    - [\[12\] Start request - create a start request (last check 17/01/2024 - sprint4)](#12-start-request---create-an-start-request-last-check-17012024---sprint4)
     - [\[13\] Start request - secretary approval (last check 14/12/2023 - sprint3)](#13-start-request---secretary-approval-last-check-14122023---sprint3)
     - [\[14\] Application - see the applicant CV (last check 14/12/2023 - sprint3)](#14-application---see-the-applicant-cv-last-check-14122023---sprint3)
-
-
+    - [\[15\] Start request - professor approval (last check 16/01/2024 - sprint4)](#15-start-request---professor-approval-last-check-16012024---sprint4)
+    - [\[16\] Start request - professor rejection (last check 16/01/2024 - sprint4)](#16-start-request---professor-rejection-last-check-16012024---sprint4)
+    - [\[17\] Start request/Notification - create a start request (last check 16/01/2024 - sprint4)](#17-start-requestnotification---create-a-start-request-last-check-16012024---sprint4)
+    - [\[18\] Proposal/Notification - expiration of a proposal (last check 17/01/2024 - sprint4)](#18-proposalnotification---expiration-of-a-proposal-last-check-17012024---sprint4)
+    - [\[19\] Start request - create a start request from Application (last check 16/01/2024 - sprint4)](#19-start-request---create-a-start-request-from-application-last-check-16012024---sprint4)
+    - [\[20\] Proposal/Notification - browse co-supervised proposal and notify added co-supervisor (last check 16/01/2024 - sprint4)](#20-proposalnotification---browse-co-supervised-proposal-and-notify-added-co-supervisor-last-check-16012024---sprint4)
+    - [\[21\] Notification - notify added co-supervisor to a proposal(last check 16/01/2024 - sprint4)](#21-notification---notify-added-co-supervisor-to-a-proposallast-check-16012024---sprint4)
+    - [\[22\] Start Request - Student change request (last check 16/01/2024 - sprint4)](#22-start-request---student-change-request-last-check-16012024---sprint4)
+    - [\[23\] Request/Notification - browse co-supervised requests and notify added co-supervisor (last check 16/01/2024 - sprint4)](#23-requestnotification---browse-co-supervised-requests-and-notify-added-co-supervisor-last-check-16012024---sprint4)
+    - [\[24\] Notification - notify removed co-supervisor to a proposal(last check 16/01/2024 - sprint4)](#24-notification---notify-removed-co-supervisor-to-a-proposallast-check-16012024---sprint4) 
+    - [\[25\] Notification - notify student change request(last check 16/01/2024 - sprint4)](#25-notification---notify-student-change-requestlast-check-16012024---sprint4)
 ## Prerequisites
 - database access
 - application running
@@ -222,12 +231,12 @@ In this test we will check if the professor receives a notification when a stude
    - Verify that there is a new notification in the list
    - Verify that an email has been sent to the student
 
-### [12] Start request - create an start request (last check 14/12/2023 - sprint3)
+### [12] Start request - create an start request (last check 17/01/2024 - sprint4)
 
 In this test we will check if a student can correctly create a start request.
 
-1. Login as a student that has no start request 
-2. Click on the "Applications" button
+1. Login as a student that has no start request 'requested','pending' or 'started'
+2. Click on the "Start Request" button
 3. Click on the "New request" button
 4. Click the "create request" button
    - Verify that the title, description and supervisor fields are required (and that the error message is displayed)
@@ -258,3 +267,161 @@ In this test we will check if a professor can see the CV of students when they a
 3. Select a "pending" application with a PDF CV attached
    - Verify that you can see the list of exams of the applicant
    - Verify that you can click the "Student CV" button and that it opens a new tab with the CV of the student
+
+### [15] Start request - professor approval (last check 16/01/2024 - sprint4)
+
+In this test we will check if a professor can approve correctly the start thesis request.
+
+1. Login as a professor
+2. Click on the "Requests" button
+3. Select a "pending" request
+4. Click the "Accept" button
+5. Click the "Cancel" button
+   - Verify that the request is still in the list with the status "pending"
+6. Click the "Accept" button
+7. Click the "submit" button
+   - Verify that the status of the request is now "started"
+
+### [16] Start request - professor rejection (last check 16/01/2024 - sprint4)
+
+In this test we will check if a professor can reject correctly the start thesis request.
+
+1. Login as a professor
+2. Click on the "Requests" button
+3. Select a "pending" request
+4. Click the "Reject" button
+5. Click the "Cancel" button
+   - Verify that the request is still in the list with the status "pending"
+6. Click the "Reject" button
+7. Click the "submit" button
+   - Verify that the status of the request is now "rejected"
+
+### [17] Start request/Notification - create a start request (last check 16/01/2024 - sprint4)
+
+In this test we will check if the professor receives a notification when a student create a new start thesis request that has him as a supervisor.
+
+1. Login as a student that has not a thesis request 'started', 'pending' or 'requested'   
+2. Click on the "Start Request" button
+3. Click on the "+ Start Request" button
+4. Fill the fields for the request
+5. Click on the "Create request" button
+   - Verify that you sent correctly the request
+6. Login as the teacher that you choose as a supervisor
+7. Click on the "Notifications" button
+   - Verify that there is a new notification in the list
+   - Verify that an email has been sent to the professor
+
+### [18] Proposal/Notification - expiration of a proposal (last check 17/01/2024 - sprint4)
+
+In this test we will check if the professor receives a notification a week before one of his proposals expiration date.
+
+1. Login as a professor
+2. Click on the date in the left-top corner 
+3. Set a new date to a week before the expiration date of one of the proposal of the professor
+4. Click on the "Notifications" button
+   - Verify that there is a new notification in the list
+   - Verify that an email has been sent to the professor
+
+### [19] Start request - create a start request from Application (last check 16/01/2024 - sprint4)
+
+In this test we will check if the student can create correctly a new thesis start request from his approved application
+
+1. Login as a student that has an accepted application
+   - Make sure that he has not a thesis start request 'started', 'pending' or 'requested' 
+2. Click on the "Application" button
+3. Open the accepted application
+   - Verify that in the top-right corner there is the "+ Start Request" button
+4. Click on the "+ Start Request" button 
+   - Verify that in the page opened there are the fields prefilled
+   - Verify that the field "Supervisor" can't be change
+5. Click on the "Create request" button
+6. Open the "Start Request" Tab 
+   - Verify that there is the thesis start request just created in "Waiting for secretary approval" status
+
+### [20] Proposal/Notification - browse co-supervised proposal and notify added co-supervisor (last check 16/01/2024 - sprint4)
+
+In this test we will check if a professor can see a proposal in his dashboard and receives a notification after he has been added as a co-supervisor
+
+1. Login as a professor
+2. Create a new proposal and make sure to add an accademic co-supervisor
+3. Login as the professor added as a co-supervisor
+4. Click on the switch "View as co-supervisor"
+   - Verify that in the list of proposals there is the one just created
+5. Click on the "Notifications" button
+   - Verify that there is a new notification in the list
+   - Verify that an email has been sent to the professor  
+
+### [21] Notification - notify added co-supervisor to a proposal(last check 16/01/2024 - sprint4)
+
+In this test we will check if a professor receives a notification after he has been added as a co-supervisor
+
+1. Login as a professor
+2. Modify an existing proposal and make sure to add an accademic co-supervisor
+3. Login as the professor added as a co-supervisor
+4. Click on the switch "View as co-supervisor"
+   - Verify that in the list of proposals there is the one just modified
+5. Click on the "Notifications" button
+   - Verify that there is a new notification in the list
+   - Verify that an email has been sent to the professor 
+   
+### [22] Start Request - Student change request (last check 16/01/2024 - sprint4)
+
+In this test we will check if a student can make changes to a thesis request upon supervisor request
+
+1. Login as a professor that has a pending request to evaluate
+2. Open the "Start Requests" tab
+3. Open a request with the status 'pending'
+4. Click on the "Request Changes" in the top-right corner
+5. Write the message and click "submit"
+   - Verify that the request has now the status "changes"
+6. Login as the student of that request
+7. Open the "Start Request" tab
+   - Verify that there are changes requested with the message of the supervisor
+8. Click the "Edit Request" button in the top-right corner
+9. Make changes to the fields of the request and click the "Edit Request" button
+   - Verify the status of request changed to "waiting for supervisor approval"
+10. Login as the professor
+   - Verify that changes are made on the request and that he can take a new decision on it
+
+### [23] Request/Notification - browse co-supervised requests and notify added co-supervisor (last check 16/01/2024 - sprint4)
+
+In this test we will check if a professor can see a request in his dashboard and receives a notification after he has been added as a co-supervisor
+
+1. Login as a student that has not a thesis start request 'started', 'pending' or 'requested'
+2. Create a new thesis start request
+   - Make sure to add a co-supervisor to the request
+3. Login as the professor assigned to the request as a co-supervisor
+4. Click on the "Notifications" button
+   - Verify that there is a new notification in the list
+   - Verify that an email has been sent to the professor
+5. Click on "Start Requests" button
+6. Click on the switch "View as co-supervisor"
+   - Verify that in the list of requests there is the one just created
+
+### [24] Notification - notify removed co-supervisor to a proposal(last check 16/01/2024 - sprint4)
+
+In this test we will check if a professor receives a notification after he has been removed as a co-supervisor
+
+1. Login as a professor
+2. Modify an existing proposal and make sure to remove an accademic co-supervisor
+3. Login as the professor removed as a co-supervisor
+4. Click on the switch "View as co-supervisor"
+   - Verify that in the list of proposals there isn't the one just updated
+5. Click on the "Notifications" button
+   - Verify that there is a new notification in the list
+   - Verify that an email has been sent to the professor
+
+### [25] Notification - notify student change request(last check 16/01/2024 - sprint4)
+
+In this test we will check if a sudent receives a notification after a change is requested on his thesis request
+
+1. Login as a professor that has a pending request to evaluate
+2. Open the "Start Requests" tab
+3. Open a request with the status 'pending'
+4. Click on the "Request Changes" in the top-right corner
+5. Write the message and click "submit"
+   - Verify that the request has now the status "changes"
+6. Login as the student of that request
+7. Click on the "Notifications" button
+   - Verify that there is a new notification in the list
+   - Verify that an email has been sent to the student
