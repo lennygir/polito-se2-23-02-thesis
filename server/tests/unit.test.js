@@ -126,7 +126,7 @@ describe("Career retrieval tests", () => {
     const studentId = "s309618";
     isLoggedIn.mockImplementation((req, res, next) => next());
     getExamsOfStudent.mockImplementation(() => {
-      throw "ERROR: SQL_SOMETHING";
+      throw new Error("ERROR: SQL_SOMETHING");
     });
     await request(app).get(`/api/students/${studentId}/exams`).expect(500);
   });
