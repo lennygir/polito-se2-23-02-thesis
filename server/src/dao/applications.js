@@ -17,14 +17,6 @@ exports.insertApplication = (proposal, student, state) => {
   };
 };
 
-exports.searchAcceptedApplication = (student_id) => {
-  return db
-    .prepare(
-      "select * from APPLICATIONS where student_id = ? and state = 'accepted'",
-    )
-    .get(student_id);
-};
-
 exports.insertPDFInApplication = (file, applicationId) => {
   return db
     .prepare(
@@ -35,14 +27,6 @@ exports.insertPDFInApplication = (file, applicationId) => {
 
 exports.getApplicationById = (id) => {
   return db.prepare("select * from APPLICATIONS where id = ?").get(id);
-};
-
-exports.getApplication = (student_id, proposal_id) => {
-  return db
-    .prepare(
-      "select * from APPLICATIONS where student_id = ? and proposal_id = ?",
-    )
-    .get(student_id, proposal_id);
 };
 
 exports.deleteApplication = (student_id, proposal_id) => {

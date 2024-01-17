@@ -63,6 +63,14 @@ beforeEach(() => {
   db.prepare("delete from START_REQUESTS").run();
 });
 
+it("Wrong route", async () => {
+  const response = await request(app).get("/api/wrong");
+  expect(response.status).toBe(404);
+  expect(response.body).toEqual({
+    message: "Endpoint not found, make sure you used the correct URL / Method",
+  });
+});
+
 describe("Protected routes", () => {
   it("Sets the logged in user", async () => {
     const email = "marco.torchiano@teacher.it";
@@ -566,6 +574,16 @@ describe("Proposal insertion tests", () => {
     expect(response.status).toBe(200);
     expect(response.body).toBeDefined();
   });
+  it("Insertion of a proposal with a wrong level", async () => {
+    proposal.level = "ZZZ";
+
+    logIn("marco.torchiano@teacher.it");
+    const response = await insertProposal(proposal);
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      message: "Invalid proposal content",
+    });
+  });
   it("Insertion of a proposal with no keywords", async () => {
     logIn("marco.torchiano@teacher.it");
     const response = await request(app)
@@ -603,6 +621,16 @@ describe("Proposal insertion tests", () => {
     expect(response.status).toBe(400);
     expect(response.body.message).toBe("Invalid proposal content");
   });
+  it("Insertion of a proposal with a valid group but not of any co_supervisor", async () => {
+    logIn("marco.torchiano@teacher.it");
+    proposal.co_supervisors = [];
+    proposal.groups.push("ELITE");
+
+    const response = await insertProposal(proposal);
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("Invalid groups");
+  });
   it("Insertion of a proposal with a single keyword (no array)", async () => {
     proposal.keywords = "SOFTWARE ENGINEERING";
     logIn("marco.torchiano@teacher.it");
@@ -633,6 +661,22 @@ describe("Proposals retrieval tests", () => {
     const response = await getApplications();
     expect(response.status).toBe(401);
     expect(response.body).toEqual({ message: "Unauthorized" });
+  });
+  it("A secretary clerk should not view any proposal", async () => {
+    logIn("laura.ferrari@example.com");
+    const response = await getProposals();
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      message: "Internal server error",
+    });
+  });
+  it("Wrong archived query", async () => {
+    logIn("marco.torchiano@teacher.it");
+    const response = await request(app).get("/api/proposals?archived=wrong");
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      message: "Invalid parameters",
+    });
   });
 });
 
@@ -1859,6 +1903,32 @@ describe("Story 28: the professor evaluates student request", () => {
       title: "Modified title",
     });
     expect(response.status).toBe(404);
+  });
+  it("Only a student should be able to modify a request", async () => {
+    start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
+
+    logIn("s309618@studenti.polito.it");
+    const thesis_request_id = (await startRequest(start_request)).body;
+
+    logIn("laura.ferrari@example.com");
+    await approveRequest(thesis_request_id);
+
+    logIn("marco.torchiano@teacher.it");
+    await requestChangesForRequest(thesis_request_id);
+
+    logIn("laura.ferrari@example.com");
+
+    const modified_request = {
+      ...start_request,
+      title: "Modified title",
+      description: "Modified_description",
+    };
+    modified_request.co_supervisors.push("giovanni.malnati@teacher.it");
+    const response = await modifyRequest(thesis_request_id, modified_request);
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({
+      message: "Only a student can change a thesis request",
+    });
   });
   it("The secretary tries to change requests", async () => {
     start_request.supervisor = "s123456"; // marco.torchiano@teacher.it
