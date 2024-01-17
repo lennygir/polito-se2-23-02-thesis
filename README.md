@@ -126,6 +126,7 @@ Once the docker container is running you can access the application using [local
 - Route `/requests`: students can see the request that has been submitted by them, teachers can view the requests which are sent to them, and secretary clerks can also view thesis requests directed to them.
 - Route `/requests/requestId`: teachers can see the details of the request made by the student, in addition to accepting or rejecting the request, the teacher can ask for changes from the student. Furthermore, secretary clerks can see the details of the requests sent to them, and they can accept or reject it
 - Route `/add-start-request`: students can either create a thesis start request from "start request" in the side bar or they can create one from an accepted application.
+- Route `/edit-start-request`: students can edit their start request if the professor has asked them to do so.
 - Route `/settings`: users can change the theme (light/dark mode)
 - Route `*`: non-existing routes view
 
