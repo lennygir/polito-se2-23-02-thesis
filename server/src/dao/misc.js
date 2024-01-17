@@ -16,6 +16,7 @@ const {
   cosupervisorStartRequestTemplate,
 } = require("../mail/cosupervisor-start-request");
 const { removedCosupervisorTemplate } = require("../mail/removed-cosupervisor");
+const { getTeacherByEmail, getTeacherEmailById } = require("./user");
 
 exports.getExamsOfStudent = (id) => {
   return db.prepare("select * from main.CAREER where id = ?").all(id);
@@ -77,7 +78,7 @@ exports.notifyApplicationDecision = async (applicationId, decision) => {
   // Notify the co-supervisors
   if (applicationJoined.co_supervisors) {
     for (const cosupervisor of applicationJoined.co_supervisors.split(", ")) {
-      const fullCosupervisor = this.getTeacherByEmail(cosupervisor);
+      const fullCosupervisor = getTeacherByEmail(cosupervisor);
       // -- Email
       mailBody = cosupervisorApplicationDecisionTemplate({
         name: fullCosupervisor.surname + " " + fullCosupervisor.name,
@@ -120,7 +121,7 @@ exports.notifyNewStartRequest = async (requestId) => {
     name: requestJoined.surname + " " + requestJoined.name,
     student: requestJoined.student_id,
   });
-  const teacher = this.getTeacherEmailById(requestJoined.supervisor);
+  const teacher = getTeacherEmailById(requestJoined.supervisor);
   try {
     await nodemailer.sendMail({
       to: teacher.email,
@@ -141,7 +142,7 @@ exports.notifyNewStartRequest = async (requestId) => {
   if (requestJoined.co_supervisors) {
     const coSupervisors = requestJoined.co_supervisors.split(", ");
     for (const coSupervisorEmail of coSupervisors) {
-      const coSupervisor = this.getTeacherByEmail(coSupervisorEmail);
+      const coSupervisor = getTeacherByEmail(coSupervisorEmail);
       mailBody = cosupervisorStartRequestTemplate({
         name: coSupervisor.surname + " " + coSupervisor.name,
         student: requestJoined.student_id,
@@ -241,7 +242,7 @@ exports.notifyRemovedCosupervisors = async (oldProposal, newProposal) => {
       return !newCosupervisors.includes(cosupervisor);
     });
     for (let cosupervisorEmail of removedCosupervisors) {
-      const teacher = this.getTeacherByEmail(cosupervisorEmail);
+      const teacher = getTeacherByEmail(cosupervisorEmail);
       // -- Email
       const mailBody = removedCosupervisorTemplate({
         name: teacher.surname + " " + teacher.name,
