@@ -30,6 +30,7 @@
     - [StudentCareerRow](#studentcareerrow)
     - [StudentCareerTable](#studentcareertable)
   - [API Server](#api-server)
+  - [Additional Server Functions](#additional-server-functions)
   - [Users](#users)
     - [Users Credentials](#users-credentials)
 
@@ -812,6 +813,26 @@ For each course in the career array, the StudentCareerRow component is utilized 
       - 401 Unauthorized: Authentication failure (user not logged in)
       - 404 Not Found: request not found.
       - 500 Internal Server Error: For internal server errors.
+
+## Additional Server Functions
+
+- `getDate()`
+  - Returns the current date adjusted by the delta obtained from getDelta() function.
+  
+- `isArchived(proposal)`
+  - Checks if a given proposal is archived based on the expiration date and manual archival status.
+  
+- `check_errors(start_request, user, old_status)`
+  - Checks for errors based on specified conditions related to thesis request status and user roles.
+  
+- `determineNewStatus(start_request, user, decision)`
+  - Determines the new status of a thesis request based on the user's role and the decision made. An error can throw if some conditions ara not met.
+  
+- `validateProposal(res, proposal, user)`
+  - Checks and validate the content of a proposal to ensure it meets specific condition to ensure correct behaviour.
+  
+- `setStateToApplication(req, res, state)`
+  - Updates the state of a application and performs additional actions based on the provided state, such as notifying the decision and updating related proposal and pending applications.
 
 ## Users
 
