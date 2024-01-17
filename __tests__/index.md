@@ -258,3 +258,45 @@ In this test we will check if a professor can see the CV of students when they a
 3. Select a "pending" application with a PDF CV attached
    - Verify that you can see the list of exams of the applicant
    - Verify that you can click the "Student CV" button and that it opens a new tab with the CV of the student
+
+### [15] Start request - professor approval (last check 16/01/2024 - sprint4)
+
+In this test we will check if a professor can approve correctly the start thesis request.
+
+1. Login as a professor
+2. Click on the "Requests" button
+3. Select a "pending" request
+4. Click the "Accept" button
+5. Click the "Cancel" button
+   - Verify that the request is still in the list with the status "pending"
+6. Click the "Accept" button
+7. Click the "submit" button
+   - Verify that the status of the request is now "started"
+
+### [16] Start request - professor rejection (last check 16/01/2024 - sprint4)
+
+In this test we will check if a professor can reject correctly the start thesis request.
+
+1. Login as a professor
+2. Click on the "Requests" button
+3. Select a "pending" request
+4. Click the "Reject" button
+5. Click the "Cancel" button
+   - Verify that the request is still in the list with the status "pending"
+6. Click the "Reject" button
+7. Click the "submit" button
+   - Verify that the status of the request is now "rejected"
+
+### [17] Start request/Notification - create a start request (last check 16/01/2024 - sprint4)
+
+In this test we will check if the professor receives a notification when a student create a new start thesis request that has him as a supervisor.
+
+1. Login as a student that has not a thesis request started or pending or requested   
+2. Click on the "New request" button
+3. Fill the field for the request
+4. Click on the "Create request" button
+   - Verify that you are redirected to the proposal page and that the proposal is in your list of proposals
+6. Login as the teacher that you choose as a supervisor
+7. Click on the "Notifications" button
+   - Verify that there is a new notification in the list
+   - Verify that an email has been sent to the professor
