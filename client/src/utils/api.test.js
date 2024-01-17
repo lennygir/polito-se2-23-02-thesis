@@ -211,6 +211,19 @@ test("getApplications - should return correct data", async () => {
   expect(result).toEqual(mockApiResponse);
 });
 
+test("getProposalById - should return correct data", async () => {
+  const proposal_id = 1;
+  fetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve(mockApiResponse)
+  });
+  const result = await API.getProposalById(proposal_id);
+  expect(fetch).toHaveBeenCalledWith(`${SERVER_URL}/proposals/${proposal_id}`, {
+    credentials: "include"
+  });
+  expect(result).toEqual(mockApiResponse);
+});
+
 test("evaluateApplication - should return correct update message", async () => {
   fetch.mockResolvedValue({
     ok: true,
