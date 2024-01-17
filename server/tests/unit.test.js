@@ -24,6 +24,7 @@ const {
   getTeacherByEmail,
   getTeachers,
   getTeacher,
+  getUser,
 } = require("../src/dao/user");
 const {
   getAcceptedApplicationsOfStudent,
@@ -114,6 +115,17 @@ describe("Application Insertion Tests", () => {
       };
       next();
     });
+    getUser.mockReturnValue({
+      id: "s309618",
+      surname: "Bertetto",
+      name: "Lorenzo",
+      gender: "Male",
+      nationality: "Italy",
+      email: "s309618@studenti.polito.it",
+      cod_degree: "LM-32-D",
+      enrollment_year: 2022,
+      role: "student",
+    });
   });
   test("Insertion of an application with a wrong proposal", () => {
     application.proposal = -5;
@@ -151,6 +163,7 @@ describe("Application Insertion Tests", () => {
       };
       next();
     });
+    getUser.mockReturnValue(undefined);
     return request(app)
       .post("/api/applications")
       .set("Content-Type", "application/json")
@@ -469,6 +482,15 @@ describe("Applications retrieval tests", () => {
       };
       next();
     });
+    getUser.mockReturnValue({
+      id: "s123456",
+      surname: "Torchiano",
+      name: "Marco",
+      email: "marco.torchiano@teacher.it",
+      cod_group: "SOFTENG",
+      cod_department: "DAUIN",
+      role: "teacher",
+    });
     getApplicationsOfTeacher.mockReturnValue([]);
     await request(app)
       .get("/api/applications")
@@ -704,6 +726,17 @@ describe("PATCH /api/applications/:id", () => {
     getApplicationById.mockReturnValue({
       state: "accepted",
     });
+    getUser.mockReturnValue({
+      id: "s309618",
+      surname: "Bertetto",
+      name: "Lorenzo",
+      gender: "Male",
+      nationality: "Italy",
+      email: "s309618@studenti.polito.it",
+      cod_degree: "LM-32-D",
+      enrollment_year: 2022,
+      role: "student",
+    });
     const response = await request(app)
       .patch("/api/applications/1")
       .send(Buffer.alloc(5))
@@ -850,6 +883,15 @@ describe("POST /api/start-requests", () => {
       };
       next();
     });
+    getUser.mockReturnValue({
+      id: "s234567",
+      surname: "Morisio",
+      name: "Maurizio",
+      email: "maurizio.morisio@teacher.it",
+      cod_group: "SOFTENG",
+      cod_department: "DAUIN",
+      role: "teacher",
+    });
     getTeacher.mockReturnValue({ email: "fake@fake.com" });
     getNotRejectedStartRequest.mockReturnValue([]);
     return request(app)
@@ -872,6 +914,17 @@ describe("POST /api/start-requests", () => {
         email: "s309618@studenti.polito.it",
       };
       next();
+    });
+    getUser.mockReturnValue({
+      id: "s309618",
+      surname: "Bertetto",
+      name: "Lorenzo",
+      gender: "Male",
+      nationality: "Italy",
+      email: "s309618@studenti.polito.it",
+      cod_degree: "LM-32-D",
+      enrollment_year: 2022,
+      role: "student",
     });
     getTeacher.mockReturnValue({ email: "fake@fake.com" });
     getNotRejectedStartRequest.mockReturnValue([]);
@@ -921,7 +974,9 @@ describe("GET /api/start-requests", () => {
       };
       next();
     });
-
+    getUser.mockReturnValue({
+      role: "secretary_clerk",
+    });
     const expectedRequests = [
       {
         id: 1,
@@ -986,6 +1041,10 @@ describe("PUT /api/proposals/:id", () => {
         email: "maurizio.morisio@teacher.it",
       };
       next();
+    });
+    getUser.mockReturnValue({
+      id: "s234567",
+      role: "teacher",
     });
 
     const proposal = {
