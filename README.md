@@ -419,6 +419,7 @@ This component creates a themed toggle switch for changing the color mode of the
 - GET `/api/teachers`
   - Description
     - This endpoint fetches the list of teachers stored in the database and returns the information in JSON format.
+    - You must be logged in to use this endpoint
   - Request Body
     - none
   - Response:
@@ -430,17 +431,20 @@ This component creates a themed toggle switch for changing the color mode of the
         surname: "Torchiano",
         name: "Marco",
         email: "marco.torchiano@polito.it"
+        cod_group: "SOFTENG",
+        cod_department: "DAUIN"
       },
       {
         id: "s234567",
         surname: "Morisio",
         name: "Maurizio",
         email: "maurizio.morisio@polito.it"
+        cod_group: "SOFTENG",
+        cod_department: "DAUIN"
       }
     ]
     ```
   - Errors Handling
-    - 404 Not Found: If there are no teachers available in the database.
     - 500 Internal Server Error: If there's an internal server error while processing the request.
   
 - GET `/api/groups`
