@@ -504,7 +504,7 @@ This component creates a themed toggle switch for changing the color mode of the
       "id": 1,
       "title": "Gamification di attività di modellazione UML",
       "supervisor": "s123456",
-      "co_supervisors": "s345678",
+      "co_supervisors": "[s345678, ...]",
       "keywords": "GAMIFICATION, SOFTWARE ENGINEERING, SOFTWARE QUALITY, UML",
       "type": "RESEARCH",
       "groups": "SOFTENG",
@@ -518,7 +518,7 @@ This component creates a themed toggle switch for changing the color mode of the
       "id": 2,
       "title": "Analisi empirica dei difetti in R Markdown",
       "supervisor": "s123456",
-      "co_supervisors": "s122349, s298399",
+      "co_supervisors": "[s345678, ...]",
       "keywords": "MARKDOWN, DEVELOP",
       "type": "RESEARCH",
       "groups": "SOFTENG",
@@ -556,44 +556,33 @@ This component creates a themed toggle switch for changing the color mode of the
     - 500 Internal Server Error: If there's an internal server error while processing the request.
 - POST `/api/applications`
   - Description
-    - This endpoint enables a student to apply for a proposal by creating a new application in the database.
+    - This endpoint enables a student to apply for a proposal by creating a new application in the database, and notify the creation of the application.
   - Notes
     - the initial state is always `pending`
     - will not work if the student already applied for a proposal
   - Request Body
     - Expects a JSON object containing the following fields:
-      - student: String - Represents the student ID applying for the proposal. Must be a string with a length of 7 characters.
       - proposal: Integer - Represents the proposal ID for which the student is applying. Must be a positive integer greater than 0.
-  - Request Validation
-    - student: Must be a string with a length of 7 characters.
-    - proposal: Must be a positive integer greater than 0.
    - Response
     - 200 OK: Returns a JSON object confirming the updated state of the application.
       - request body content example
-  ```
-    {
-      "student": "s309618",
-      "proposal": 8
-    }
-    or
-    {
-      "proposal_id": 8,
-      "student_id": "s309618",
-      "state": "pending"
-    }
+    ```
+      {
+        id: 5,
+        proposal_id: 1,
+        student_id: 's309618',
+        state: 'rejected',
+        attached_file: blob type
+      }
     ```
     - Error Handling
-      - 400 Bad Request: If the request contains invalid application content, if the student has already applied to a proposal, if the proposal is already accepted for another student, or if the student has already applied and the application was rejected.
+      - 400 Bad Request: If the request contains invalid application content, if the student has already applied to a proposal, if the proposal is already accepted for another student, or if the student has already applied and the application was rejected, or if the student has already started a thesis.
+    - 401 Unauthorized: Authentication failure (user not have the permission to modify it)
+    - 404 Not Found: Proposal not found.
     - 500 Internal Server Error: If there's an internal server error while processing the request.
 - GET `/api/applications`
   - Description
-    - This endpoint retrieves applications based on provided criteria. It can filter applications by teacher, student, or return all applications if no specific criteria are provided.
-  - Query Parameters (at least one)
-    - teacher: Alphanumeric string with a length of 7 characters (Optional)
-    - student: Alphanumeric string with a length of 7 characters (Optional)
-  - Request Validation
-    - teacher: Must be an alphanumeric string with a length of 7 characters. (Optional)
-    - student: Must be an alphanumeric string with a length of 7 characters. (Optional)
+    - This endpoint retrieves applications based on logged user. It can filter applications by teacher, student, or return all applications if no specific criteria are provided.
   - Response
     - 200 OK: Returns an array of JSON objects representing applications based on the provided criteria.
   ```
@@ -603,28 +592,18 @@ This component creates a themed toggle switch for changing the color mode of the
         proposal_id: 1,
         student_id: 's309618',
         state: 'rejected',
-        student_name: 'Lorenzo',
-        student_surname: 'Bertetto',
-        teacher_name: 'Marco',
-        teacher_surname: 'Torchiano',
-        title: 'Gamification di attività di modellazione UML'
+        attached_file: blob type
       },
       {
-        id: 6,
-        proposal_id: 1,
-        student_id: 's317743',
+        id: 5,
+        proposal_id: 3,
+        student_id: 's309618',
         state: 'rejected',
-        student_name: 'Francesco',
-        student_surname: 'Baracco',
-        teacher_name: 'Marco',
-        teacher_surname: 'Torchiano',
-        title: 'Analisi empirica dei difetti in R Markdown'
+        attached_file: blob type
       }
     ]
   ```
   - Error Handling
-    - 400 Bad Request: If the request contains invalid application content.
-    - 404 Not Found: If no applications match the provided criteria.
     - 500 Internal Server Error: If there's an internal server error while processing the request.
 
 - GET `/api/applications/:id/attached-file`
@@ -638,7 +617,6 @@ This component creates a themed toggle switch for changing the color mode of the
     - Error Handling
       - 400 Bad Request: Invalid application content (invalid ID)
       - 404 Not Found: Application not found
-      - 401 Unauthorized: Authentication failure (user not logged in)
       - 500 Internal Server Error: For internal server errors.
 
 - GET `/api/students/:studentId/exams`
@@ -659,20 +637,11 @@ This component creates a themed toggle switch for changing the color mode of the
           "grade": "30",
           "date": "2023-01-23"
         },
-        {
-          "id": s308747,
-          "cod_course": "01SQMOs",
-          "title_course": "Web Applications II",
-          "cfu": "6",
-          "grade": "26",
-          "date": "2023-01-26"
-        },
         ...
       ]
       ```
     - Error Handling
       - 400 Bad Request: Invalid proposal content (invalid student ID)
-      - 401 Unauthorized: Authentication failure (user not logged in)
       - 500 Internal Server Error: For internal server errors.
 
 - GET `/api/notifications`
@@ -685,14 +654,6 @@ This component creates a themed toggle switch for changing the color mode of the
         {
           "id": 1,
           "date": "2023-12-12 13:42:10",
-          "object": "New decision on your thesis application",
-          "content": "Lorem ipsum...",
-          "student_id": "s319823",
-          "teacher_id": "s123456"
-        },
-        {
-          "id": 1,
-          "date": "2023-10-09 10:05:15",
           "object": "New decision on your thesis application",
           "content": "Lorem ipsum...",
           "student_id": "s319823",
@@ -740,7 +701,7 @@ This component creates a themed toggle switch for changing the color mode of the
 
 - PUT `/api/proposals/:id`
     - Description
-      - Updates an existing proposal.
+      - Updates an existing proposal and notify the eventual update to the user.
     - Parameters
       - id: Integer - Proposal ID
     - Request Body
@@ -796,7 +757,7 @@ This component creates a themed toggle switch for changing the color mode of the
       - 200 OK:   Returns the current date.
       ```
       {
-        "YYYY-MM-DDTHH:mm:ssZ"
+        "YYYY-MM-DD"
       }
       ```
     - Error Handling
@@ -806,7 +767,7 @@ This component creates a themed toggle switch for changing the color mode of the
       - Modifies the virtual clock's date.
     - Request Body
       - Expects a JSON object with the following field:
-        - date: Date in ISO 8601 format (e.g., "YYYY-MM-DDTHH:mm:ssZ")
+        - date: Date in ISO 8601 format (e.g., "YYYY-MM-DD")
     - Response
       - 200 OK: Returns a success message upon changing the date..
       ```
@@ -831,7 +792,7 @@ This component creates a themed toggle switch for changing the color mode of the
         "description": "Request description",
         "supervisor": "supervisor@example.com",
         "co_supervisors": ["co1@example.com", "co2@example.com"],
-        "approval_date": "2024-01-15T12:00:00Z",
+        "approval_date": "2024-01-15",
         "student_id": "student123",
         "status": "approved",
         "changes_requested": "Revision needed"
