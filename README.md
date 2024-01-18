@@ -539,20 +539,28 @@ This component creates a themed toggle switch for changing the color mode of the
 
 - PATCH `/api/applications/:id`
   - Description
-    - accept or reject a specific application. If the application is accepted, all the pending applications for that proposal are set as 'cancelled'
+    - accept or reject a specific application (only if the teacher is logged in). If the application is accepted, all the pending applications for that proposal are set as 'canceled'
+    - Upload a PDF file to an existing application (only if the student is logged in).
   - URL Parameters
     - id: Integer (Required) - Represents the ID of the application to modify.
   - Request Body
-    - expects a JSON object containing the following field:
+    - expects a JSON object containing the following fields:
       - state: String - Represents the desired state of the application. Must be either "accepted" or "rejected".
+    - The binary PDF file
   - Request Validation
     - state: Must be a string and must be either "accepted" or "rejected".
     - id: Must be an integer greater than or equal to 1.
   - request body content example
+    ```
+    {
+      "state": "accepted"
+    }
+    ```
   - Response
     - 200 OK: Returns a JSON object confirming the updated state of the application.
   - Error Handling
     - 400 Bad Request: If the request contains invalid application content or if the application is already accepted or rejected.
+    - 401 Unauthorized: If the user tries to do what he cannot do
     - 404 Not Found: If the specified application ID does not exist.
     - 500 Internal Server Error: If there's an internal server error while processing the request.
 - POST `/api/applications`
