@@ -52,28 +52,73 @@ sections:
 - Unit Testing:
 
   - Total hours estimated: not estimated separately (as it is part of the DoD)
-  - Total hours spent:
-  - Nr of automated unit test cases:
+  - Total hours spent: 12h15
+  - Nr of automated unit test cases: 176
   - Coverage:
+* Client : 
+
+|File          | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s |
+|--------------|---------|----------|---------|---------|-------------------|
+|All files     |     100 |      100 |     100 |     100 |                   |
+| > API.js       |     100 |      100 |     100 |     100 |                 |  
+| > constants.js |     100 |      100 |     100 |     100 |                 |  
+
+* Server :
+
+|File                                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                    |
+|---------------------------------------|---------|----------|---------|---------|------------------------------------------------------|
+|All files                              |    89.4 |    82.07 |   82.84 |   89.59 |                                                      |
+| src                                   |   88.07 |    82.56 |   82.22 |   88.04 |                                                      |
+|  > cronjobs.js                          |     100 |       75 |     100 |     100 | 31                                                   |
+|  > db.js                                |     100 |      100 |     100 |     100 |                                                      |
+|  > passport.js                          |      60 |        0 |       0 |      60 | 9,13,26-36                                           |
+|  > routes.js                            |   87.79 |    83.59 |   86.48 |   87.76 | ...9,740,752,756,762,767,782,815,824,834,857,872,917 |
+|  > server.js                            |     100 |      100 |     100 |     100 |                                                      |
+|  > smtp.js                              |     100 |      100 |     100 |     100 |                                                      |
+| src/dao                               |   90.86 |       84 |   90.38 |   90.86 |                                                      |
+|  > applications.js                      |     100 |      100 |     100 |     100 |                                                      |
+|  > misc.js                              |   82.35 |       75 |   66.66 |   82.35 | 30,38,42,249-267,292-307,331-346                     |
+|  > proposals.js                         |     100 |      100 |     100 |     100 |                                                      |
+|  > start-requests.js                    |     100 |      100 |     100 |     100 |                                                      |
+|  > user.js                              |   95.23 |      100 |      80 |   95.23 | 41                                                   |
+|  > virtual-clock.js                     |     100 |      100 |     100 |     100 |                                                      |
+| src/dao/dao_utils                     |     100 |       50 |     100 |     100 |                                                      |
+|  > utils.js                             |     100 |       50 |     100 |     100 | 3                                                    |
+| src/mail                              |   83.33 |        0 |   66.66 |   86.66 |                                                      |
+|  > added-cosupervisor.js                |      50 |      100 |       0 |      60 | 2,17                                                 |
+|  > application-decision.js              |     100 |      100 |     100 |     100 |                                                      |
+|  > changes-start-request-student.js     |     100 |      100 |     100 |     100 |                                                      |
+|  > cosupervisor-application-decision.js |     100 |      100 |     100 |     100 |                                                      |
+|  > cosupervisor-start-request.js        |     100 |      100 |     100 |     100 |                                                      |
+|  > new-application.js                   |     100 |      100 |     100 |     100 |                                                      |
+|  > proposal-expiration.js               |      50 |      100 |       0 |      60 | 2,15                                                 |
+|  > removed-cosupervisor.js              |      50 |        0 |       0 |      60 | 2,25                                                 |
+|  > supervisor-start-request.js          |     100 |      100 |     100 |     100 |                                                      |
+| src/routes_utils                      |   98.55 |    93.87 |     100 |   98.52 |                                                      |
+|  > protect-routes.js                    |     100 |      100 |     100 |     100 |                                                      |
+|  > utils.js                             |   98.43 |    93.61 |     100 |   98.41 | 77                                                   |
+| tests/test_utils                      |   88.65 |        0 |   79.41 |   88.54 |                                                      |
+|  > endpoint-requests.js                 |     100 |      100 |     100 |     100 |                                                      |
+|  > pdf.js                               |   62.06 |        0 |   36.36 |   60.71 | 12-17,29-34,59                                       |
 
 - E2E testing:
 
-  - Total hours estimated:
-  - Total hours spent:
+  - Total hours estimated: 2h
+  - Total hours spent: 2h30
 
 - Code review:
 
-  - Total hours estimated:
-  - Total hours spent:
+  - Total hours estimated: 8h
+  - Total hours spent: 4h35
 
 - Technical Debt management:
 
-  - Total hours estimated:
+  - Total hours estimated: 
   - Total hours spent:
-  - Hours estimated for remediation by SonarQube:
+  - Hours estimated for remediation by SonarQube: 2h30
   - Hours estimated for remediation by SonarQube only for the selected and planned issues:
   - Hours spent on remediation:
-  - Debt ratio (as reported by SonarQube under "Measures-Maintainability"):
+  - Debt ratio (as reported by SonarQube under "Measures-Maintainability"): [How to calculate](https://docs.sonarsource.com/sonarcloud/digging-deeper/metric-definitions/)
   - Rating for each quality characteristic reported in SonarQube under "Measures" (namely reliability, security, maintainability):
     - Reliability: A
     - Security: A
