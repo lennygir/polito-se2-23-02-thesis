@@ -26,21 +26,26 @@ sections:
 
 | Story | # Tasks | Points | Hours Est. | Hours Actual |
 | ----- | ------- | ------ | ---------- | ------------ |
-| #0    |         |        |            |              |
-|       |         |        |            |              |
-|       |         |        |            |              |
-|       |         |        |            |              |
-|       |         |        |            |              |
-|       |         |        |            |              |
-|       |         |        |            |              |
-|       |         |        |            |              |
+| #0    |  18     |  -     | 45h 30m    |  51h 15m     |
+| #28   |  6      |  3     | 11h        |  11h 5m      |
+| #29   |  1      |  2     | 1h 30m     |  1h 15m      |
+| #18   |  1      |  3     | 3h         |  3h 30m      |
+| #30   |  2      |  2     | 2h 30m     |  2h 15m      |
+| #19   |  2      |  2     | 3h 30m     |  3h 30m      |
+| #20   |  1      |  2     | 1h 30m     |  1h 20m      |
+| #31   |  4      |  3     | 8h 45m     |  10h 15m     |
+| #21   |  1      |  2     | 1h 30m     |  1h 10m      |
+| #32   |  1      |  2     | 1h 30m     |  1h 20m      |
+| #33   |  2      |  3     | 3h 30m     |  3h 20m      |
+| #34   |  1      |  2     | 1h 30m     |  1h 5m       |
+| #23   |  1      |  2     | 1h 30m     |  2h 30m      |
 
 - Hours per task average, standard deviation (estimate and actual):
 
-  - Hours estimate per task average: , standard deviation:
-  - Hours actual per task average: , standard deviation:
+  - Hours estimate per task average: 2, standard deviation: 1.25
+  - Hours actual per task average: 2.21, standard deviation: 2.24
 
-- Total task estimation error ratio: sum of total hours estimation / sum of total hours spent - 1:
+- Total task estimation error ratio: sum of total hours estimation / sum of total hours spent - 1: -0.10
 
 ## QUALITY MEASURES
 
