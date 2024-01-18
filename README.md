@@ -280,14 +280,6 @@ This component creates a themed toggle switch for changing the color mode of the
 
 ## API Server
 
-- POST `/api/sessions`
-  - request body content example
-  ```
-  {
-    "email": "s309618@studenti.polito.it",
-    "password": "s309618"
-  }
-  ```
 - POST `/api/proposals`
   - Description
     - This endpoint allows the creation of a new proposal. It validates the input fields and ensures their     correctness before inserting the proposal into the database.
@@ -892,7 +884,7 @@ This component creates a themed toggle switch for changing the color mode of the
   - Checks and validate the content of a proposal to ensure it meets specific condition to ensure correct behaviour.
   
 - `setStateToApplication(req, res, state)`
-  - Updates the state of a application and performs additional actions based on the provided state, such as notifying the decision and updating related proposal and pending applications.
+  - Updates the state of an application and performs additional actions based on the provided state, such as notifying the decision and updating related proposal and pending applications.
 
 ## Users
 
