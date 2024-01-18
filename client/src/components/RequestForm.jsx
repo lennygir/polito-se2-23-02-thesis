@@ -114,6 +114,18 @@ function RequestForm(props) {
 
   const ChipProps = { sx: { height: 26 } };
 
+  let teachersOptions;
+
+  if (request) {
+    teachersOptions = teachers
+      .filter((teacher) => teacher.email !== request.supervisor)
+      .map((teacher) => teacher.email);
+  } else if (proposal) {
+    teachersOptions = teachers.filter((teacher) => teacher.id !== proposal.supervisor).map((teacher) => teacher.email);
+  } else {
+    teachersOptions = teachers.map((teacher) => teacher.email);
+  }
+
   return (
     <Box name="request-form" component="form" onSubmit={handleSubmit} noValidate>
       {/* Title field */}
@@ -187,7 +199,7 @@ function RequestForm(props) {
           <Autocomplete
             multiple
             name="request-coSupervisors"
-            options={teachers.map((teacher) => teacher.email)}
+            options={teachersOptions}
             value={formData.coSupervisors}
             onChange={(event, value) => handleFormInputChange("coSupervisors", value)}
             ChipProps={ChipProps}
