@@ -384,14 +384,22 @@ This component creates a themed toggle switch for changing the color mode of the
 - PATCH `/api/start-requests/:thesisRequestId`
     - Description
       - Updates the status of a thesis request.
+    - You must be logged in as a secretary clerk or a teacher to use this endpoint
     - Parameters
-      - thesisRequestId: String - Thesis Request ID
+      - thesisRequestId: the ID of the request to update
     - Request Body
-      - approved: Boolean
+      - approved: String. It can be "approved", "rejected", "changes_requested". In case the user logged in is a teacher, the request body can contain a field "message", with the changes requested.
     - Request body content example
       ```
       {
-        "approved" : true
+        "decision" : "approved"
+      }
+      ```
+      or
+      ```
+      {
+        "decision": "changes_requested",
+        "message": "You have to change this, that, whatever I want",
       }
       ```
     - Response
@@ -403,7 +411,8 @@ This component creates a themed toggle switch for changing the color mode of the
       ```
     - Error Handling
       - 400 Bad Request: Invalid start request content
-      - 401 Unauthorized: Authentication failure (user not authenticated as student)
+      - 401 Unauthorized: Authentication failure (user not authenticated as teacher or secretary clerk)
+      - 404 Not Found: The request doesn't exist (the parameter thesisRequestId is wrong)
       - 500 Internal Server Error: For internal server errors.
 
 
