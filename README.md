@@ -566,29 +566,34 @@ This component creates a themed toggle switch for changing the color mode of the
 - POST `/api/applications`
   - Description
     - This endpoint enables a student to apply for a proposal by creating a new application in the database, and notify the creation of the application.
+    - The user has to be logged in as a student to use this endpoint
   - Notes
     - the initial state is always `pending`
     - will not work if the student already applied for a proposal
   - Request Body
     - Expects a JSON object containing the following fields:
       - proposal: Integer - Represents the proposal ID for which the student is applying. Must be a positive integer greater than 0.
-   - Response
-    - 200 OK: Returns a JSON object confirming the updated state of the application.
-      - request body content example
-    ```
+      ```
       {
-        id: 5,
-        proposal_id: 1,
-        student_id: 's309618',
-        state: 'rejected',
-        attached_file: blob type
+        "proposal": 8,
       }
-    ```
-    - Error Handling
-      - 400 Bad Request: If the request contains invalid application content, if the student has already applied to a proposal, if the proposal is already accepted for another student, or if the student has already applied and the application was rejected, or if the student has already started a thesis.
-    - 401 Unauthorized: Authentication failure (user not have the permission to modify it)
-    - 404 Not Found: Proposal not found.
-    - 500 Internal Server Error: If there's an internal server error while processing the request.
+      ```
+  - Response
+    - 200 OK: Returns a JSON object confirming the updated state of the application.
+       ```
+         {
+           id: 5,
+           proposal_id: 1,
+           student_id: 's309618',
+           state: 'rejected',
+           attached_file: blob type
+         }
+       ```
+   - Error Handling
+     - 400 Bad Request: If the request contains invalid application content, if the student has already applied to a proposal, if the proposal is already accepted for another student, or if the student has already applied and the application was rejected, or if the student has already started a thesis.
+     - 401 Unauthorized: Authentication failure (the user has not the permission to modify it)
+     - 404 Not Found: Proposal not found.
+     - 500 Internal Server Error: If there's an internal server error while processing the request.
 - GET `/api/applications`
   - Description
     - This endpoint retrieves applications based on logged user. It can filter applications by teacher, student, or return all applications if no specific criteria are provided.
