@@ -20,8 +20,8 @@ docker run \
   -p 80:80 -p 3000:3000 -p 5173:80 \
   --name polito-thesis \
   --rm \
-  -e SMTP_HOST='smtp.gmail.com' \
-  -e SMTP_PORT=465 \
-  -e SMTP_USERNAME='thesis.se2.02@gmail.com' \
+  -e SMTP_HOST='smtp.ethereal.email' \
+  -e SMTP_PORT=587 \
+  -e SMTP_USERNAME='elijah79@ethereal.email' \
   -e SMTP_PASSWORD="$smtpPassword" \
   s321503/polito-thesis:$imageTag
