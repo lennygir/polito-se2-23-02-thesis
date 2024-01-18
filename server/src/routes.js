@@ -4,174 +4,65 @@ const router = require("express").Router();
 const passport = require("passport");
 const dayjs = require("dayjs");
 const { check, validationResult } = require("express-validator");
-const isLoggedIn = require("./protect-routes");
+const { getUser, getTeacher, getTeachers } = require("./dao/user");
+const isLoggedIn = require("./routes_utils/protect-routes");
 const {
-  getTeachers,
-  getGroup,
-  getGroups,
-  getDegrees,
+  validateProposal,
+  determineNewStatus,
+  getDate,
+  isArchived,
+  setStateToApplication,
+} = require("./routes_utils/utils");
+const {
   insertProposal,
   getProposalsByDegree,
   getProposalsForTeacher,
-  updateApplication,
+  getAcceptedProposal,
   getProposal,
-  insertApplication,
-  insertStartRequest,
-  updateStatusOfStartRequest,
-  setChangesRequestedOfStartRequest,
-  setApprovalDateOfRequest,
-  getApplicationsOfTeacher,
-  getApplicationsOfStudent,
-  deleteProposal,
-  updateProposal,
-  updateStartRequest,
-  getApplicationById,
-  getTeacherByEmail,
-  cancelPendingApplications,
   findAcceptedProposal,
-  findRejectedApplication,
-  notifyApplicationDecision,
-  notifyNewApplication,
-  getDelta,
-  setDelta,
-  getNotifications,
-  getExamsOfStudent,
-  insertPDFInApplication,
   updateArchivedStateProposal,
+  updateProposal,
+  deleteProposal,
+} = require("./dao/proposals");
+const {
   getNotRejectedStartRequest,
+  insertStartRequest,
   getRequestById,
-  getTeacher,
+  setApprovalDateOfRequest,
+  setChangesRequestedOfStartRequest,
+  updateStatusOfStartRequest,
+  getStartedThesisRequest,
+  getRequestsForClerk,
+  getRequestsForTeacher,
+  getRequestsForStudent,
+  updateStartRequest,
+} = require("./dao/start-requests");
+const {
+  notifyNewStartRequest,
+  getGroups,
+  getDegrees,
+  notifyNewApplication,
+  getExamsOfStudent,
+  getNotifications,
+  notifyRemovedCosupervisors,
+  notifyAddedCosupervisors,
+  notifyChangesRequestedOnStartRequest,
+} = require("./dao/misc");
+const {
+  cancelPendingApplicationsOfStudent,
+  isAccepted,
   getAcceptedApplicationsOfStudent,
   getPendingApplicationsOfStudent,
-  notifyNewStartRequest,
-  getRequestsForTeacher,
-  getRequestsForClerk,
-  getRequestsForStudent,
-  isAccepted,
-  getAcceptedProposal,
-  getStartedThesisRequest,
-  cancelPendingApplicationsOfStudent,
-  notifyRemovedCosupervisors,
-} = require("./theses-dao");
-const { getUser } = require("./user-dao");
+  findRejectedApplication,
+  insertApplication,
+  getApplicationsOfTeacher,
+  getApplicationsOfStudent,
+  getApplicationById,
+  insertPDFInApplication,
+  cancelPendingApplications,
+} = require("./dao/applications");
+const { getDelta, setDelta } = require("./dao/virtual-clock");
 const { runCronjob, cronjobNames } = require("./cronjobs");
-
-function getDate() {
-  const clock = getDelta();
-  return dayjs().add(clock.delta, "day").format("YYYY-MM-DD");
-}
-
-function isArchived(proposal) {
-  return (
-    !!proposal.manually_archived ||
-    dayjs(proposal.expiration_date).isBefore(dayjs(getDate()))
-  );
-}
-
-function check_errors(start_request, user, old_status) {
-  if (user.id !== start_request.supervisor) {
-    throw new Error("You are not the supervisor of this thesis request");
-  }
-
-  if (old_status === "changes_requested") {
-    throw new Error(
-      "The thesis request is still waiting to be changed by the student",
-    );
-  }
-
-  if (old_status === "requested") {
-    throw new Error("The request has not been evaluated by the secretary yet.");
-  }
-
-  if (
-    old_status === "teacher_rejected" ||
-    old_status === "secretary_rejected" ||
-    old_status === "started"
-  ) {
-    throw new Error("The request has been already approved / rejected");
-  }
-}
-
-function determineNewStatus(start_request, user, decision) {
-  const old_status = start_request.status;
-  let new_status;
-
-  if (user.role === "secretary_clerk") {
-    if (old_status !== "requested") {
-      throw new Error("The request has been already approved / rejected");
-    }
-    if (decision === "approved") {
-      new_status = "secretary_accepted";
-    } else if (decision === "rejected") {
-      new_status = "secretary_rejected";
-    } else {
-      throw new Error(
-        "The secretary clerk has not the permission to perform this operation",
-      );
-    }
-  } else if (user.role === "teacher") {
-    check_errors(start_request, user, old_status);
-
-    if (decision === "approved") {
-      new_status = "started";
-    } else if (decision === "rejected") {
-      new_status = "teacher_rejected";
-    } else if (decision === "changes_requested") {
-      new_status = "changes_requested";
-    } else {
-      throw new Error(
-        "The teacher has not the permission to perform this operation",
-      );
-    }
-  }
-  return new_status;
-}
-
-function validateProposal(res, proposal, user) {
-  const { co_supervisors, groups, level } = proposal;
-  for (const group of groups) {
-    if (getGroup(group) === undefined) {
-      throw new Error("Invalid proposal content");
-    }
-  }
-  if (level !== "MSC" && level !== "BSC") {
-    throw new Error("Invalid proposal content");
-  }
-  const legal_groups = [user.cod_group];
-  for (const co_supervisor_email of co_supervisors) {
-    const co_supervisor = getTeacherByEmail(co_supervisor_email);
-    if (co_supervisor !== undefined) {
-      legal_groups.push(co_supervisor.cod_group);
-    }
-  }
-  if (!groups.every((group) => legal_groups.includes(group))) {
-    throw new Error("Invalid groups");
-  }
-  if (co_supervisors.includes(user.email)) {
-    throw new Error(
-      "The supervisor's email is included in the list of co-supervisors",
-    );
-  }
-}
-
-async function setStateToApplication(req, res, state) {
-  const application = getApplicationById(req.params.id);
-  if (application === undefined) {
-    return res.status(400).json({ message: "Application not existent" });
-  }
-  if (application.state !== "pending") {
-    return res.status(400).json({
-      message: "You cannot modify an application already accepted or rejected",
-    });
-  }
-  updateApplication(application.id, state);
-  notifyApplicationDecision(application.id, state);
-  if (state === "accepted") {
-    updateArchivedStateProposal(1, application.proposal_id);
-    cancelPendingApplications(application.proposal_id);
-  }
-  return res.status(200).json({ message: `Application ${state}` });
-}
 
 // ==================================================
 // Routes
@@ -385,6 +276,7 @@ router.patch("/api/start-requests/:thesisRequestId", isLoggedIn, (req, res) => {
       setApprovalDateOfRequest(getDate(), request.id);
       cancelPendingApplicationsOfStudent(request.student_id);
     } else if (new_status === "changes_requested") {
+      notifyChangesRequestedOnStartRequest(message, request.id);
       setChangesRequestedOfStartRequest(message, request.id);
     }
 
@@ -840,7 +732,8 @@ router.put(
         level: level,
         cds: cds,
       };
-      await notifyRemovedCosupervisors(proposal, newProposal);
+      notifyRemovedCosupervisors(proposal, newProposal);
+      notifyAddedCosupervisors(proposal, newProposal);
       updateProposal(newProposal);
       return res.status(200).json({ message: "Proposal updated successfully" });
     } catch (e) {
@@ -988,7 +881,7 @@ router.put(
 
       const { thesisRequestId } = req.params;
 
-      //controllo che esista
+      // check it exists
       const request = getRequestById(thesisRequestId);
       if (request === undefined) {
         return res.status(404).json({
