@@ -450,6 +450,7 @@ This component creates a themed toggle switch for changing the color mode of the
 - GET `/api/groups`
   - Description
     - This endpoint fetches the list of groups stored in the database and returns the information in JSON format.
+    - You must be logged in to use this endpoint
   - Request Body
     - none
   - Response
@@ -457,18 +458,14 @@ This component creates a themed toggle switch for changing the color mode of the
       ```
       [
         {
-          "cod_group": NETGROUP,
-          
+          "cod_group": "NETGROUP"
         },
         {
-          "cod_group": GRAINS,
-        },
-        ...
+          "cod_group": "GRAINS"
+        }
       ]
-
       ```
   - Error Handling
-    - 404 Not Found: If there are no groups available in the database.
     - 500 Internal Server Error: If there's an internal server error while processing the request.
 
 - GET `/api/degrees`
