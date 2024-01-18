@@ -283,17 +283,17 @@ This component creates a themed toggle switch for changing the color mode of the
 - POST `/api/proposals`
   - Description
     - This endpoint allows the creation of a new proposal. It validates the input fields and ensures their     correctness before inserting the proposal into the database.
+  - To use this endpoint, you have to be logged in as a teacher
   - Request Body 
     - Expects a JSON object containing the following fields:
      - title: String
-     - supervisor: Alphanumeric string with a length of 7 characters
      - co_supervisors: Array of email addresses
      - groups: Array of strings
      - keywords: Array of strings
      - types: Array of strings
      - description: String
      - required_knowledge: String
-     - notes: String (Optional, can be "null")
+     - notes: String (Optional field, it can be "null")
      - expiration_date: Date in ISO 8601 format (e.g., "YYYY-MM-DD")
      - level: String of length 3, either "MSC" or "BSC"
      - cds: String
@@ -301,9 +301,9 @@ This component creates a themed toggle switch for changing the color mode of the
   - Request body content example
   ```
   {
-    "title": "Proposta di tesi fighissima",
-    "supervisor": "s345678",
+    "title": "Proposta di tesi",
     "co_supervisors": [
+      "luigi.derussis@teacher.it",
       "s122349@gmail.com",
       "s298399@outlook.com"
     ],
@@ -319,8 +319,8 @@ This component creates a themed toggle switch for changing the color mode of the
       "EXPERIMENTAL",
       "RESEARCH"
     ],
-    "description": "Accetta questa tesi che e' una bomba",
-    "required_knowledge": "non devi sapere nulla",
+    "description": "Descrizione della tesi",
+    "required_knowledge": "Programmazione di sistema, conoscenza di C++",
     "notes": null,
     "expiration_date": "2019-01-25T02:00:00.000Z",
     "level": "MSC",
@@ -332,34 +332,38 @@ This component creates a themed toggle switch for changing the color mode of the
     ```
     {
       "proposal_id": 12345,
-      "title": "Proposal Title",
-      "supervisor": "Supervisor ID",
-      "co_supervisors": "Co-Supervisors",
-      "groups": "Groups",
-      "keywords": "Keywords",
-      "types": "Types",
-      "description": "Proposal Description",
-      "required_knowledge": "Required Knowledge",
-      "notes": "Optional Notes",
+      "title": "Proposta di tesi",
+      "supervisor": "s123456",
+      "co_supervisors": "luigi.derussis@teacher.it, s122349@gmail.com, s298399@outlook.com",
+      "groups": "ELITE, SOFTENG",
+      "keywords": "SOFTWARE ENGINEERING, SOFTWARE DEVELOPMENT",
+      "types": "EXPERIMENTAL, RESEARCH",
+      "description": "Descrizione della tesi",
+      "required_knowledge": "Programmazione di sistema, conoscenza di C++",
+      "notes": "null",
       "expiration_date": "2023-11-29",
-      "level": "BSC",
-      "cds": "CDS Value"
+      "level": "MSC",
+      "cds": "LM-32 (DM270)"
     }
     ```
   - Error Handling
     - 400 Bad Request:
       - Invalid proposal content (if validation fails for any fields)
       - Invalid groups (if groups provided are not valid)
+      - The supervisor's email is included in the co_supervisors' array
+    - 401 Unauthorized:
+      - If the user is not a teacher
     - 500 Internal Server Error: If there's an internal server error.
 
 - POST `/api/start-requests`
     - Description
-      - This endpoint create a new Start Request (theses request) in the db. It validates the input fields and ensures their     correctness before inserting the proposal into the database.
+      - This endpoint creates a new Start Request (thesis request) in the db. It validates the input fields and ensures their correctness before inserting the proposal into the database.
+    - To use this endpoint, you must be logged in as a student
     - Request Body
       - title: String
       - co_supervisors: Array of email addresses (Optional)
       - description: String
-      - supervisor: String  (id of supervisor)
+      - supervisor: String (id of supervisor)
     - Request body content example
       ```
       {
@@ -370,35 +374,32 @@ This component creates a themed toggle switch for changing the color mode of the
       }
       ```
     - Response
-      - 200 OK: Returns a JSON object representing the inserted start request.
-      ```
-      {
-        "start_request_id": 12345,
-        "title": "Start Request Title",
-        "co_supervisors": "email1@example.com, email2@example.com",
-        "description": "Start request description",
-        "supervisor": "Supervisor ID",
-        "approvalDate": null,
-        "studentId": "Student ID"
-      }
-      ```
+      - 200 OK: Returns JSON object containing the id of the new start request.
     - Error Handling
       - 400 Bad Request: Invalid start request content
-      - 401 Unauthorized: Authentication failure (user not authenticated as student)
+      - 401 Unauthorized: Authentication failure (the user is not authenticated as a student)
       - 409 Conflict: If the user already has a pending or accepted start request.
       - 500 Internal Server Error: For internal server errors.
 
 - PATCH `/api/start-requests/:thesisRequestId`
     - Description
       - Updates the status of a thesis request.
+    - You must be logged in as a secretary clerk or a teacher to use this endpoint
     - Parameters
-      - thesisRequestId: String - Thesis Request ID
+      - thesisRequestId: the ID of the request to update
     - Request Body
-      - approved: Boolean
+      - approved: String. It can be "approved", "rejected", "changes_requested". In case the user logged in is a teacher, the request body can contain a field "message", with the changes requested.
     - Request body content example
       ```
       {
-        "approved" : true
+        "decision" : "approved"
+      }
+      ```
+      or
+      ```
+      {
+        "decision": "changes_requested",
+        "message": "You have to change this, that, whatever I want",
       }
       ```
     - Response
@@ -410,13 +411,15 @@ This component creates a themed toggle switch for changing the color mode of the
       ```
     - Error Handling
       - 400 Bad Request: Invalid start request content
-      - 401 Unauthorized: Authentication failure (user not authenticated as student)
+      - 401 Unauthorized: Authentication failure (user not authenticated as teacher or secretary clerk)
+      - 404 Not Found: The request doesn't exist (the parameter thesisRequestId is wrong)
       - 500 Internal Server Error: For internal server errors.
 
 
 - GET `/api/teachers`
   - Description
     - This endpoint fetches the list of teachers stored in the database and returns the information in JSON format.
+    - You must be logged in to use this endpoint
   - Request Body
     - none
   - Response:
@@ -428,22 +431,26 @@ This component creates a themed toggle switch for changing the color mode of the
         surname: "Torchiano",
         name: "Marco",
         email: "marco.torchiano@polito.it"
+        cod_group: "SOFTENG",
+        cod_department: "DAUIN"
       },
       {
         id: "s234567",
         surname: "Morisio",
         name: "Maurizio",
         email: "maurizio.morisio@polito.it"
+        cod_group: "SOFTENG",
+        cod_department: "DAUIN"
       }
     ]
     ```
   - Errors Handling
-    - 404 Not Found: If there are no teachers available in the database.
     - 500 Internal Server Error: If there's an internal server error while processing the request.
   
 - GET `/api/groups`
   - Description
     - This endpoint fetches the list of groups stored in the database and returns the information in JSON format.
+    - You must be logged in to use this endpoint
   - Request Body
     - none
   - Response
@@ -451,23 +458,20 @@ This component creates a themed toggle switch for changing the color mode of the
       ```
       [
         {
-          "cod_group": NETGROUP,
-          
+          "cod_group": "NETGROUP"
         },
         {
-          "cod_group": GRAINS,
-        },
-        ...
+          "cod_group": "GRAINS"
+        }
       ]
-
       ```
   - Error Handling
-    - 404 Not Found: If there are no groups available in the database.
     - 500 Internal Server Error: If there's an internal server error while processing the request.
 
 - GET `/api/degrees`
   - Description:
     - This endpoint retrieves the list of degrees stored in the database and returns the information in JSON format.
+    - You must be logged in to use this endpoint
   - Request Body
     - none
   - Response
@@ -485,7 +489,6 @@ This component creates a themed toggle switch for changing the color mode of the
     ]
     ```
   - Error Handling
-    - 404 Not Found: If there are no degrees available in the database.
     - 500 Internal Server Error: If there's an internal server error while processing the request.
 - GET `/api/proposals?L-4-A` or `/api/supervisor?s123456`
   - Description
