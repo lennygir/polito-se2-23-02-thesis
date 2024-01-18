@@ -471,6 +471,7 @@ This component creates a themed toggle switch for changing the color mode of the
 - GET `/api/degrees`
   - Description:
     - This endpoint retrieves the list of degrees stored in the database and returns the information in JSON format.
+    - You must be logged in to use this endpoint
   - Request Body
     - none
   - Response
@@ -488,7 +489,6 @@ This component creates a themed toggle switch for changing the color mode of the
     ]
     ```
   - Error Handling
-    - 404 Not Found: If there are no degrees available in the database.
     - 500 Internal Server Error: If there's an internal server error while processing the request.
 - GET `/api/proposals?L-4-A` or `/api/supervisor?s123456`
   - Description
