@@ -490,15 +490,11 @@ This component creates a themed toggle switch for changing the color mode of the
     ```
   - Error Handling
     - 500 Internal Server Error: If there's an internal server error while processing the request.
-- GET `/api/proposals?L-4-A` or `/api/supervisor?s123456`
+- GET `/api/proposals`
   - Description
-    - This endpoint retrieves proposals from the database based on provided criteria. It can filter proposals by degree (cds), supervisor, or return all proposals if no specific criteria are provided.
-  - Query Parameters (at least one)
-    - cds: String (Optional)
-    - supervisor: Alphanumeric string with a length of 7 characters (Optional)
-  - Request Validation
-    - cds: Must be a string.
-    - supervisor: Must be an alphanumeric string with a length of 7 characters.
+    - This endpoint retrieves proposals from the database based on the user logged in.
+  - Query parameters
+    - `archived`: optional boolean, if the user (teacher) wants to filter proposals archived or not archived
   - Response
     - 200 OK: Returns an array of JSON objects representing proposals based on the provided criteria.
   ```
@@ -511,7 +507,7 @@ This component creates a themed toggle switch for changing the color mode of the
       "keywords": "GAMIFICATION, SOFTWARE ENGINEERING, SOFTWARE QUALITY, UML",
       "type": "RESEARCH",
       "groups": "SOFTENG",
-        "description": "Description Text ... ",
+      "description": "Description Text ... ",
       "notes": null,
       "expiration_date": "2023-12-18",
       "level": "MSC",
@@ -535,7 +531,7 @@ This component creates a themed toggle switch for changing the color mode of the
   ]
   ```
   - Error Handling
-    - 404 Not Found: If no proposals match the provided criteria.
+    - 400 Bad Request: Invalid Parameters (archived query not boolean)
     - 500 Internal Server Error: If there's an internal server error while processing the request.
 
 
