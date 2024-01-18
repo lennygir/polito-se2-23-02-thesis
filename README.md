@@ -606,14 +606,24 @@ This component creates a themed toggle switch for changing the color mode of the
         proposal_id: 1,
         student_id: 's309618',
         state: 'rejected',
-        attached_file: blob type
+        attached_file: blob type,
+        student_name: "Lorenzo",
+        student_surname: "Bertetto",
+        teacher_name: "Marco",
+        teacher_surname: "Torchiano",
+        title: "Test title"
       },
       {
         id: 5,
         proposal_id: 3,
         student_id: 's309618',
         state: 'rejected',
-        attached_file: blob type
+        attached_file: blob type,
+        student_name: "Luca",
+        student_surname: "Tortore",
+        teacher_name: "Marco",
+        teacher_surname: "Torchiano",
+        title: "Test title"
       }
     ]
   ```
@@ -623,6 +633,7 @@ This component creates a themed toggle switch for changing the color mode of the
 - GET `/api/applications/:id/attached-file`
     - Description
       - Retrieves the attached file (CV) associated with a specific application.
+    - The user must be logged in to use this endpoint 
     - Parameters
       - id: Integer (Minimum value: 1) - Application ID
   
@@ -636,6 +647,7 @@ This component creates a themed toggle switch for changing the color mode of the
 - GET `/api/students/:studentId/exams`
     - Description
       - Retrieves exams associated with a specific student
+    - The user must be logged in to use this endpoint
     - Parameters
       - studentId: Alphanumeric string (Length: 7) - Student ID
     
@@ -650,8 +662,7 @@ This component creates a themed toggle switch for changing the color mode of the
           "cfu": "8",
           "grade": "30",
           "date": "2023-01-23"
-        },
-        ...
+        }
       ]
       ```
     - Error Handling
@@ -661,6 +672,7 @@ This component creates a themed toggle switch for changing the color mode of the
 - GET `/api/notifications`
     - Description
       - Retrieves notifications for the authenticated user.
+    - The user must be logged in to use this endpoint
     - Response
       - 200 OK: Returns a JSON array containing notifications for the user.
       ```
@@ -670,10 +682,9 @@ This component creates a themed toggle switch for changing the color mode of the
           "date": "2023-12-12 13:42:10",
           "object": "New decision on your thesis application",
           "content": "Lorem ipsum...",
-          "student_id": "s319823",
+          "student_id": null,
           "teacher_id": "s123456"
-        },
-        ...
+        }
       ]
       ```
     - Error Handling
@@ -681,14 +692,15 @@ This component creates a themed toggle switch for changing the color mode of the
 
 - PATCH `/api/proposals/:id`
     - Description
-      - Updates the archival status of a proposal by setting it to archived and canceled all pending applicationsrelated to that proposal.
+      - Updates the archival status of a proposal by setting it to archived and cancels all pending applications related to that proposal.
+    - You must be authenticated as a teacher to use this endpoint
     - Parameters
       - id: Integer - Proposal ID
     - Request Body
       - Expects a JSON object with the following field:
-        - archived: String, must be "true"
+        - archived: boolean, must be "true"
     - Response
-      - 200 OK:   Returns a JSON object representing the updated proposal with the archived status set to true..
+      - 200 OK: Returns a JSON object representing the updated proposal with the archived status set to true.
       ```
         {
           "id": 1,
@@ -698,11 +710,13 @@ This component creates a themed toggle switch for changing the color mode of the
           "keywords": "GAMIFICATION, SOFTWARE ENGINEERING, SOFTWARE QUALITY, UML",
           "type": "RESEARCH",
           "groups": "SOFTENG",
-            "description": "Description Text ... ",
+          "description": "Description Text ... ",
           "notes": null,
           "expiration_date": "2023-12-18",
           "level": "MSC",
-          "cds": "LM-32 (DM270)"
+          "cds": "LM-32 (DM270)",
+          "manually_archived": 0,
+          "deleted": 0,
           "archived": true
         }
     
@@ -715,7 +729,8 @@ This component creates a themed toggle switch for changing the color mode of the
 
 - PUT `/api/proposals/:id`
     - Description
-      - Updates an existing proposal and notify the eventual update to the user.
+      - Updates an existing proposal and notifies the eventual update to the user.
+    - The user must be logged in as a teacher to use this endpoint
     - Parameters
       - id: Integer - Proposal ID
     - Request Body
@@ -732,12 +747,11 @@ This component creates a themed toggle switch for changing the color mode of the
         - level: String of length 3, either "MSC" or "BSC"
         - cds: String
     - Response
-      - 200 OK:   Returns a success message upon updating the proposal.
+      - 200 OK: Returns a success message upon updating the proposal.
       ```
       {
         "message": "Proposal updated successfully"
       }
-    
       ```
     - Error Handling
       - 400 Bad Request: Invalid proposal content (invalid student ID)
@@ -747,16 +761,16 @@ This component creates a themed toggle switch for changing the color mode of the
 
 - DELETE `/api/proposals/:id`
     - Description
-      - Deletes an existing proposal and cancel all related pending applications
+      - Deletes an existing proposal and cancels all related pending applications
+    - You must be logged in as a teacher to use this endpoint
     - Parameters
       - id: Integer - Proposal ID
     - Response
-      - 200 OK:   Returns a success message upon deleting the proposal.
+      - 200 OK: Returns a success message upon deleting the proposal.
       ```
         {
           "message": "Proposal deleted successfully."
         }
-    
       ```
     - Error Handling
       - 400 Bad Request: Invalid proposal content (invalid student ID)
@@ -767,8 +781,9 @@ This component creates a themed toggle switch for changing the color mode of the
 - GET `/api/virtualClock`
     - Description
       - Retrieves the current date from the virtual clock.
+    - You must be logged in to use this endpoint
     - Response
-      - 200 OK:   Returns the current date.
+      - 200 OK: Returns the current virtual clock date.
       ```
       {
         "YYYY-MM-DD"
@@ -779,11 +794,12 @@ This component creates a themed toggle switch for changing the color mode of the
 - PATCH `/api/virtualClock`
     - Description
       - Modifies the virtual clock's date.
+    - You must be logged in to use this endpoint
     - Request Body
       - Expects a JSON object with the following field:
         - date: Date in ISO 8601 format (e.g., "YYYY-MM-DD")
     - Response
-      - 200 OK: Returns a success message upon changing the date..
+      - 200 OK: Returns a success message upon changing the date.
       ```
       {
         "message": "Date successfully changed"
@@ -796,6 +812,7 @@ This component creates a themed toggle switch for changing the color mode of the
 - GET `/api/start-requests`
   - Description
     - This endpoint retrieves start requests based on the user's role. The returned data is formatted for display purposes, providing additional details and transforming certain fields for a user-friendly presentation.
+  - You must be logged in to use this endpoint
   - Response
     - 200 OK: Returns an array of JSON objects representing thesis request based on the user.
     ```
@@ -810,8 +827,7 @@ This component creates a themed toggle switch for changing the color mode of the
         "student_id": "student123",
         "status": "approved",
         "changes_requested": "Revision needed"
-      },
-      ...
+      }
     ]
     ```
   - Error Handling
@@ -820,6 +836,7 @@ This component creates a themed toggle switch for changing the color mode of the
 - PUT `/api/start-requests/:thesisRequestId`
     - Description
       - Updates an existing thesis request.
+    - You must be logged in as a student to use this endpoint
     - Parameters
       - thesisRequestId: Integer - ID of the thesis request to be updated.
     - Request Body
@@ -829,7 +846,7 @@ This component creates a themed toggle switch for changing the color mode of the
         - supervisor: String (Teacher ID)
         - co_supervisors: Array of email addresses (Optional)
     - Response
-      - 200 OK:   Returns a success message upon updating the proposal.
+      - 200 OK: Returns a success message upon updating the proposal.
       ```
         {
           "message": "Proposal updated successfully"
@@ -841,6 +858,37 @@ This component creates a themed toggle switch for changing the color mode of the
       - 404 Not Found: request not found.
       - 500 Internal Server Error: For internal server errors.
 
+- GET `/api/proposals/:id`
+  - Description
+    - Retrieves a single proposal
+  - You must be logged in to use this endpoint
+  - Parameters
+    - id: integer - ID of the proposal to be retrieved
+  - Request body: none
+  - Response
+    - 200 OK: Returns the proposal requested
+    ```
+    {
+      "id": 1,
+      "title": "Gamification di attività di modellazione UML",
+      "supervisor": "s123456",
+      "co_supervisors": "[s345678, ...]",
+      "keywords": "GAMIFICATION, SOFTWARE ENGINEERING, SOFTWARE QUALITY, UML",
+      "type": "RESEARCH",
+      "groups": "SOFTENG",
+      "description": "Description Text ... ",
+      "notes": null,
+      "expiration_date": "2023-12-18",
+      "level": "MSC",
+      "cds": "LM-32 (DM270)"
+      "archived": true,
+    }
+    ```
+  - Error handling
+    - 400 bad request: Invalid parameter
+    - 404 not found: proposal not found or proposal not viewable by the user
+    - 500 Internal server error: For internal server errors.
+    
 ## Additional Server Functions
 
 - `getDate()`
