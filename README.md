@@ -283,17 +283,17 @@ This component creates a themed toggle switch for changing the color mode of the
 - POST `/api/proposals`
   - Description
     - This endpoint allows the creation of a new proposal. It validates the input fields and ensures their     correctness before inserting the proposal into the database.
+  - To use this endpoint, you have to be logged in as a teacher
   - Request Body 
     - Expects a JSON object containing the following fields:
      - title: String
-     - supervisor: Alphanumeric string with a length of 7 characters
      - co_supervisors: Array of email addresses
      - groups: Array of strings
      - keywords: Array of strings
      - types: Array of strings
      - description: String
      - required_knowledge: String
-     - notes: String (Optional, can be "null")
+     - notes: String (Optional field, it can be "null")
      - expiration_date: Date in ISO 8601 format (e.g., "YYYY-MM-DD")
      - level: String of length 3, either "MSC" or "BSC"
      - cds: String
@@ -301,9 +301,9 @@ This component creates a themed toggle switch for changing the color mode of the
   - Request body content example
   ```
   {
-    "title": "Proposta di tesi fighissima",
-    "supervisor": "s345678",
+    "title": "Proposta di tesi",
     "co_supervisors": [
+      "luigi.derussis@teacher.it",
       "s122349@gmail.com",
       "s298399@outlook.com"
     ],
@@ -319,8 +319,8 @@ This component creates a themed toggle switch for changing the color mode of the
       "EXPERIMENTAL",
       "RESEARCH"
     ],
-    "description": "Accetta questa tesi che e' una bomba",
-    "required_knowledge": "non devi sapere nulla",
+    "description": "Descrizione della tesi",
+    "required_knowledge": "Programmazione di sistema, conoscenza di C++",
     "notes": null,
     "expiration_date": "2019-01-25T02:00:00.000Z",
     "level": "MSC",
@@ -332,24 +332,27 @@ This component creates a themed toggle switch for changing the color mode of the
     ```
     {
       "proposal_id": 12345,
-      "title": "Proposal Title",
-      "supervisor": "Supervisor ID",
-      "co_supervisors": "Co-Supervisors",
-      "groups": "Groups",
-      "keywords": "Keywords",
-      "types": "Types",
-      "description": "Proposal Description",
-      "required_knowledge": "Required Knowledge",
-      "notes": "Optional Notes",
+      "title": "Proposta di tesi",
+      "supervisor": "s123456",
+      "co_supervisors": "luigi.derussis@teacher.it, s122349@gmail.com, s298399@outlook.com",
+      "groups": "ELITE, SOFTENG",
+      "keywords": "SOFTWARE ENGINEERING, SOFTWARE DEVELOPMENT",
+      "types": "EXPERIMENTAL, RESEARCH",
+      "description": "Descrizione della tesi",
+      "required_knowledge": "Programmazione di sistema, conoscenza di C++",
+      "notes": "null",
       "expiration_date": "2023-11-29",
-      "level": "BSC",
-      "cds": "CDS Value"
+      "level": "MSC",
+      "cds": "LM-32 (DM270)"
     }
     ```
   - Error Handling
     - 400 Bad Request:
       - Invalid proposal content (if validation fails for any fields)
       - Invalid groups (if groups provided are not valid)
+      - The supervisor's email is included in the co_supervisors' array
+    - 401 Unauthorized:
+      - If the user is not a teacher
     - 500 Internal Server Error: If there's an internal server error.
 
 - POST `/api/start-requests`
