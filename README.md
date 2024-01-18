@@ -357,12 +357,13 @@ This component creates a themed toggle switch for changing the color mode of the
 
 - POST `/api/start-requests`
     - Description
-      - This endpoint create a new Start Request (theses request) in the db. It validates the input fields and ensures their     correctness before inserting the proposal into the database.
+      - This endpoint creates a new Start Request (thesis request) in the db. It validates the input fields and ensures their correctness before inserting the proposal into the database.
+    - To use this endpoint, you must be logged in as a student
     - Request Body
       - title: String
       - co_supervisors: Array of email addresses (Optional)
       - description: String
-      - supervisor: String  (id of supervisor)
+      - supervisor: String (id of supervisor)
     - Request body content example
       ```
       {
@@ -373,21 +374,10 @@ This component creates a themed toggle switch for changing the color mode of the
       }
       ```
     - Response
-      - 200 OK: Returns a JSON object representing the inserted start request.
-      ```
-      {
-        "start_request_id": 12345,
-        "title": "Start Request Title",
-        "co_supervisors": "email1@example.com, email2@example.com",
-        "description": "Start request description",
-        "supervisor": "Supervisor ID",
-        "approvalDate": null,
-        "studentId": "Student ID"
-      }
-      ```
+      - 200 OK: Returns JSON object containing the id of the new start request.
     - Error Handling
       - 400 Bad Request: Invalid start request content
-      - 401 Unauthorized: Authentication failure (user not authenticated as student)
+      - 401 Unauthorized: Authentication failure (the user is not authenticated as a student)
       - 409 Conflict: If the user already has a pending or accepted start request.
       - 500 Internal Server Error: For internal server errors.
 
