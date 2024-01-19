@@ -129,27 +129,35 @@ sections:
 
 - What caused your errors in estimation (if any)?
 
-  We were a bit optimistic since there were some stories already done in previous sprints and there were many stories related to notifications which we had already set up so we didn't think they would have taken a lot of effort.
+  We were a bit optimistic since there were some stories already done in previous sprints.
+  Moreover, there were many stories related to notifications which we had already set up, so we didn't think
+  they would have taken a lot of effort.
 
 - What lessons did you learn (both positive and negative) in this sprint?
 
-  Positive: we learned that we can avoid having many issues with longer meetings to decide together how to plan the endpoints and the interface, instead of working indipendently only following the requirements.
+  - Positive: 
+    - we learned that we can avoid having many issues with longer meetings to decide together how to plan the endpoints and the interface, instead of working independently only following the requirements.
 
-  Negative: we learned that coverage in our project was not very good and also that is not an easy thing to improve.
+  - Negative: 
+    - we learned that coverage in our project was not very good and also that is not an easy thing to improve.
+    - it is challenging to merge code when you modify the file structure of the project
 
 - Which improvement goals set in the previous retrospective were you able to achieve?
 
-  This sprint we were able to add CI for sonarcloud and improve the coverage, as well as major improvements for the documentation and better communication between frontend and backend teams in order to avoid issues during merges.
+  In this sprint, we were able to add CI for SonarCloud and improve the coverage,
+  as well as major improvements for the documentation and better communication between frontend and backend teams
+  to avoid issues during merges.
 
 - Which ones you were not able to achieve? Why?
 
-  We didn't get to do more than 2 scrum meeting as we planned at the end of last sprint because we didn't feel like we needed more than 2. Instead, we had more meetings throughout the sprint to coordinate the work.
+  We didn't get to do more than two scrum meetings as we planned at the end of last sprint because we didn't feel like we needed more than 2. Instead, we had more meetings throughout the sprint to coordinate the work.
 
 - Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
 
   - Small bits of the interface could be improved: notifications, tables responsiveness, loading indicators.
+  - The backend could be more improved too. We should change the code to be clearer.
 
-  - Reach 100% coverge or close.
+  - Reach 100% coverage or close.
 
 - One thing you are proud of as a Team!!
 
