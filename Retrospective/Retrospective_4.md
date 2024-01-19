@@ -156,6 +156,7 @@ sections:
 
   - Small bits of the interface could be improved: notifications, tables responsiveness, loading indicators.
   - The backend could be more improved too. We should change the code to be clearer.
+  - Add more fake data to the database.
 
   - Reach 100% coverage or close.
 
