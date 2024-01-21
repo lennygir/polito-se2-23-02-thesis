@@ -47,6 +47,8 @@ const {
   notifyRemovedCosupervisors,
   notifyAddedCosupervisors,
   notifyChangesRequestedOnStartRequest,
+  getNotification,
+  readNotification,
 } = require("./dao/misc");
 const {
   cancelPendingApplicationsOfStudent,
@@ -738,6 +740,33 @@ router.put(
       return res.status(200).json({ message: "Proposal updated successfully" });
     } catch (e) {
       return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
+
+router.patch(
+  "/api/notifications/:id",
+  isLoggedIn,
+  check("id").isInt({ min: 0 }),
+  (req, res) => {
+    try {
+      const user = getUser(req.user);
+      if (!user) {
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+      const notification = getNotification(req.params.id);
+      if (
+        notification.student_id !== user.id &&
+        notification.teacher_id !== user.id
+      ) {
+        return res.status(401).json({
+          message: "Unauthorized to read this notification",
+        });
+      }
+      readNotification(notification.id);
+      return res.status(200).json({ message: "Notification read" });
+    } catch (e) {
+      return res.status(500).json({ message: "Internal Server Error" });
     }
   },
 );
