@@ -1,6 +1,7 @@
 # Theses Management System
 
-## Contents 
+## Contents
+
 - [Theses Management System](#theses-management-system)
   - [Contents](#contents)
   - [Project Description](#project-description)
@@ -46,13 +47,13 @@
   - [Users](#users)
     - [Users Credentials](#users-credentials)
 
-
 ## Project Description
+
 Thesis Manager is a specialized web platform created exclusively for the Polytechnic University of Turin to effectively oversee thesis-related processes. Within this application, students have the capability to explore available theses and submit their applications. Additionally, professors can contribute thesis proposals and review and decide on student applications. As of now, the system encompasses three primary user roles: professors, students, and secretary clerks. Each user is empowered to undertake various tasks aligned with their specific roles and permissions.
 
 ## Use Case Diagram
-<img width="559" alt="Screenshot 2024-01-10 at 2 33 12 PM" src="https://github.com/lennygir/polito-se2-23-02-thesis/assets/97409881/408c2fe6-b7f7-4757-b9aa-3fbbedcb9c43">
 
+<img width="559" alt="Screenshot 2024-01-10 at 2 33 12 PM" src="https://github.com/lennygir/polito-se2-23-02-thesis/assets/97409881/408c2fe6-b7f7-4757-b9aa-3fbbedcb9c43">
 
 ## Run in production
 
@@ -75,15 +76,17 @@ run_in_container.bat
 ```
 
 #### Using docker commands
+
 You can either retrieve the image from the docker hub either build it yourself.
 
 If you want to build it execute the following commands:
+
 ```bash
 
-# Build the frontend 
+# Build the frontend
 cd client && npm run build && cd ..
 
-# Build the docker image 
+# Build the docker image
 docker build -t s321503/polito-thesis .
 
 ```
@@ -116,20 +119,21 @@ Once the docker container is running you can access the application using [local
 
 ## React Client Application Routes
 
-- Route `/`: login page
-- Route `/proposals`: students see the list of proposals for their cds, teachers see the list of their proposals
-- Route `/proposals/proposalId`: students see the details of a proposal and can apply to it, teachers can only see the proposal details
-- Route `/add-proposal`: teachers can create a new proposal
-- Route `/edit-proposal/proposalId`: teachers can edit an existing proposal
-- Route `/applications`: students see the list of their applications, teachers see the list of applications to their proposals
-- Route `/applications/applicationId`: students see the check the details of an applications, teachers can also accept or reject an application
-- Route `/notifications`: students and teachers see the list of notifications related to the proposals/applications
+- Route `/`: login page.
+- Route `/proposals`: students see the list of proposals for their cds, teachers see the list of their proposals.
+- Route `/proposals/proposalId`: students see the details of a proposal and can apply to it, teachers can only see the proposal details.
+- Route `/add-proposal`: teachers can create a new proposal.
+- Route `/edit-proposal/proposalId`: teachers can edit an existing proposal.
+- Route `/applications`: students see the list of their applications, teachers see the list of applications to their proposals.
+- Route `/applications/applicationId`: students see the details of an applications, teachers can also accept or reject an application.
+- Route `/notifications`: students and teachers see the list of notifications related to the proposals/applications.
+- Route `/notifications/notificationId`: students and teachers see the details of a notification.
 - Route `/requests`: students can see the request that has been submitted by them, teachers can view the requests which are sent to them, and secretary clerks can also view thesis requests directed to them.
-- Route `/requests/requestId`: teachers can see the details of the request made by the student, in addition to accepting or rejecting the request, the teacher can ask for changes from the student. Furthermore, secretary clerks can see the details of the requests sent to them, and they can accept or reject it
+- Route `/requests/requestId`: teachers can see the details of the request made by the student, in addition to accepting or rejecting the request, the teacher can ask for changes from the student. Furthermore, secretary clerks can see the details of the requests sent to them, and they can accept or reject it.
 - Route `/add-start-request`: students can either create a thesis start request from "start request" in the side bar or they can create one from an accepted application.
 - Route `/edit-start-request`: students can edit their start request if the professor has asked them to do so.
-- Route `/settings`: users can change the theme (light/dark mode)
-- Route `*`: non-existing routes view
+- Route `/settings`: users can change the theme of the app (light/dark mode).
+- Route `*`: non-existing routes view.
 
 ## Client Components
 
@@ -142,14 +146,12 @@ It pulls user information from a UserContext, and provides user details across t
 
 This component utilizes the Material-UI library to display alert messages in a Snackbar. It is designed to show notifications to the user with a message, severity level, and a customizable closing mechanism.
 
-
-
 ### ApplicationDetails
 
 This component is responsible for rendering details of a specific application, presenting student information, thesis proposal details, and handling actions such as accepting or rejecting an application (if the user's role is teacher).
 
 If the user that has been signed in is a teacher, he/she can decide about accepting or rejecting an application (by using the buttons "accept" or "reject") on this page.
-If the user is a student, he/she can view the message regarding his/her application. "application pending", "application rejected", "application accepted",  and "application canceled".
+If the user is a student, he/she can view the message regarding his/her application. "application pending", "application rejected", "application accepted", and "application canceled".
 
 ### ApplicationRow
 
@@ -163,7 +165,7 @@ On the other hand, if the user is a student, the displayed data are the name and
 
 This component renders a table based on the provided data (`applications`) and the user's role fetched from the `UserContext`.
 
-If the user's role is teacher, the rendered table headers will be "Student", "Proposal", "Status", "Open". 
+If the user's role is teacher, the rendered table headers will be "Student", "Proposal", "Status", "Open".
 On the contrary, if the user's role is student, the rendered table headers will be "Teacher", "Proposal", "Status", "Open"
 
 ### Auth
@@ -172,7 +174,7 @@ Auth defines two React functional components, LoginButton and LogoutButton, each
 
 ### ButtonDatePicker
 
-This customizable date picker component includes a button (ButtonField) with an associated icon and label. 
+This customizable date picker component includes a button (ButtonField) with an associated icon and label.
 
 ### ChangeRequestDialog
 
@@ -192,24 +194,28 @@ This component is used to create a dialog for confirming a decision and allowing
 
 ### EmptyTable
 
-This component is a reusable piece of UI that can be used to inform users when a table is empty and specify the type of data that is currently not available. 
+This component is a reusable piece of UI that can be used to inform users when a table is empty and specify the type of data that is currently not available.
 
 ### Navbar
 
 This component named Navbar represents a navigation bar with specific functionality. It includes elements like an app drawer toggle button, a date picker button (ButtonDatePicker), and an account popover.
 
+### NotificationDetails
+
+The component is designed to present comprehensive details of a notification, including its sender, object, formatted date and message content.
+
 ### NotificationRow
 
 This component is designed to generate individual rows for a table representing notifications or messages.
 It receives a notification object as a prop containing specific information about each notification, such as its ID, object, content, and date.
-For each notification passed into this component, it renders a row with three cells containing the object, content, and formatted date of the notification.
+For each notification passed into this component, it renders a row with four cells containing the sender, the object, and formatted date of the notification, as well as an action button to view the message.
 
 ### NotificationTable
 
 The NotificationTable component is designed to display a table of notifications.
 It takes in an array of notification objects (data prop), each containing details like the notification's ID, object, message, and date.
 For each notification in the data array, it generates a NotificationRow component to represent each notification in a row within the table.
-The table includes headers for "Object", "Message", and "Date" to categorize the content.
+The table includes headers for "From", "Object", and "Date" to categorize the content.
 
 ### ProposalDetails
 
@@ -218,7 +224,7 @@ This component serves as an interface for users to view proposal details and tak
 ### ProposalFilters
 
 This component is responsible for rendering a set of filters within a Material-UI `Drawer`. It provides options to filter proposal data based on various criteria.
-The  drawer content consists of filter fields like types, groups, and date range.
+The drawer content consists of filter fields like types, groups, and date range.
 
 ### ProposalForm
 
@@ -226,7 +232,7 @@ It is used for creating or editing proposals. This component is designed to hand
 
 ### ProposalRow
 
-This component renders a single row in a table displaying information about a proposal. 
+This component renders a single row in a table displaying information about a proposal.
 It encapsulates the rendering logic for a single proposal row in a table, providing options for different actions like editing, archiving, and deleting proposals based on user roles and proposal state.
 
 ### ProposalTable
@@ -278,28 +284,28 @@ For each course in the career array, the StudentCareerRow component is utilized 
 
 This component creates a themed toggle switch for changing the color mode of the application. The appearance of the switch adapts to the current theme mode, providing a seamless and visually appealing experience for users to switch between light and dark modes.
 
-
 ## API Server
 
 - POST `/api/proposals`
+
   - Description
-    - This endpoint allows the creation of a new proposal. It validates the input fields and ensures their     correctness before inserting the proposal into the database.
+    - This endpoint allows the creation of a new proposal. It validates the input fields and ensures their correctness before inserting the proposal into the database.
   - To use this endpoint, you have to be logged in as a teacher
-  - Request Body 
+  - Request Body
     - Expects a JSON object containing the following fields:
-     - title: String
-     - co_supervisors: Array of email addresses
-     - groups: Array of strings
-     - keywords: Array of strings
-     - types: Array of strings
-     - description: String
-     - required_knowledge: String
-     - notes: String (Optional field, it can be "null")
-     - expiration_date: Date in ISO 8601 format (e.g., "YYYY-MM-DD")
-     - level: String of length 3, either "MSC" or "BSC"
-     - cds: String
-    
+    - title: String
+    - co_supervisors: Array of email addresses
+    - groups: Array of strings
+    - keywords: Array of strings
+    - types: Array of strings
+    - description: String
+    - required_knowledge: String
+    - notes: String (Optional field, it can be "null")
+    - expiration_date: Date in ISO 8601 format (e.g., "YYYY-MM-DD")
+    - level: String of length 3, either "MSC" or "BSC"
+    - cds: String
   - Request body content example
+
   ```
   {
     "title": "Proposta di tesi",
@@ -328,6 +334,7 @@ This component creates a themed toggle switch for changing the color mode of the
     "cds": "LM-32 (DM270)"
   }
   ```
+
   - Response
     - 200 OK: Returns JSON object representing the inserted proposal.
     ```
@@ -357,65 +364,66 @@ This component creates a themed toggle switch for changing the color mode of the
     - 500 Internal Server Error: If there's an internal server error.
 
 - POST `/api/start-requests`
-    - Description
-      - This endpoint creates a new Start Request (thesis request) in the db. It validates the input fields and ensures their correctness before inserting the proposal into the database.
-    - To use this endpoint, you must be logged in as a student
-    - Request Body
-      - title: String
-      - co_supervisors: Array of email addresses (Optional)
-      - description: String
-      - supervisor: String (id of supervisor)
-    - Request body content example
-      ```
-      {
-        "title": "Start Request Title",
-        "co_supervisors": ["email1@example.com", "email2@example.com"],
-        "description": "Start request description",
-        "supervisor": "s123456"
-      }
-      ```
-    - Response
-      - 200 OK: Returns JSON object containing the id of the new start request.
-    - Error Handling
-      - 400 Bad Request: Invalid start request content
-      - 401 Unauthorized: Authentication failure (the user is not authenticated as a student)
-      - 409 Conflict: If the user already has a pending or accepted start request.
-      - 500 Internal Server Error: For internal server errors.
+
+  - Description
+    - This endpoint creates a new Start Request (thesis request) in the db. It validates the input fields and ensures their correctness before inserting the proposal into the database.
+  - To use this endpoint, you must be logged in as a student
+  - Request Body
+    - title: String
+    - co_supervisors: Array of email addresses (Optional)
+    - description: String
+    - supervisor: String (id of supervisor)
+  - Request body content example
+    ```
+    {
+      "title": "Start Request Title",
+      "co_supervisors": ["email1@example.com", "email2@example.com"],
+      "description": "Start request description",
+      "supervisor": "s123456"
+    }
+    ```
+  - Response
+    - 200 OK: Returns JSON object containing the id of the new start request.
+  - Error Handling
+    - 400 Bad Request: Invalid start request content
+    - 401 Unauthorized: Authentication failure (the user is not authenticated as a student)
+    - 409 Conflict: If the user already has a pending or accepted start request.
+    - 500 Internal Server Error: For internal server errors.
 
 - PATCH `/api/start-requests/:thesisRequestId`
-    - Description
-      - Updates the status of a thesis request.
-    - You must be logged in as a secretary clerk or a teacher to use this endpoint
-    - Parameters
-      - thesisRequestId: the ID of the request to update
-    - Request Body
-      - approved: String. It can be "approved", "rejected", "changes_requested". In case the user logged in is a teacher, the request body can contain a field "message", with the changes requested.
-    - Request body content example
-      ```
-      {
-        "decision" : "approved"
-      }
-      ```
-      or
-      ```
-      {
-        "decision": "changes_requested",
-        "message": "You have to change this, that, whatever I want",
-      }
-      ```
-    - Response
-      - 200 OK: Returns a JSON object with a message.
-      ```
-      {
-        "message": "Request updated successfully"
-      }
-      ```
-    - Error Handling
-      - 400 Bad Request: Invalid start request content
-      - 401 Unauthorized: Authentication failure (user not authenticated as teacher or secretary clerk)
-      - 404 Not Found: The request doesn't exist (the parameter thesisRequestId is wrong)
-      - 500 Internal Server Error: For internal server errors.
 
+  - Description
+    - Updates the status of a thesis request.
+  - You must be logged in as a secretary clerk or a teacher to use this endpoint
+  - Parameters
+    - thesisRequestId: the ID of the request to update
+  - Request Body
+    - approved: String. It can be "approved", "rejected", "changes_requested". In case the user logged in is a teacher, the request body can contain a field "message", with the changes requested.
+  - Request body content example
+    ```
+    {
+      "decision" : "approved"
+    }
+    ```
+    or
+    ```
+    {
+      "decision": "changes_requested",
+      "message": "You have to change this, that, whatever I want",
+    }
+    ```
+  - Response
+    - 200 OK: Returns a JSON object with a message.
+    ```
+    {
+      "message": "Request updated successfully"
+    }
+    ```
+  - Error Handling
+    - 400 Bad Request: Invalid start request content
+    - 401 Unauthorized: Authentication failure (user not authenticated as teacher or secretary clerk)
+    - 404 Not Found: The request doesn't exist (the parameter thesisRequestId is wrong)
+    - 500 Internal Server Error: For internal server errors.
 
 - GET `/api/teachers`
   - Description
@@ -447,8 +455,8 @@ This component creates a themed toggle switch for changing the color mode of the
     ```
   - Errors Handling
     - 500 Internal Server Error: If there's an internal server error while processing the request.
-  
 - GET `/api/groups`
+
   - Description
     - This endpoint fetches the list of groups stored in the database and returns the information in JSON format.
     - You must be logged in to use this endpoint
@@ -492,12 +500,14 @@ This component creates a themed toggle switch for changing the color mode of the
   - Error Handling
     - 500 Internal Server Error: If there's an internal server error while processing the request.
 - GET `/api/proposals`
+
   - Description
     - This endpoint retrieves proposals from the database based on the user logged in.
   - Query parameters
     - `archived`: optional boolean, if the user (teacher) wants to filter proposals archived or not archived
   - Response
     - 200 OK: Returns an array of JSON objects representing proposals based on the provided criteria.
+
   ```
   [
     {
@@ -533,10 +543,10 @@ This component creates a themed toggle switch for changing the color mode of the
     }
   ]
   ```
+
   - Error Handling
     - 400 Bad Request: Invalid Parameters (archived query not boolean)
     - 500 Internal Server Error: If there's an internal server error while processing the request.
-
 
 - PATCH `/api/applications/:id`
   - Description
@@ -581,25 +591,27 @@ This component creates a themed toggle switch for changing the color mode of the
       ```
   - Response
     - 200 OK: Returns a JSON object confirming the updated state of the application.
-       ```
-         {
-           id: 5,
-           proposal_id: 1,
-           student_id: 's309618',
-           state: 'rejected',
-           attached_file: blob type
-         }
-       ```
-   - Error Handling
-     - 400 Bad Request: If the request contains invalid application content, if the student has already applied to a proposal, if the proposal is already accepted for another student, or if the student has already applied and the application was rejected, or if the student has already started a thesis.
-     - 401 Unauthorized: Authentication failure (the user has not the permission to modify it)
-     - 404 Not Found: Proposal not found.
-     - 500 Internal Server Error: If there's an internal server error while processing the request.
+      ```
+        {
+          id: 5,
+          proposal_id: 1,
+          student_id: 's309618',
+          state: 'rejected',
+          attached_file: blob type
+        }
+      ```
+  - Error Handling
+    - 400 Bad Request: If the request contains invalid application content, if the student has already applied to a proposal, if the proposal is already accepted for another student, or if the student has already applied and the application was rejected, or if the student has already started a thesis.
+    - 401 Unauthorized: Authentication failure (the user has not the permission to modify it)
+    - 404 Not Found: Proposal not found.
+    - 500 Internal Server Error: If there's an internal server error while processing the request.
 - GET `/api/applications`
+
   - Description
     - This endpoint retrieves applications based on logged user. It can filter applications by teacher, student, or return all applications if no specific criteria are provided.
   - Response
     - 200 OK: Returns an array of JSON objects representing applications based on the provided criteria.
+
   ```
     [
       {
@@ -628,189 +640,203 @@ This component creates a themed toggle switch for changing the color mode of the
       }
     ]
   ```
+
   - Error Handling
     - 500 Internal Server Error: If there's an internal server error while processing the request.
 
 - GET `/api/applications/:id/attached-file`
-    - Description
-      - Retrieves the attached file (CV) associated with a specific application.
-    - The user must be logged in to use this endpoint 
-    - Parameters
-      - id: Integer (Minimum value: 1) - Application ID
-  
-    - Response
-      - 200 OK: Returns the attached file
-    - Error Handling
-      - 400 Bad Request: Invalid application content (invalid ID)
-      - 404 Not Found: Application not found
-      - 500 Internal Server Error: For internal server errors.
+
+  - Description
+    - Retrieves the attached file (CV) associated with a specific application.
+  - The user must be logged in to use this endpoint
+  - Parameters
+
+    - id: Integer (Minimum value: 1) - Application ID
+
+  - Response
+    - 200 OK: Returns the attached file
+  - Error Handling
+    - 400 Bad Request: Invalid application content (invalid ID)
+    - 404 Not Found: Application not found
+    - 500 Internal Server Error: For internal server errors.
 
 - GET `/api/students/:studentId/exams`
-    - Description
-      - Retrieves exams associated with a specific student
-    - The user must be logged in to use this endpoint
-    - Parameters
-      - studentId: Alphanumeric string (Length: 7) - Student ID
-    
-    - Response
-      - 200 OK: Returns a JSON array containing exams associated with the student
-      ```
-      [
-        {
-          "id": s308747,
-          "cod_course": "01SQMOV",
-          "title_course": "Web Applications I",
-          "cfu": "8",
-          "grade": "30",
-          "date": "2023-01-23"
-        }
-      ]
-      ```
-    - Error Handling
-      - 400 Bad Request: Invalid proposal content (invalid student ID)
-      - 500 Internal Server Error: For internal server errors.
+
+  - Description
+    - Retrieves exams associated with a specific student
+  - The user must be logged in to use this endpoint
+  - Parameters
+
+    - studentId: Alphanumeric string (Length: 7) - Student ID
+
+  - Response
+    - 200 OK: Returns a JSON array containing exams associated with the student
+    ```
+    [
+      {
+        "id": s308747,
+        "cod_course": "01SQMOV",
+        "title_course": "Web Applications I",
+        "cfu": "8",
+        "grade": "30",
+        "date": "2023-01-23"
+      }
+    ]
+    ```
+  - Error Handling
+    - 400 Bad Request: Invalid proposal content (invalid student ID)
+    - 500 Internal Server Error: For internal server errors.
 
 - GET `/api/notifications`
-    - Description
-      - Retrieves notifications for the authenticated user.
-    - The user must be logged in to use this endpoint
-    - Response
-      - 200 OK: Returns a JSON array containing notifications for the user.
-      ```
-      [
-        {
-          "id": 1,
-          "date": "2023-12-12 13:42:10",
-          "object": "New decision on your thesis application",
-          "content": "Lorem ipsum...",
-          "student_id": null,
-          "teacher_id": "s123456"
-        }
-      ]
-      ```
-    - Error Handling
-      - 500 Internal Server Error: For internal server errors.
+
+  - Description
+    - Retrieves notifications for the authenticated user.
+  - The user must be logged in to use this endpoint
+  - Response
+    - 200 OK: Returns a JSON array containing notifications for the user.
+    ```
+    [
+      {
+        "id": 1,
+        "date": "2023-12-12 13:42:10",
+        "object": "New decision on your thesis application",
+        "content": "Lorem ipsum...",
+        "student_id": null,
+        "teacher_id": "s123456"
+      }
+    ]
+    ```
+  - Error Handling
+    - 500 Internal Server Error: For internal server errors.
 
 - PATCH `/api/proposals/:id`
-    - Description
-      - Updates the archival status of a proposal by setting it to archived and cancels all pending applications related to that proposal.
-    - You must be authenticated as a teacher to use this endpoint
-    - Parameters
-      - id: Integer - Proposal ID
-    - Request Body
-      - Expects a JSON object with the following field:
-        - archived: boolean, must be "true"
-    - Response
-      - 200 OK: Returns a JSON object representing the updated proposal with the archived status set to true.
-      ```
-        {
-          "id": 1,
-          "title": "Gamification di attività di modellazione UML",
-          "supervisor": "s123456",
-          "co_supervisors": "s345678",
-          "keywords": "GAMIFICATION, SOFTWARE ENGINEERING, SOFTWARE QUALITY, UML",
-          "type": "RESEARCH",
-          "groups": "SOFTENG",
-          "description": "Description Text ... ",
-          "notes": null,
-          "expiration_date": "2023-12-18",
-          "level": "MSC",
-          "cds": "LM-32 (DM270)",
-          "manually_archived": 0,
-          "deleted": 0,
-          "archived": true
-        }
-    
-      ```
-    - Error Handling
-      - 400 Bad Request: Invalid proposal content (invalid student ID)
-      - 401 Unauthorized: Authentication failure (user not logged in)
-      - 404 Not Found: Proposal not found.
-      - 500 Internal Server Error: For internal server errors.
+
+  - Description
+    - Updates the archival status of a proposal by setting it to archived and cancels all pending applications related to that proposal.
+  - You must be authenticated as a teacher to use this endpoint
+  - Parameters
+    - id: Integer - Proposal ID
+  - Request Body
+    - Expects a JSON object with the following field:
+      - archived: boolean, must be "true"
+  - Response
+
+    - 200 OK: Returns a JSON object representing the updated proposal with the archived status set to true.
+
+    ```
+      {
+        "id": 1,
+        "title": "Gamification di attività di modellazione UML",
+        "supervisor": "s123456",
+        "co_supervisors": "s345678",
+        "keywords": "GAMIFICATION, SOFTWARE ENGINEERING, SOFTWARE QUALITY, UML",
+        "type": "RESEARCH",
+        "groups": "SOFTENG",
+        "description": "Description Text ... ",
+        "notes": null,
+        "expiration_date": "2023-12-18",
+        "level": "MSC",
+        "cds": "LM-32 (DM270)",
+        "manually_archived": 0,
+        "deleted": 0,
+        "archived": true
+      }
+
+    ```
+
+  - Error Handling
+    - 400 Bad Request: Invalid proposal content (invalid student ID)
+    - 401 Unauthorized: Authentication failure (user not logged in)
+    - 404 Not Found: Proposal not found.
+    - 500 Internal Server Error: For internal server errors.
 
 - PUT `/api/proposals/:id`
-    - Description
-      - Updates an existing proposal and notifies the eventual update to the user.
-    - The user must be logged in as a teacher to use this endpoint
-    - Parameters
-      - id: Integer - Proposal ID
-    - Request Body
-      - Expects a JSON object with the following field:
-        - title: String
-        - co_supervisors: Array of email addresses
-        - groups: Array of strings
-        - keywords: Array of strings
-        - types: Array of strings
-        - description: String
-        - required_knowledge: String
-        - notes: String (Optional, can be "null")
-        - expiration_date: Date in ISO 8601 format (e.g., "YYYY-MM-DD")
-        - level: String of length 3, either "MSC" or "BSC"
-        - cds: String
-    - Response
-      - 200 OK: Returns a success message upon updating the proposal.
-      ```
-      {
-        "message": "Proposal updated successfully"
-      }
-      ```
-    - Error Handling
-      - 400 Bad Request: Invalid proposal content (invalid student ID)
-      - 401 Unauthorized: Authentication failure (user not logged in)
-      - 404 Not Found: Proposal not found.
-      - 500 Internal Server Error: For internal server errors.
+
+  - Description
+    - Updates an existing proposal and notifies the eventual update to the user.
+  - The user must be logged in as a teacher to use this endpoint
+  - Parameters
+    - id: Integer - Proposal ID
+  - Request Body
+    - Expects a JSON object with the following field:
+      - title: String
+      - co_supervisors: Array of email addresses
+      - groups: Array of strings
+      - keywords: Array of strings
+      - types: Array of strings
+      - description: String
+      - required_knowledge: String
+      - notes: String (Optional, can be "null")
+      - expiration_date: Date in ISO 8601 format (e.g., "YYYY-MM-DD")
+      - level: String of length 3, either "MSC" or "BSC"
+      - cds: String
+  - Response
+    - 200 OK: Returns a success message upon updating the proposal.
+    ```
+    {
+      "message": "Proposal updated successfully"
+    }
+    ```
+  - Error Handling
+    - 400 Bad Request: Invalid proposal content (invalid student ID)
+    - 401 Unauthorized: Authentication failure (user not logged in)
+    - 404 Not Found: Proposal not found.
+    - 500 Internal Server Error: For internal server errors.
 
 - DELETE `/api/proposals/:id`
-    - Description
-      - Deletes an existing proposal and cancels all related pending applications
-    - You must be logged in as a teacher to use this endpoint
-    - Parameters
-      - id: Integer - Proposal ID
-    - Response
-      - 200 OK: Returns a success message upon deleting the proposal.
-      ```
-        {
-          "message": "Proposal deleted successfully."
-        }
-      ```
-    - Error Handling
-      - 400 Bad Request: Invalid proposal content (invalid student ID)
-      - 401 Unauthorized: Authentication failure (user not logged in)
-      - 404 Not Found: Proposal not found.
-      - 500 Internal Server Error: For internal server errors.
+
+  - Description
+    - Deletes an existing proposal and cancels all related pending applications
+  - You must be logged in as a teacher to use this endpoint
+  - Parameters
+    - id: Integer - Proposal ID
+  - Response
+    - 200 OK: Returns a success message upon deleting the proposal.
+    ```
+      {
+        "message": "Proposal deleted successfully."
+      }
+    ```
+  - Error Handling
+    - 400 Bad Request: Invalid proposal content (invalid student ID)
+    - 401 Unauthorized: Authentication failure (user not logged in)
+    - 404 Not Found: Proposal not found.
+    - 500 Internal Server Error: For internal server errors.
 
 - GET `/api/virtualClock`
-    - Description
-      - Retrieves the current date from the virtual clock.
-    - You must be logged in to use this endpoint
-    - Response
-      - 200 OK: Returns the current virtual clock date.
-      ```
-      {
-        "YYYY-MM-DD"
-      }
-      ```
-    - Error Handling
-      - 500 Internal Server Error: For internal server errors.
+  - Description
+    - Retrieves the current date from the virtual clock.
+  - You must be logged in to use this endpoint
+  - Response
+    - 200 OK: Returns the current virtual clock date.
+    ```
+    {
+      "YYYY-MM-DD"
+    }
+    ```
+  - Error Handling
+    - 500 Internal Server Error: For internal server errors.
 - PATCH `/api/virtualClock`
-    - Description
-      - Modifies the virtual clock's date.
-    - You must be logged in to use this endpoint
-    - Request Body
-      - Expects a JSON object with the following field:
-        - date: Date in ISO 8601 format (e.g., "YYYY-MM-DD")
-    - Response
-      - 200 OK: Returns a success message upon changing the date.
-      ```
-      {
-        "message": "Date successfully changed"
-      }
-      ```
-    - Error Handling
-      - 400 Bad Request: Invalid date content (incorrect format or going back in the past)
-      - 500 Internal Server Error: For internal server errors.
+
+  - Description
+    - Modifies the virtual clock's date.
+  - You must be logged in to use this endpoint
+  - Request Body
+    - Expects a JSON object with the following field:
+      - date: Date in ISO 8601 format (e.g., "YYYY-MM-DD")
+  - Response
+    - 200 OK: Returns a success message upon changing the date.
+    ```
+    {
+      "message": "Date successfully changed"
+    }
+    ```
+  - Error Handling
+    - 400 Bad Request: Invalid date content (incorrect format or going back in the past)
+    - 500 Internal Server Error: For internal server errors.
 
 - GET `/api/start-requests`
+
   - Description
     - This endpoint retrieves start requests based on the user's role. The returned data is formatted for display purposes, providing additional details and transforming certain fields for a user-friendly presentation.
   - You must be logged in to use this endpoint
@@ -835,29 +861,30 @@ This component creates a themed toggle switch for changing the color mode of the
     - 500 Internal Server Error: If there's an internal server error while processing the request.
 
 - PUT `/api/start-requests/:thesisRequestId`
-    - Description
-      - Updates an existing thesis request.
-    - You must be logged in as a student to use this endpoint
-    - Parameters
-      - thesisRequestId: Integer - ID of the thesis request to be updated.
-    - Request Body
-      - Expects a JSON object with the following field:
-        - title: String
-        - description: String
-        - supervisor: String (Teacher ID)
-        - co_supervisors: Array of email addresses (Optional)
-    - Response
-      - 200 OK: Returns a success message upon updating the proposal.
-      ```
-        {
-          "message": "Proposal updated successfully"
-        }
-      ```
-    - Error Handling
-      - 400 Bad Request: Invalid start request content 
-      - 401 Unauthorized: Authentication failure (user not logged in)
-      - 404 Not Found: request not found.
-      - 500 Internal Server Error: For internal server errors.
+
+  - Description
+    - Updates an existing thesis request.
+  - You must be logged in as a student to use this endpoint
+  - Parameters
+    - thesisRequestId: Integer - ID of the thesis request to be updated.
+  - Request Body
+    - Expects a JSON object with the following field:
+      - title: String
+      - description: String
+      - supervisor: String (Teacher ID)
+      - co_supervisors: Array of email addresses (Optional)
+  - Response
+    - 200 OK: Returns a success message upon updating the proposal.
+    ```
+      {
+        "message": "Proposal updated successfully"
+      }
+    ```
+  - Error Handling
+    - 400 Bad Request: Invalid start request content
+    - 401 Unauthorized: Authentication failure (user not logged in)
+    - 404 Not Found: request not found.
+    - 500 Internal Server Error: For internal server errors.
 
 - GET `/api/proposals/:id`
   - Description
@@ -891,15 +918,16 @@ This component creates a themed toggle switch for changing the color mode of the
     - 500 Internal server error: For internal server errors.
 
 ### Authentication endpoints
+
 - GET `/login`
-    - Description
-        - Redirects you to the External Authenticator. Upon logging in it redirects you to the home page of the application.
+
+  - Description
+    - Redirects you to the External Authenticator. Upon logging in it redirects you to the home page of the application.
 
 - GET `/logout`
-    - Description
-        - Endpoint used to perform the user logout
-    - You must be authenticated to use this endpoint
-  
+  - Description
+    - Endpoint used to perform the user logout
+  - You must be authenticated to use this endpoint
 - GET `/api/sessions/current`
   - Description
     - This endpoint is used to retrieve the logged in user's information.
@@ -909,40 +937,35 @@ This component creates a themed toggle switch for changing the color mode of the
 
 - `getDate()`
   - Returns the current date adjusted by the delta obtained from getDelta() function.
-  
 - `isArchived(proposal)`
   - Checks if a given proposal is archived based on the expiration date and manual archival status.
-  
 - `check_errors(start_request, user, old_status)`
   - Checks for errors based on specified conditions related to thesis request status and user roles.
-  
 - `determineNewStatus(start_request, user, decision)`
   - Determines the new status of a thesis request based on the user's role and the decision made. An error can throw if some conditions ara not met.
-  
 - `validateProposal(res, proposal, user)`
   - Checks and validate the content of a proposal to ensure it meets specific condition to ensure correct behaviour.
-  
 - `setStateToApplication(req, res, state)`
   - Updates the state of an application and performs additional actions based on the provided state, such as notifying the decision and updating related proposal and pending applications.
 
 ## Users
 
 Currently, the implemented user roles are:
+
 - Professor
 - Secretary Clerk
 - Student
 
-
 ### Users Credentials
-| Role | Name |Email | Password |
-|----------|----------|----------|----------|
-| Professor  |Marco Torchiano| marco.torchiano@teacher.it  | s123456  |
-| Professor  |Luigi De Russis| luigi.derussis@teacher.it  | s345678  |
-| professor  |Maurizio Morisio| maurizio.morisio@teacher.it  | s234567  |
-| Secretary Clerk  |Laura Ferrari| laura.ferrari@example.com  | d123456  |
-| Secretary Clerk  |Fabio Russo| fabio.russo@example.com  | d234567  |
-| Secretary Clerk  |Alessia Romano| alessia.romano@example.com  | d345678  |
-| Student  |Lorenzo Bertetto| s309618@studenti.polito.it  | s309618  |
-| Student  |Carlos Valeriano| s308747@studenti.polito.it  | s308747  |
-| Student  |Luca Tortore| s319823@studenti.polito.it  | s319823  |
 
+| Role            | Name             | Email                       | Password |
+| --------------- | ---------------- | --------------------------- | -------- |
+| Professor       | Marco Torchiano  | marco.torchiano@teacher.it  | s123456  |
+| Professor       | Luigi De Russis  | luigi.derussis@teacher.it   | s345678  |
+| professor       | Maurizio Morisio | maurizio.morisio@teacher.it | s234567  |
+| Secretary Clerk | Laura Ferrari    | laura.ferrari@example.com   | d123456  |
+| Secretary Clerk | Fabio Russo      | fabio.russo@example.com     | d234567  |
+| Secretary Clerk | Alessia Romano   | alessia.romano@example.com  | d345678  |
+| Student         | Lorenzo Bertetto | s309618@studenti.polito.it  | s309618  |
+| Student         | Carlos Valeriano | s308747@studenti.polito.it  | s308747  |
+| Student         | Luca Tortore     | s319823@studenti.polito.it  | s319823  |
