@@ -38,7 +38,7 @@ function ErrorPage() {
             This is not the route you&apos;re looking for.
           </Typography>
           <Box marginTop={4}>
-            <Button variant="contained" onClick={() => navigate(-1)}>
+            <Button variant="contained" onClick={() => navigate("/proposals")}>
               Go back
             </Button>
           </Box>

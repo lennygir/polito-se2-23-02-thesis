@@ -18,6 +18,7 @@ import logo from "../assets/images/logo.png";
 import UserContext from "../contexts/UserContext";
 import { useThemeContext } from "../theme/ThemeContextProvider";
 import { LogoutButton } from "./Auth";
+import { Badge } from "@mui/material";
 
 const sidebarTabs = [
   {
@@ -108,7 +109,15 @@ function Sidebar(props) {
                 closeDrawer();
               }}
             >
-              <ListItemIcon>{tab.icon}</ListItemIcon>
+              <ListItemIcon>
+                {tab.id === "notifications" ? (
+                  <Badge color="error" badgeContent={1} max={99}>
+                    {tab.icon}
+                  </Badge>
+                ) : (
+                  tab.icon
+                )}
+              </ListItemIcon>
               <ListItemText primary={tab.label} />
             </ListItemButton>
           </ListItem>

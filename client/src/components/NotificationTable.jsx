@@ -9,7 +9,7 @@ import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import NotificationRow from "./NotificationRow";
 
-const HEADERS = ["Object", "Message", "Date"];
+const HEADERS = ["From", "Object", "Date", "Open"];
 
 function NotificationTable(props) {
   const { data } = props;
@@ -20,7 +20,11 @@ function NotificationTable(props) {
           <TableHead>
             <TableRow>
               {HEADERS.map((headCell) => (
-                <TableCell key={headCell} align="center" variant="head">
+                <TableCell
+                  key={headCell}
+                  align={headCell === "Open" || headCell === "Date" ? "center" : "left"}
+                  variant="head"
+                >
                   <Typography fontWeight={700}>{headCell}</Typography>
                 </TableCell>
               ))}
