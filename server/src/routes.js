@@ -750,11 +750,19 @@ router.patch(
   check("id").isInt({ min: 0 }),
   (req, res) => {
     try {
+      if (!validationResult(req).isEmpty()) {
+        return res.status(400).json({ message: "Invalid parameter" });
+      }
       const user = getUser(req.user);
       if (!user) {
         return res.status(500).json({ message: "Internal Server Error" });
       }
       const notification = getNotification(req.params.id);
+      if (notification === undefined) {
+        return res.status(404).json({
+          message: "Notification not found",
+        });
+      }
       if (
         notification.student_id !== user.id &&
         notification.teacher_id !== user.id

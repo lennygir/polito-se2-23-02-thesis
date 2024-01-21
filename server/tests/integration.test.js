@@ -151,6 +151,20 @@ describe("Notifications reading functionality", () => {
       message: "Unauthorized to read this notification",
     });
   });
+  it("Invalid parameter", async () => {
+    const response = await request(app).patch("/api/notifications/wrong-id");
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      message: "Invalid parameter",
+    });
+  });
+  it("Notification not existent", async () => {
+    const response = await request(app).patch(`/api/notifications/1`);
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      message: "Notification not found",
+    });
+  });
 });
 describe("Story 12: Archive Proposals", () => {
   const past_date = dayjs().subtract(7, "day").format("YYYY-MM-DD");

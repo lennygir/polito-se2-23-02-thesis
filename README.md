@@ -889,6 +889,20 @@ This component creates a themed toggle switch for changing the color mode of the
     - 400 bad request: Invalid parameter
     - 404 not found: proposal not found or proposal not viewable by the user
     - 500 Internal server error: For internal server errors.
+- PATCH `/api/notifications/:id`
+  - Description
+    - Sets the notification to read.
+  - You must be logged in as a student or teacher to use this endpoint
+  - Parameters
+    - id: integer - ID of the notification to be read
+  - Request body: none
+  - Response
+    - 200 OK: Notification read successfully
+  - Error handling
+    - 401 unauthorized: the user is unauthorized to see the notification
+    - 400 bad request: the id parameter in the request is not an unsigned integer
+    - 404 not found: the notification to be read does not exist
+    - 500 Internal server error: For internal server errors.
 
 ### Authentication endpoints
 - GET `/login`
