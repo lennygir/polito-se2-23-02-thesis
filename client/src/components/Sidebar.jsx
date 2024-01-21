@@ -56,8 +56,16 @@ const settingsTab = {
 
 function Sidebar(props) {
   const { mode } = useThemeContext();
-  const { selectedTab, logoHeight, drawerWidth, mobileOpen, closeDrawer, handleDrawerToggle, handleTabSelection } =
-    props;
+  const {
+    selectedTab,
+    logoHeight,
+    drawerWidth,
+    mobileOpen,
+    closeDrawer,
+    handleDrawerToggle,
+    handleTabSelection,
+    notifications
+  } = props;
   const user = useContext(UserContext);
 
   const renderTabs = () => {
@@ -76,6 +84,10 @@ function Sidebar(props) {
         break;
     }
     return tabs;
+  };
+
+  const countUnreadNotifications = () => {
+    return notifications.filter((notification) => !notification.read).length;
   };
 
   const drawer = (
@@ -111,7 +123,7 @@ function Sidebar(props) {
             >
               <ListItemIcon>
                 {tab.id === "notifications" ? (
-                  <Badge color="error" badgeContent={1} max={99}>
+                  <Badge color="error" badgeContent={countUnreadNotifications()} max={99}>
                     {tab.icon}
                   </Badge>
                 ) : (
@@ -191,7 +203,8 @@ Sidebar.propTypes = {
   mobileOpen: PropTypes.bool,
   closeDrawer: PropTypes.func,
   handleDrawerToggle: PropTypes.func,
-  handleTabSelection: PropTypes.func
+  handleTabSelection: PropTypes.func,
+  notifications: PropTypes.array
 };
 
 export default Sidebar;

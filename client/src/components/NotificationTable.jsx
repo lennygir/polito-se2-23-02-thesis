@@ -12,7 +12,7 @@ import NotificationRow from "./NotificationRow";
 const HEADERS = ["From", "Object", "Date", "Open"];
 
 function NotificationTable(props) {
-  const { data } = props;
+  const { data, fetchNotifications } = props;
   return (
     <Paper sx={{ mt: { md: 3, xs: 1 }, mx: { md: 4, xs: 0 }, overflow: "hidden", borderRadius: 4 }}>
       <TableContainer sx={{ maxHeight: "60vh" }}>
@@ -32,7 +32,11 @@ function NotificationTable(props) {
           </TableHead>
           <TableBody>
             {data.map((notification) => (
-              <NotificationRow key={notification.id} notification={notification} />
+              <NotificationRow
+                key={notification.id}
+                notification={notification}
+                fetchNotifications={fetchNotifications}
+              />
             ))}
           </TableBody>
         </Table>
@@ -42,7 +46,8 @@ function NotificationTable(props) {
 }
 
 NotificationTable.propTypes = {
-  data: PropTypes.array
+  data: PropTypes.array,
+  fetchNotifications: PropTypes.func
 };
 
 export default NotificationTable;

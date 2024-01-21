@@ -14,6 +14,7 @@ const navbarHeight = 75;
 
 function RootPage(props) {
   const {
+    notifications,
     loading,
     setAlert,
     setDirty,
@@ -67,6 +68,7 @@ function RootPage(props) {
           closeDrawer={closeDrawer}
           handleDrawerToggle={handleDrawerToggle}
           handleTabSelection={handleTabSelection}
+          notifications={notifications}
         />
         <Container maxWidth="lg">
           <Box
@@ -88,6 +90,7 @@ function RootPage(props) {
 }
 
 RootPage.propTypes = {
+  notifications: PropTypes.array,
   loading: PropTypes.bool,
   setAlert: PropTypes.func,
   setDirty: PropTypes.func,
