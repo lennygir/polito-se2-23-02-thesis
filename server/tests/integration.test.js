@@ -551,6 +551,13 @@ describe("Proposal update tests", () => {
         "The supervisor's email is included in the list of co-supervisors",
     });
   });
+  it("Update of a proposal with no keywords", async () => {
+    logIn("marco.torchiano@teacher.it");
+    const proposal_id = (await insertProposal(proposal)).body;
+    proposal.keywords = null;
+    const response = await modifyProposal(proposal_id, proposal);
+    expect(response.status).toBe(200);
+  });
 });
 
 describe("Proposal insertion tests", () => {
@@ -1005,7 +1012,7 @@ describe("Proposal acceptance", () => {
   it("If a proposal gets accepted for a student, other students' cannot apply for that proposal", async () => {
     // the professor inserts a proposal
     logIn("marco.torchiano@teacher.it");
-    proposal.co_supervisors=[]; //this line is to test all the branch in theses.dao
+    proposal.co_supervisors = []; //this line is to test all the branch in theses.dao
     const inserted_proposal_id = (await insertProposal(proposal)).body;
 
     // the student1 applies for that proposal
@@ -1021,7 +1028,9 @@ describe("Proposal acceptance", () => {
     const response = await applyForProposal(inserted_proposal_id);
     const prop_id = parseInt(inserted_proposal_id);
     expect(response.status).toBe(400);
-    expect(response.body).toEqual({ message: `The proposal ${prop_id} is already accepted for another student`});
+    expect(response.body).toEqual({
+      message: `The proposal ${prop_id} is already accepted for another student`,
+    });
   });
 
   it("If a proposal gets accepted for a student, other students' applications should become canceled", async () => {
