@@ -395,6 +395,24 @@ const updateRequest = async (request) => {
   );
 };
 
+/**
+ * Send a request to mark a notification as read by sending a PATCH request to the server's notifications endpoint.
+ * @param {String} notificationId - The id of the notification to mark as read.
+ * @returns {Promise} A promise that resolves to the parsed JSON content of the updated notification response.
+ * @throws {Object} If there is an issue with the HTTP request or parsing the server response.
+ */
+const readNotification = async (notificationId) => {
+  return getJson(
+    fetch(SERVER_URL + "/notifications/" + notificationId, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include"
+    })
+  );
+};
+
 const API = {
   attachFileToApplication,
   createProposal,
@@ -418,7 +436,8 @@ const API = {
   getCareerOfStudent,
   getRequests,
   evaluateRequest,
-  updateRequest
+  updateRequest,
+  readNotification
 };
 
 export default API;

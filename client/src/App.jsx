@@ -182,7 +182,7 @@ function Main() {
       <ErrorContext.Provider value={handleErrors}>
         <Routes>
           {/* prettier-ignore */}
-          <Route path="/" element={user ? <RootPage loading={loading} setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} fetchProposals={fetchProposals} fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} fetchRequests={fetchRequests} /> : <LoginPage />}>
+          <Route path="/" element={user ? <RootPage notifications={notifications} loading={loading} setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} fetchProposals={fetchProposals} fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} fetchRequests={fetchRequests} /> : <LoginPage />}>
             <Route path="proposals" element={user ? <ProposalsPage setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} proposals={proposals} applications={applications} teachers={teachers} groups={groups} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
             <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} setAlert={setAlert} getTeacherById={getTeacherById} getDegreeById={getDegreeById} applications={applications} /> : <Navigate replace to="/" />} />
             <Route path="add-start-request" element={user ? <CreateRequestPage fetchRequests={fetchRequests} teachers={teachers} getTeacherById={getTeacherById} setAlert={setAlert} /> : <Navigate replace to="/" />} />

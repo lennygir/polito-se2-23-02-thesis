@@ -23,7 +23,11 @@ function NotificationsPage(props) {
           </Tooltip>
         </Fab>
       </Stack>
-      {notifications.length > 0 ? <NotificationTable data={notifications} /> : <EmptyTable data="notifications" />}
+      {notifications.length > 0 ? (
+        <NotificationTable data={notifications} fetchNotifications={fetchNotifications} />
+      ) : (
+        <EmptyTable data="notifications" />
+      )}
       <Box height={5} marginTop={3} />
     </div>
   );
