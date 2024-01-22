@@ -15,14 +15,16 @@ function ApplicationRow(props) {
   const user = useContext(UserContext);
 
   return (
-    <TableRow>
-      {user.role === "teacher" && <TableCell>{application.student_id}</TableCell>}
+    <TableRow sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+      {user.role === "teacher" && <TableCell sx={{ minWidth: 150 }}>{application.student_id}</TableCell>}
       {user.role === "student" && (
-        <TableCell>{`${application.teacher_name.charAt(0)}. ${application.teacher_surname}`}</TableCell>
+        <TableCell sx={{ minWidth: 150 }}>{`${application.teacher_name.charAt(0)}. ${
+          application.teacher_surname
+        }`}</TableCell>
       )}
       <TableCell
         sx={{
-          maxWidth: "30vw",
+          maxWidth: 350,
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis"

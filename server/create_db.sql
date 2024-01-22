@@ -109,6 +109,7 @@ CREATE TABLE "NOTIFICATIONS" (
 	"content"	TEXT NOT NULL,
 	"student_id"	TEXT,
 	"teacher_id"	TEXT,
+  "read" BOOLEAN DEFAULT 0,
 	FOREIGN KEY("student_id") REFERENCES "STUDENT"("id"),
   FOREIGN KEY("teacher_id") REFERENCES "TEACHER"("id"),
   CONSTRAINT ck_student_teacher CHECK ((student_id IS NOT NULL AND teacher_id IS NULL) OR (student_id IS NULL AND teacher_id IS NOT NULL))
@@ -265,7 +266,9 @@ VALUES  ('s319823', 'Tortore', 'Luca', 'Male', 'Italy', 's319823@studenti.polito
         ('s310987', 'Chung', 'Hye-Jin', 'Female', 'South Korea', 's310987@studenti.polito.it', 'LM-31-A', 2022),
         ('s317890', 'Alonso', 'Maria', 'Female', 'Spain', 's317890@studenti.polito.it', 'LM-30-A', 2023),
         ('s321234', 'Mazur', 'Piotr', 'Male', 'Poland', 's321234@studenti.polito.it', 'LM-26-A', 2023),
-        ('s316543', 'Chen', 'Wei', 'Male', 'China', 's316543@studenti.polito.it', 'LM-22-A', 2022);
+        ('s316543', 'Chen', 'Wei', 'Male', 'China', 's316543@studenti.polito.it', 'LM-22-A', 2022),
+        ('s305050', 'Moss', 'Elmo', 'Male', 'Portugal', 's305050@studenti.polito.it', 'LM-32-D', 2022),
+        ('s306051', 'Woods', 'Bryan', 'Male', 'USA', 's306051@studenti.polito.it', 'LM-32-D', 2022);
 
 INSERT INTO TEACHER (id, surname, name, email, cod_group, cod_department)
 VALUES  ('s123456', 'Torchiano', 'Marco', 'marco.torchiano@teacher.it', 'SOFTENG', 'DAUIN'),
@@ -291,7 +294,9 @@ VALUES  ('s123456', 'Torchiano', 'Marco', 'marco.torchiano@teacher.it', 'SOFTENG
         ('s293040', 'Freschi', 'Fabio', 'fabio.freschi@teacher.it', 'CADEMA', 'DENERG'),
         ('s104858', 'Savoldi', 'Laura', 'laura.savoldi@teacher.it', 'MAHTEP', 'DENERG'),
         ('s909920', 'Lerede', 'Daniele', 'daniele.lerede@teacher.it', 'MAHTEP', 'DENERG'),
-        ('s328382', 'Millo', 'Federico', 'federico.millo@teacher.it', 'E3', 'DENERG');
+        ('s328382', 'Millo', 'Federico', 'federico.millo@teacher.it', 'E3', 'DENERG'),
+        ('s098765', 'Pauli', 'Juan Stefano', 'juanstefano.pauli@teacher.it', 'NEURONICS', 'DET'),
+        ('s087654', 'Saracco', 'Giulia', 'giulia.saracco@teacher.it', 'CMPCS', 'DISAT');
 
 INSERT INTO SECRETARY_CLERK (id, surname, name, email)
 VALUES  ('d123456', 'Ferrari', 'Laura', 'laura.ferrari@example.com'),

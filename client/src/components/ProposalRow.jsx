@@ -118,11 +118,13 @@ function ProposalRow(props) {
         handleClose={handleCloseDialog}
         handleSubmit={handleSubmit}
       />
-      <TableRow key={proposal.id}>
-        {user.role === "student" && teacher && <TableCell>{`${teacher.name.charAt(0)}. ${teacher.surname}`}</TableCell>}
+      <TableRow key={proposal.id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+        {user.role === "student" && teacher && (
+          <TableCell sx={{ minWidth: 150 }}>{`${teacher.name.charAt(0)}. ${teacher.surname}`}</TableCell>
+        )}
         <TableCell
           sx={{
-            maxWidth: "30vw",
+            maxWidth: 350,
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis"

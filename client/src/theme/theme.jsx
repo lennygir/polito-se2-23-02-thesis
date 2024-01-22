@@ -101,7 +101,7 @@ export const getDesignTokens = (mode) => ({
     MuiListItemIcon: {
       styleOverrides: {
         root: {
-          minWidth: "40px"
+          minWidth: "48px"
         }
       }
     },
@@ -125,6 +125,13 @@ export const getDesignTokens = (mode) => ({
       styleOverrides: {
         root: {
           height: "19px"
+        }
+      }
+    },
+    MuiBadge: {
+      styleOverrides: {
+        badge: {
+          top: 5
         }
       }
     }

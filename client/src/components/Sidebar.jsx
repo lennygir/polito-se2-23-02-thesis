@@ -18,6 +18,7 @@ import logo from "../assets/images/logo.png";
 import UserContext from "../contexts/UserContext";
 import { useThemeContext } from "../theme/ThemeContextProvider";
 import { LogoutButton } from "./Auth";
+import { Badge } from "@mui/material";
 
 const sidebarTabs = [
   {
@@ -55,8 +56,16 @@ const settingsTab = {
 
 function Sidebar(props) {
   const { mode } = useThemeContext();
-  const { selectedTab, logoHeight, drawerWidth, mobileOpen, closeDrawer, handleDrawerToggle, handleTabSelection } =
-    props;
+  const {
+    selectedTab,
+    logoHeight,
+    drawerWidth,
+    mobileOpen,
+    closeDrawer,
+    handleDrawerToggle,
+    handleTabSelection,
+    notifications
+  } = props;
   const user = useContext(UserContext);
 
   const renderTabs = () => {
@@ -75,6 +84,10 @@ function Sidebar(props) {
         break;
     }
     return tabs;
+  };
+
+  const countUnreadNotifications = () => {
+    return notifications.filter((notification) => !notification.read).length;
   };
 
   const drawer = (
@@ -108,7 +121,15 @@ function Sidebar(props) {
                 closeDrawer();
               }}
             >
-              <ListItemIcon>{tab.icon}</ListItemIcon>
+              <ListItemIcon>
+                {tab.id === "notifications" ? (
+                  <Badge color="error" badgeContent={countUnreadNotifications()} max={99}>
+                    {tab.icon}
+                  </Badge>
+                ) : (
+                  tab.icon
+                )}
+              </ListItemIcon>
               <ListItemText primary={tab.label} />
             </ListItemButton>
           </ListItem>
@@ -182,7 +203,8 @@ Sidebar.propTypes = {
   mobileOpen: PropTypes.bool,
   closeDrawer: PropTypes.func,
   handleDrawerToggle: PropTypes.func,
-  handleTabSelection: PropTypes.func
+  handleTabSelection: PropTypes.func,
+  notifications: PropTypes.array
 };
 
 export default Sidebar;

@@ -14,7 +14,10 @@ function NotificationsPage(props) {
   return (
     <div id="notifications-page">
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
+        <Typography
+          variant="h4"
+          sx={{ paddingTop: { md: 4, xs: 1 }, paddingBottom: { md: 3, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}
+        >
           Notifications
         </Typography>
         <Fab size="small" sx={{ marginRight: { md: 6, xs: 1 } }} color="primary" onClick={() => fetchNotifications()}>
@@ -23,7 +26,13 @@ function NotificationsPage(props) {
           </Tooltip>
         </Fab>
       </Stack>
-      {notifications.length > 0 ? <NotificationTable data={notifications} /> : <EmptyTable data="notifications" />}
+      <Box sx={{ display: "flex", justifyContent: "center", mx: { md: 4, xs: 0 } }}>
+        {notifications.length > 0 ? (
+          <NotificationTable data={notifications} fetchNotifications={fetchNotifications} />
+        ) : (
+          <EmptyTable data="notifications" />
+        )}
+      </Box>
       <Box height={5} marginTop={3} />
     </div>
   );

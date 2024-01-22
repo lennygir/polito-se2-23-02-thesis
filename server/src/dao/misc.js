@@ -26,6 +26,17 @@ const {
 } = require("../mail/changes-start-request-student");
 const { addedCosupervisorTemplate } = require("../mail/added-cosupervisor");
 
+/**
+ * @typedef {Object} Notification
+ * @property {number} id - the id of the notification
+ * @property {string} date - timestamp
+ * @property {string} object - object of the notification
+ * @property {string} content - the body of the notification
+ * @property {string} student_id - id of the user (student)
+ * @property {string} teacher_id - id of the user (teacher)
+ * @property {boolean} read - if the notification is read or not
+ */
+
 exports.getExamsOfStudent = (id) => {
   return db.prepare("select * from main.CAREER where id = ?").all(id);
 };
@@ -184,6 +195,17 @@ exports.notifyNewApplication = async (proposalId) => {
     name: proposalJoined.surname + " " + proposalJoined.name,
     thesis: proposalJoined.title,
   });
+
+  // Save email in DB
+  db.prepare(
+    "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
+  ).run(
+    proposalJoined.id,
+    "New application on your thesis proposal",
+    mailBody.text,
+  );
+
+  // Send email to the supervisor
   try {
     await nodemailer.sendMail({
       to: proposalJoined.email,
@@ -194,15 +216,6 @@ exports.notifyNewApplication = async (proposalId) => {
   } catch (e) {
     console.log("[mail service]", e);
   }
-
-  // Save email in DB
-  db.prepare(
-    "INSERT INTO NOTIFICATIONS(teacher_id, object, content, date) VALUES(?,?,?, DATETIME(DATETIME('now'), '+' || (select delta from VIRTUAL_CLOCK where id = 1) || ' days'))",
-  ).run(
-    proposalJoined.id,
-    "New application on your thesis proposal",
-    mailBody.text,
-  );
 };
 
 exports.notifyChangesRequestedOnStartRequest = async (
@@ -275,6 +288,25 @@ exports.getNotifications = (user_id) => {
       "SELECT * FROM NOTIFICATIONS WHERE student_id = ? OR teacher_id = ?",
     )
     .all(user_id, user_id);
+};
+
+/**
+ * Gets the notifications with the provided id
+ * @param {number} id id of the notification
+ * @returns {Notification} - the notification with the id
+ */
+exports.getNotification = (id) => {
+  return db.prepare("select * from main.NOTIFICATIONS where id = ?").get(id);
+};
+
+/**
+ * Sets the notification to read
+ * @param {number} id - the notification's id
+ */
+exports.readNotification = (id) => {
+  db.prepare(
+    "update NOTIFICATIONS set read = ? where main.NOTIFICATIONS.id = ?",
+  ).run(1, id);
 };
 
 exports.notifyRemovedCosupervisors = async (oldProposal, newProposal) => {

@@ -153,7 +153,10 @@ function RequestsPage(props) {
   return (
     <div id="requests-page">
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
+        <Typography
+          variant="h4"
+          sx={{ paddingTop: { md: 4, xs: 1 }, paddingBottom: { md: 3, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}
+        >
           {user.role === "student" ? "My Thesis Request" : "Thesis Requests"}
         </Typography>
         {user.role === "student" && (
@@ -208,7 +211,9 @@ function RequestsPage(props) {
           />
         </Stack>
       )}
-      {user.role !== "student" && renderTable()}
+      {user.role !== "student" && (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 1, mx: { md: 4, xs: 0 } }}>{renderTable()}</Box>
+      )}
       <Box height={5} marginTop={3} />
       {user.role === "student" && (
         <Hidden smUp>

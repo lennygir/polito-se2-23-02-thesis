@@ -100,6 +100,72 @@ describe("Get single proposal", () => {
   });
 });
 
+describe("Notifications reading functionality", () => {
+  it("Read a notification", async () => {
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
+    logIn("s309618@studenti.polito.it");
+    await applyForProposal(inserted_proposal_id);
+    logIn("marco.torchiano@teacher.it");
+    const notifications = (await getNotifications()).body;
+    const notification = notifications[0];
+    const response = await request(app).patch(
+      `/api/notifications/${notification.id}`,
+    );
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      message: "Notification read",
+    });
+  });
+  it("A student should not be able to read a teacher's notification", async () => {
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
+    logIn("s309618@studenti.polito.it");
+    await applyForProposal(inserted_proposal_id);
+    logIn("marco.torchiano@teacher.it");
+    const notification = (await getNotifications()).body[0];
+    logIn("s309618@studenti.polito.it");
+    const response = await request(app).patch(
+      `/api/notifications/${notification.id}`,
+    );
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({
+      message: "Unauthorized to read this notification",
+    });
+  });
+  it("A teacher should not be able to read a student's notification", async () => {
+    logIn("marco.torchiano@teacher.it");
+    const inserted_proposal_id = (await insertProposal(proposal)).body;
+    logIn("s309618@studenti.polito.it");
+    const application = (await applyForProposal(inserted_proposal_id)).body;
+    logIn("marco.torchiano@teacher.it");
+    await acceptApplication(application.application_id);
+    logIn("s309618@studenti.polito.it");
+    const notification = (await getNotifications()).body[0];
+    logIn("marco.torchiano@teacher.it");
+    const response = await request(app).patch(
+      `/api/notifications/${notification.id}`,
+    );
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({
+      message: "Unauthorized to read this notification",
+    });
+  });
+  it("Invalid parameter", async () => {
+    const response = await request(app).patch("/api/notifications/wrong-id");
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      message: "Invalid parameter",
+    });
+  });
+  it("Notification not existent", async () => {
+    const response = await request(app).patch(`/api/notifications/1`);
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      message: "Notification not found",
+    });
+  });
+});
 describe("Story 12: Archive Proposals", () => {
   const past_date = dayjs().subtract(7, "day").format("YYYY-MM-DD");
   it("If a proposal becomes archived, a student should not be able to apply for it", async () => {

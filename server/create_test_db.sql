@@ -110,6 +110,7 @@ CREATE TABLE "NOTIFICATIONS" (
 	"content"	TEXT NOT NULL,
 	"student_id"	TEXT,
 	"teacher_id"	TEXT,
+    "read" BOOLEAN DEFAULT 0,
 	FOREIGN KEY("student_id") REFERENCES "STUDENT"("id"),
   FOREIGN KEY("teacher_id") REFERENCES "TEACHER"("id"),
   CONSTRAINT ck_student_teacher CHECK ((student_id IS NOT NULL AND teacher_id IS NULL) OR (student_id IS NULL AND teacher_id IS NOT NULL))

@@ -36,55 +36,49 @@ function ProposalTable(props) {
   };
 
   return (
-    <Paper sx={{ mt: { xs: 1 }, mx: { md: 4, xs: 0 }, overflow: "hidden", borderRadius: 4 }}>
-      <TableContainer sx={{ maxHeight: "60vh" }}>
-        <Table stickyHeader>
-          <TableHead>
-            <TableRow>
-              {user?.role === "student" &&
-                STUDENT_HEADERS.map((headCell) => (
-                  <TableCell
-                    key={headCell}
-                    align={headCell === "Expiration Date" ? "center" : "inherit"}
-                    variant="head"
-                  >
-                    <Typography fontWeight={700} fontSize={18}>
-                      {headCell}
-                    </Typography>
-                  </TableCell>
-                ))}
-              {user?.role === "teacher" &&
-                renderTeacherHeaders().map((headCell) => (
-                  <TableCell
-                    key={headCell}
-                    align={headCell === "Expiration" || headCell === "Reason" ? "center" : "inherit"}
-                    variant="head"
-                  >
-                    <Typography fontWeight={700} fontSize={18}>
-                      {headCell}
-                    </Typography>
-                  </TableCell>
-                ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.map((proposal) => (
-              <ProposalRow
-                key={proposal.id}
-                proposal={proposal}
-                deleteProposal={deleteProposal}
-                archiveProposal={archiveProposal}
-                getTeacherById={getTeacherById}
-                teacherFilter={teacherFilter}
-                applications={applications}
-                currentDate={currentDate}
-                viewAsCosupervisorOn={viewAsCosupervisorOn}
-              />
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Paper>
+    <TableContainer component={Paper} sx={{ maxHeight: "60vh", overflow: "auto", borderRadius: 4 }}>
+      <Table sx={{ minWidth: 650 }} stickyHeader>
+        <TableHead>
+          <TableRow>
+            {user?.role === "student" &&
+              STUDENT_HEADERS.map((headCell) => (
+                <TableCell key={headCell} align={headCell === "Expiration Date" ? "center" : "inherit"} variant="head">
+                  <Typography fontWeight={700} fontSize={18}>
+                    {headCell}
+                  </Typography>
+                </TableCell>
+              ))}
+            {user?.role === "teacher" &&
+              renderTeacherHeaders().map((headCell) => (
+                <TableCell
+                  key={headCell}
+                  align={headCell === "Expiration" || headCell === "Reason" ? "center" : "inherit"}
+                  variant="head"
+                >
+                  <Typography fontWeight={700} fontSize={18}>
+                    {headCell}
+                  </Typography>
+                </TableCell>
+              ))}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {data.map((proposal) => (
+            <ProposalRow
+              key={proposal.id}
+              proposal={proposal}
+              deleteProposal={deleteProposal}
+              archiveProposal={archiveProposal}
+              getTeacherById={getTeacherById}
+              teacherFilter={teacherFilter}
+              applications={applications}
+              currentDate={currentDate}
+              viewAsCosupervisorOn={viewAsCosupervisorOn}
+            />
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }
 

@@ -22,6 +22,7 @@ import ViewApplicationPage from "./routes/ViewApplicationPage";
 import EditProposalPage from "./routes/EditProposalPage";
 import RequestsPage from "./routes/RequestsPage";
 import ViewRequestPage from "./routes/ViewRequestPage";
+import ViewNotificationPage from "./routes/ViewNotificationPage";
 
 function App() {
   const { theme } = useThemeContext();
@@ -181,7 +182,7 @@ function Main() {
       <ErrorContext.Provider value={handleErrors}>
         <Routes>
           {/* prettier-ignore */}
-          <Route path="/" element={user ? <RootPage loading={loading} setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} fetchProposals={fetchProposals} fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} fetchRequests={fetchRequests} /> : <LoginPage />}>
+          <Route path="/" element={user ? <RootPage notifications={notifications} loading={loading} setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} fetchProposals={fetchProposals} fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} fetchRequests={fetchRequests} /> : <LoginPage />}>
             <Route path="proposals" element={user ? <ProposalsPage setAlert={setAlert} setDirty={setDirty} currentDate={currentDate} proposals={proposals} applications={applications} teachers={teachers} groups={groups} getTeacherById={getTeacherById} /> : <Navigate replace to="/" />} />
             <Route path="proposals/:proposalId" element={user ? <ViewProposalPage setDirty={setDirty} setAlert={setAlert} getTeacherById={getTeacherById} getDegreeById={getDegreeById} applications={applications} /> : <Navigate replace to="/" />} />
             <Route path="add-start-request" element={user ? <CreateRequestPage fetchRequests={fetchRequests} teachers={teachers} getTeacherById={getTeacherById} setAlert={setAlert} /> : <Navigate replace to="/" />} />
@@ -190,6 +191,7 @@ function Main() {
             <Route path="applications" element={user ? <ApplicationsPage applications={applications} /> : <Navigate replace to="/" /> } />
             <Route path="applications/:applicationId" element={user ? <ViewApplicationPage fetchApplications={fetchApplications} fetchNotifications={fetchNotifications} setAlert={setAlert} applications={applications} requests={requests} /> : <Navigate replace to="/" />} />
             <Route path="notifications" element={user ? <NotificationsPage notifications={notifications} fetchNotifications={fetchNotifications} /> : <Navigate replace to="/" />} />
+            <Route path="notifications/:notificationId" element={user ? <ViewNotificationPage notifications={notifications} fetchNotifications={fetchNotifications} /> : <Navigate replace to="/" />} />
             <Route path="requests" element={user ? <RequestsPage requests={requests} teachers={teachers} /> : <Navigate replace to="/" /> } />
             <Route path="requests/:requestId" element={user ? <ViewRequestPage fetchRequests={fetchRequests} setAlert={setAlert} requests={requests} /> : <Navigate replace to="/" /> } />
             <Route path="add-proposal" element={user ? <CreateProposalPage currentDate={currentDate} fetchProposals={fetchProposals} proposals={proposals} teachers={teachers} degrees={degrees} setAlert={setAlert} /> : <Navigate replace to="/" />} />
