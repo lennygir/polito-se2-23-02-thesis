@@ -41,20 +41,18 @@ function ApplicationTable(props) {
   };
 
   return (
-    <Paper sx={{ mt: { md: 3, xs: 1 }, mx: { md: 4, xs: 0 }, overflow: "hidden", borderRadius: 4 }}>
-      <TableContainer sx={{ maxHeight: "60vh" }}>
-        <Table stickyHeader>
-          <TableHead>
-            <TableRow>{generateTableHeaders(headers, "inherit")}</TableRow>
-          </TableHead>
-          <TableBody>
-            {applications.sort(customSort).map((application) => (
-              <ApplicationRow key={application.id} application={application} />
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Paper>
+    <TableContainer component={Paper} sx={{ maxHeight: "60vh", overflow: "auto", borderRadius: 4 }}>
+      <Table sx={{ minWidth: 650 }} stickyHeader>
+        <TableHead>
+          <TableRow>{generateTableHeaders(headers, "inherit")}</TableRow>
+        </TableHead>
+        <TableBody>
+          {applications.sort(customSort).map((application) => (
+            <ApplicationRow key={application.id} application={application} />
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }
 

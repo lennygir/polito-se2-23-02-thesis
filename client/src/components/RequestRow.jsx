@@ -38,12 +38,12 @@ function RequestRow(props) {
   };
 
   return (
-    <TableRow>
+    <TableRow sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
       {user.role !== "student" && <TableCell>{request.student_id}</TableCell>}
-      {user.role !== "teacher" && <TableCell>{renderSupervisor()}</TableCell>}
+      {user.role !== "teacher" && <TableCell sx={{ minWidth: 150 }}>{renderSupervisor()}</TableCell>}
       <TableCell
         sx={{
-          maxWidth: "30vw",
+          maxWidth: 350,
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis"

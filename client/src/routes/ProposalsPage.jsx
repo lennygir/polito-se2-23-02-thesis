@@ -119,7 +119,10 @@ function ProposalsPage(props) {
   const studentView = (
     <>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
+        <Typography
+          variant="h4"
+          sx={{ paddingTop: { md: 4, xs: 1 }, paddingBottom: { md: 3, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}
+        >
           Theses Proposals
         </Typography>
       </Stack>
@@ -164,11 +167,13 @@ function ProposalsPage(props) {
           />
         </Card>
       </Toolbar>
-      {filteredStudentProposals.length > 0 ? (
-        <ProposalTable data={filteredStudentProposals} getTeacherById={getTeacherById} applications={applications} />
-      ) : (
-        <EmptyTable data="proposals" />
-      )}
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 3, mx: { md: 4, xs: 0 } }}>
+        {filteredStudentProposals.length > 0 ? (
+          <ProposalTable data={filteredStudentProposals} getTeacherById={getTeacherById} applications={applications} />
+        ) : (
+          <EmptyTable data="proposals" />
+        )}
+      </Box>
       <Box height={5} marginTop={3} />
     </>
   );
@@ -242,7 +247,10 @@ function ProposalsPage(props) {
   const teacherView = (
     <>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="h4" sx={{ paddingY: { md: 4, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}>
+        <Typography
+          variant="h4"
+          sx={{ paddingTop: { md: 4, xs: 1 }, paddingBottom: { md: 3, xs: 2 }, marginLeft: { md: 4, xs: 0 } }}
+        >
           My Thesis Proposals
         </Typography>
         <Hidden smDown>
@@ -311,21 +319,23 @@ function ProposalsPage(props) {
           />
         )}
       </Stack>
-      {filteredTeacherProposals.length > 0 ? (
-        <ProposalTable
-          headers={selectedTeacherFilter === "active" ? TEACHER_HEADERS_ACTIVE : TEACHER_HEADERS_EXPIRED}
-          data={filteredTeacherProposals}
-          deleteProposal={deleteProposal}
-          archiveProposal={archiveProposal}
-          teacherFilter={selectedTeacherFilter}
-          applications={applications}
-          currentDate={currentDate}
-          selectedTeacherFilter={selectedTeacherFilter}
-          viewAsCosupervisorOn={viewAsCosupervisorOn}
-        />
-      ) : (
-        <EmptyTable data="proposals" />
-      )}
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 3, mx: { md: 4, xs: 0 } }}>
+        {filteredTeacherProposals.length > 0 ? (
+          <ProposalTable
+            headers={selectedTeacherFilter === "active" ? TEACHER_HEADERS_ACTIVE : TEACHER_HEADERS_EXPIRED}
+            data={filteredTeacherProposals}
+            deleteProposal={deleteProposal}
+            archiveProposal={archiveProposal}
+            teacherFilter={selectedTeacherFilter}
+            applications={applications}
+            currentDate={currentDate}
+            selectedTeacherFilter={selectedTeacherFilter}
+            viewAsCosupervisorOn={viewAsCosupervisorOn}
+          />
+        ) : (
+          <EmptyTable data="proposals" />
+        )}
+      </Box>
       <Box height={5} marginTop={3} />
       <Hidden smUp>
         <Stack

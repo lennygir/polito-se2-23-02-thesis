@@ -42,54 +42,52 @@ function RequestTable(props) {
   };
 
   return (
-    <Paper sx={{ mt: 1, mx: { md: 4, xs: 0 }, overflow: "hidden", borderRadius: 4 }}>
-      <TableContainer sx={{ maxHeight: "60vh" }}>
-        <Table stickyHeader>
-          <TableHead>
-            <TableRow>
-              {renderHeaders().map((headCell) => (
-                <TableCell
-                  key={headCell}
-                  align={headCell === "Status" || headCell === "Open" ? "center" : "inherit"}
-                  variant="head"
-                >
-                  {headCell === "Status" ? (
-                    <Stack direction="row" sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Typography fontWeight={700} fontSize={18}>
-                        {headCell}
-                      </Typography>
-                      <Tooltip
-                        title={user.role === "teacher" ? LEGEND_TEACHER : LEGEND_SECRETARY}
-                        arrow
-                        slotProps={{ tooltip: { sx: { whiteSpace: "pre-line", maxWidth: "none" } } }}
-                      >
-                        <IconButton size="small">
-                          <HelpOutlineIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
-                  ) : (
+    <TableContainer component={Paper} sx={{ maxHeight: "60vh", overflow: "auto", borderRadius: 4 }}>
+      <Table sx={{ minWidth: 650 }} stickyHeader>
+        <TableHead>
+          <TableRow>
+            {renderHeaders().map((headCell) => (
+              <TableCell
+                key={headCell}
+                align={headCell === "Status" || headCell === "Open" ? "center" : "inherit"}
+                variant="head"
+              >
+                {headCell === "Status" ? (
+                  <Stack direction="row" sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Typography fontWeight={700} fontSize={18}>
                       {headCell}
                     </Typography>
-                  )}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {requests.map((request) => (
-              <RequestRow
-                key={request.id}
-                request={request}
-                teachers={teachers}
-                viewAsCosupervisorOn={viewAsCosupervisorOn}
-              />
+                    <Tooltip
+                      title={user.role === "teacher" ? LEGEND_TEACHER : LEGEND_SECRETARY}
+                      arrow
+                      slotProps={{ tooltip: { sx: { whiteSpace: "pre-line", maxWidth: "none" } } }}
+                    >
+                      <IconButton size="small">
+                        <HelpOutlineIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                ) : (
+                  <Typography fontWeight={700} fontSize={18}>
+                    {headCell}
+                  </Typography>
+                )}
+              </TableCell>
             ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Paper>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {requests.map((request) => (
+            <RequestRow
+              key={request.id}
+              request={request}
+              teachers={teachers}
+              viewAsCosupervisorOn={viewAsCosupervisorOn}
+            />
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }
 

@@ -25,9 +25,18 @@ function NotificationRow(props) {
   };
 
   return (
-    <TableRow key={notification.id}>
-      <TableCell>thesis@polito.it</TableCell>
-      <TableCell>{notification.object}</TableCell>
+    <TableRow key={notification.id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+      <TableCell sx={{ minWidth: 150 }}>thesis@polito.it</TableCell>
+      <TableCell
+        sx={{
+          maxWidth: 350,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis"
+        }}
+      >
+        {notification.object}
+      </TableCell>
       <TableCell align="center">{dayjs(notification.date).format("DD/MM/YYYY")}</TableCell>
       <TableCell align="center">
         <Tooltip title="View notification">
