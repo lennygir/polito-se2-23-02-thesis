@@ -69,7 +69,7 @@ function ProposalForm(props) {
       setFormData({
         title: proposal.title,
         supervisor: user.email,
-        coSupervisors: proposal.co_supervisors.split(", "),
+        coSupervisors: proposal.co_supervisors !== "" ? proposal.co_supervisors.split(", ") : [],
         externalCoSupervisor: "",
         expirationDate: proposal.expiration_date,
         type: proposal.type.split(", "),

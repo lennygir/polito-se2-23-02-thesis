@@ -266,9 +266,7 @@ VALUES  ('s319823', 'Moss', 'Elmo', 'Male', 'Italy', 's319823@studenti.polito.it
         ('s310987', 'Chung', 'Hye-Jin', 'Female', 'South Korea', 's310987@studenti.polito.it', 'LM-31-A', 2022),
         ('s317890', 'Alonso', 'Maria', 'Female', 'Spain', 's317890@studenti.polito.it', 'LM-30-A', 2023),
         ('s321234', 'Mazur', 'Piotr', 'Male', 'Poland', 's321234@studenti.polito.it', 'LM-26-A', 2023),
-        ('s316543', 'Chen', 'Wei', 'Male', 'China', 's316543@studenti.polito.it', 'LM-22-A', 2022),
-        ('s305050', 'Moss', 'Elmo', 'Male', 'Portugal', 's305050@studenti.polito.it', 'LM-32-D', 2022),
-        ('s306051', 'Woods', 'Bryan', 'Male', 'USA', 's306051@studenti.polito.it', 'LM-32-D', 2022);
+        ('s316543', 'Chen', 'Wei', 'Male', 'China', 's316543@studenti.polito.it', 'LM-22-A', 2022);
 
 INSERT INTO TEACHER (id, surname, name, email, cod_group, cod_department)
 VALUES  ('s123456', 'Torchiano', 'Marco', 'marco.torchiano@teacher.it', 'SOFTENG', 'DAUIN'),
@@ -296,7 +294,7 @@ VALUES  ('s123456', 'Torchiano', 'Marco', 'marco.torchiano@teacher.it', 'SOFTENG
         ('s909920', 'Lerede', 'Daniele', 'daniele.lerede@teacher.it', 'MAHTEP', 'DENERG'),
         ('s328382', 'Millo', 'Federico', 'federico.millo@teacher.it', 'E3', 'DENERG'),
         ('s098765', 'Pauli', 'Juan Stefano', 'juanstefano.pauli@teacher.it', 'NEURONICS', 'DET'),
-        ('s087654', 'Saracco', 'Giulia', 'giulia.saracco@teacher.it', 'NEURONICS', 'DET');
+        ('s087654', 'Saracco', 'Giulia', 'giulia.saracco@teacher.it', 'CMPCS', 'DISAT');
 
 INSERT INTO SECRETARY_CLERK (id, surname, name, email)
 VALUES  ('d123456', 'Ferrari', 'Laura', 'laura.ferrari@example.com'),
@@ -383,10 +381,17 @@ VALUES  (1, 'Gamification di attività di modellazione UML', 's123456', 'luigi.d
 INSERT INTO APPLICATIONS (proposal_id,student_id,state)
 VALUES (1,'s309618','rejected'),
        (2,'s309618','pending'),
-       (1,'s308747','pending'),
        (4,'s308747','rejected'),
-       (1,'s319823','rejected'),
-       (2,'s319823','pending');
+       (36,'s318765','rejected'),
+       (32,'s317743','rejected'),
+       (31,'s321503','pending'),
+       (34,'s308920','rejected'),
+       (42,'s318765','rejected'),
+       (39,'s317743','rejected'),
+       (40,'s321503','pending'),
+       (40,'s308920','rejected'),
+       (4,'s308747','rejected'),
+       (1,'s319823','rejected');
 
 -- Add notifications to students
 INSERT INTO NOTIFICATIONS (object, content, student_id)
@@ -408,8 +413,8 @@ VALUES  ('Gamification di attività di modellazione UML', 'La gamification è de
         ('Generative Methods to Enhance Creativity in User Interface Design', 'This thesis focuses on the use of generative methods to enhance creativity in User Interface (UI) design. The emergence of generative methods, particularly deep learning techniques, has provided new opportunities for computer-aided design. Recent developments in generative adversarial networks (GANs) and autoencoders have shown promising results in generating creative content in various domains such as graphics, music, and text. However, the application of these methods in the field of UI design remains largely unexplored. UI design is a critical aspect of software development that greatly impacts user experience. However, the design process can be challenging due to the necessity of considering multiple factors, such as aesthetic appeal, usability, and accessibility. Generative methods have the potential to provide designers with novel and innovative design options, enhancing their creativity and supporting them in overcoming design challenges. The main goals of this thesis are: * Review the current state of the art in generative methods and their applications in creative design. * Develop a generative model for UI design that can provide creative and usable design options. * Evaluate the effectiveness and usability of the generated designs through user studies. If appropriate, the outcome of the work will be released as an open-source project.', 's345678', null, 's320123', 'requested'),
         ('Secure and Privacy-Preserving Data Sharing in Healthcare Systems', 'Healthcare systems often involve the sharing of sensitive patient data among different entities for collaborative research or treatment purposes. Ensuring the security and privacy of this data is crucial. This thesis aims to explore secure and privacy-preserving techniques for data sharing in healthcare systems. Students will investigate encryption mechanisms, access control models, and other cryptographic techniques to protect sensitive healthcare data during transmission and storage. The research may involve the development of prototypes or simulations to evaluate the proposed solutions. The goal is to contribute to the development of robust and privacy-aware data sharing mechanisms in healthcare settings.', 's890123', 'antonio.lioy@teacher.it, igor.stievano@teacher.it', 's318234', 'started'),
         ('IoT-enabled Smart Building Management for Energy Efficiency', 'Smart building management systems, powered by the Internet of Things (IoT), play a crucial role in optimizing energy consumption and enhancing overall efficiency. This thesis focuses on IoT-enabled smart building management for energy efficiency. Students will explore the design and implementation of IoT solutions that can monitor and control various aspects of building operations to minimize energy usage. The research may involve the deployment of sensor networks, development of control algorithms, and the evaluation of the proposed solutions in real-world settings. The goal is to contribute to the development of sustainable and energy-efficient smart building technologies.', 's123345', 'cataldo.basile@teacher.it', 's321234', 'requested'),
-        ('Gamification di attività di modellazione UML', 'La gamification è definita come l applicazione di elementi tipici dei videogiochi (punteggi, competizione con altri utenti, regole di gioco, ecc.) a qualsiasi altra attività, in modo da incrementare il coinvolgimento e le prestazioni degli utenti coinvolti. Lobiettivo della tesi è lapplicazione di caratteristiche tipiche della gamification alla pratica della modellazione UML, e la valutazione dei benefici derivanti. La tesi consisterà nello sviluppo di una piattaforma con funzionalità di gaming competitivo della costruzione di diagrammi delle classi UML. I meccanismi di gamification dovranno premiare diversi aspetti di qualità del modello costruito, quali completezza, correttezza, coerenza, minimalità e leggibilità. Il sistema dovrà prevedere funzionalità di mantenimento dello storico dei punteggi, e di visualizzazione della classifica corrente dei giocatori.', 's123456', null, 's318765', 'requested'),
-        ('Generative Adversarial Networks for Artistic Style Transfer in Images', 'Artistic style transfer using generative adversarial networks (GANs) is a fascinating area at the intersection of art and technology. This thesis aims to explore GAN-based techniques for transferring artistic styles between images. Students will investigate the design and training of GAN architectures capable of capturing and reproducing various artistic styles. The research may involve experimenting with different loss functions, optimizing for computational efficiency, and exploring novel applications in the field of digital art and image processing. The goal is to contribute to the development of advanced algorithms for artistic style transfer with GANs.', 's087654', 'juanstefano.pauli@teacher.it', 's308747', 'secretary_accepted');
+        ('Gamification di attività di modellazione UML', 'La gamification è definita come l applicazione di elementi tipici dei videogiochi (punteggi, competizione con altri utenti, regole di gioco, ecc.) a qualsiasi altra attività, in modo da incrementare il coinvolgimento e le prestazioni degli utenti coinvolti. Lobiettivo della tesi è lapplicazione di caratteristiche tipiche della gamification alla pratica della modellazione UML, e la valutazione dei benefici derivanti. La tesi consisterà nello sviluppo di una piattaforma con funzionalità di gaming competitivo della costruzione di diagrammi delle classi UML. I meccanismi di gamification dovranno premiare diversi aspetti di qualità del modello costruito, quali completezza, correttezza, coerenza, minimalità e leggibilità. Il sistema dovrà prevedere funzionalità di mantenimento dello storico dei punteggi, e di visualizzazione della classifica corrente dei giocatori.', 's123456', null, 's318765', 'requested');
+
 
 -- ACTIVATE FOREIGN KEYS
 PRAGMA foreign_keys = ON;

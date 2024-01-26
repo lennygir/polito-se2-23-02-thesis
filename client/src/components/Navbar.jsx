@@ -47,12 +47,12 @@ function Navbar(props) {
           <MenuIcon color="white" />
         </IconButton>
 
-        <ButtonDatePicker
+        {/* <ButtonDatePicker
           label={dayjs(currentDate).format("DD/MM/YYYY")}
           value={dayjs(currentDate)}
           minDate={dayjs(currentDate)}
           onChange={(newDate) => handleDateChange(newDate)}
-        />
+        /> */}
 
         <Box sx={{ flexGrow: 1 }} />
 
