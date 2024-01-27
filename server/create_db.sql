@@ -390,7 +390,6 @@ VALUES (1,'s309618','rejected'),
        (39,'s317743','rejected'),
        (40,'s321503','pending'),
        (40,'s308920','rejected'),
-       (4,'s308747','rejected'),
        (1,'s319823','rejected');
 
 -- Add notifications to students
