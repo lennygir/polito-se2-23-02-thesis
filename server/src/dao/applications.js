@@ -1,6 +1,7 @@
 "use strict";
 
 const { db } = require("../db");
+const { notifyApplicationDecision } = require("./misc");
 
 exports.insertApplication = (proposal, student, state) => {
   const result = db
@@ -30,6 +31,14 @@ exports.getApplicationById = (id) => {
 };
 
 exports.cancelPendingApplications = (of_proposal) => {
+  const applications = db
+    .prepare(
+      "select * from main.APPLICATIONS where proposal_id = ? and state = 'pending'",
+    )
+    .all(of_proposal);
+  for (const application of applications) {
+    notifyApplicationDecision(application.id, "canceled");
+  }
   db.prepare(
     "update APPLICATIONS set state = 'canceled' where proposal_id = ? AND state = 'pending'",
   ).run(of_proposal);
