@@ -144,10 +144,12 @@ function ProposalDetails(props) {
         <span style={{ fontWeight: "bold" }}>Supervisor: </span>
         {supervisorTeacher.surname + " " + supervisorTeacher.name + " (" + supervisorTeacher.email + ")"}
       </Typography>
-      <Typography variant="body1" gutterBottom>
-        <span style={{ fontWeight: "bold" }}>Co-supervisors: </span>
-        {proposal.co_supervisors}
-      </Typography>
+      {proposal.co_supervisors !== "" && (
+        <Typography variant="body1" gutterBottom>
+          <span style={{ fontWeight: "bold" }}>Co-supervisors: </span>
+          {proposal.co_supervisors}
+        </Typography>
+      )}
       {proposal.keywords && proposal.keywords !== "" && (
         <Stack direction="row" spacing={1} alignItems={{ md: "center", xs: "flex-start" }} sx={{ mb: 1 }}>
           <Typography variant="body1" fontWeight={700} gutterBottom>
